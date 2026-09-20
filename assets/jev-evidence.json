@@ -1,0 +1,422 @@
+{
+  "published": "2026-09-21",
+  "scope": "Selected aggregate results, not raw traces or a complete reproduction package. Each study retains its own denominator. Costs are USD; Jev API-reported, Luna token-estimated.",
+  "studies": {
+    "dynamic_actions": {
+      "source_summary_sha256": "9bea4f972aba82b40e2aa1e1e24a0e6f03b78ce34545068f2286504ea6d0b4fa",
+      "totals": {
+        "jev": {
+          "attempted_calls": 14,
+          "valid_calls": 14,
+          "correct_valid_calls": 14,
+          "known_cost_usd": 0.000305592,
+          "unknown_cost_calls": 0
+        },
+        "luna_none": {
+          "attempted_calls": 14,
+          "valid_calls": 14,
+          "correct_valid_calls": 14,
+          "known_cost_usd": 0.0008828,
+          "unknown_cost_calls": 0
+        }
+      }
+    },
+    "handoff": {
+      "source_summary_sha256": "fa2beac0eb24474df8e86c266473c7617e1794752918414c8585311a9e60155c",
+      "totals": {
+        "pipeline_jev": {
+          "attempted_calls": 12,
+          "valid_calls": 12,
+          "correct_valid_calls": 7,
+          "known_cost_usd": 0.000822864,
+          "unknown_cost_calls": 0
+        },
+        "pipeline_luna_fallback": {
+          "attempted_calls": 9,
+          "valid_calls": 9,
+          "correct_valid_calls": 5,
+          "known_cost_usd": 0.0073544,
+          "unknown_cost_calls": 0
+        },
+        "luna_always_baseline": {
+          "attempted_calls": 12,
+          "valid_calls": 12,
+          "correct_valid_calls": 8,
+          "known_cost_usd": 0.006094,
+          "unknown_cost_calls": 0
+        },
+        "luna_top2_shortlist": {
+          "attempted_calls": 6,
+          "valid_calls": 6,
+          "correct_valid_calls": 3,
+          "known_cost_usd": 0.0072264,
+          "unknown_cost_calls": 0
+        },
+        "pipeline": {
+          "cases": 12,
+          "jev_accepted": 3,
+          "fallback_calls": 9,
+          "final_correct": 8,
+          "abstentions": 0,
+          "known_cost_usd": 0.008177264
+        }
+      }
+    },
+    "clean_dom": {
+      "source_summary_sha256": "6d4e5e48999c6372c3e3dc7c9c2058cd7b5dcee87eb72b9dc5a4f7cee15b8b6f",
+      "by_strategy": {
+        "jev_flat": {
+          "cases": 4,
+          "correct": 4,
+          "calls": 4,
+          "cost_usd": 0.00018349799999999998
+        },
+        "jev_recovery": {
+          "cases": 4,
+          "correct": 2,
+          "calls": 20,
+          "cost_usd": 0.000378672
+        }
+      }
+    },
+    "workflows": {
+      "source_summary_sha256": "47eb18693a6df402f7ef2d1cb4a32c7c55615f0e4a2f1c357c494ef197a546b2",
+      "totals": {
+        "luna_react": {
+          "workflows": 4,
+          "success": 4,
+          "goal_state": 4,
+          "explicit_stop": 4,
+          "luna_calls": 20,
+          "jev_calls": 0,
+          "luna_cost_usd": 0.00420587,
+          "jev_cost_usd": 0.0,
+          "parameter_input_tokens": 0
+        },
+        "luna_plan": {
+          "workflows": 4,
+          "success": 0,
+          "goal_state": 0,
+          "explicit_stop": 0,
+          "luna_calls": 4,
+          "jev_calls": 0,
+          "luna_cost_usd": 0.0013422000000000004,
+          "jev_cost_usd": 0.0,
+          "parameter_input_tokens": 0
+        },
+        "jev_full": {
+          "workflows": 4,
+          "success": 4,
+          "goal_state": 4,
+          "explicit_stop": 4,
+          "luna_calls": 4,
+          "jev_calls": 16,
+          "luna_cost_usd": 0.0010528500000000004,
+          "jev_cost_usd": 0.0005411700000000001,
+          "parameter_input_tokens": 2888
+        },
+        "jev_compact": {
+          "workflows": 4,
+          "success": 4,
+          "goal_state": 4,
+          "explicit_stop": 4,
+          "luna_calls": 4,
+          "jev_calls": 16,
+          "luna_cost_usd": 0.0006057999999999992,
+          "jev_cost_usd": 0.0005404140000000001,
+          "parameter_input_tokens": 1319
+        }
+      },
+      "note": "Original luna_plan totals are protocol failures before tool execution; see the independent strict-enum plan_repair study. Do not compare them as reasoning errors."
+    },
+    "plan_repair": {
+      "source_summary_sha256": "105598763e33e5d21103fc402118a556f7492bf431b844535f9b82ff11112354",
+      "cases": 4,
+      "correct": 4,
+      "calls": 10,
+      "cost_usd": 0.00286755
+    },
+    "bbh_original": {
+      "source_summary_sha256": "1d62344ef7bad85fb7ea6a6e46c54acff465380fbc7eec49a98e8220b4f6f73f",
+      "totals": {
+        "jev_direct": {
+          "attempted_calls": 18,
+          "valid_calls": 18,
+          "correct_valid_calls": 17,
+          "known_cost_usd": 0.000381906,
+          "unknown_cost_calls": 0
+        },
+        "luna_none": {
+          "attempted_calls": 18,
+          "valid_calls": 18,
+          "correct_valid_calls": 11,
+          "known_cost_usd": 0.001166,
+          "unknown_cost_calls": 0
+        }
+      }
+    },
+    "bbh_low_first_six": {
+      "source_summary_sha256": "a118905ff94fc6c1b9062817830e681744f47e5f68babf43f85561c0dbde9993",
+      "totals": {
+        "jev_order_prompt": {
+          "attempted_calls": 6,
+          "valid_calls": 6,
+          "correct_valid_calls": 6,
+          "known_cost_usd": 0.000129444,
+          "unknown_cost_calls": 0
+        },
+        "luna_low": {
+          "attempted_calls": 6,
+          "valid_calls": 6,
+          "correct_valid_calls": 6,
+          "known_cost_usd": 0.0008428,
+          "unknown_cost_calls": 0
+        }
+      }
+    },
+    "bbh_low_remaining_twelve": {
+      "source_summary_sha256": "86c9e8fe8d52a08e6fa0cc9c7b21bc438936453ca8adc8aee4a92e9f412cc30a",
+      "totals": {
+        "luna_low": {
+          "attempted_calls": 12,
+          "valid_calls": 12,
+          "correct_valid_calls": 11,
+          "known_cost_usd": 0.0021088,
+          "unknown_cost_calls": 0
+        }
+      }
+    },
+    "bbeh_original": {
+      "source_summary_sha256": "4a3665bde6971ea9c3c4de44e9d37e371dfedfb50a8ed56cbfdfc2db2b073009",
+      "totals": {
+        "jev": {
+          "attempted_calls": 6,
+          "valid_calls": 6,
+          "correct_valid_calls": 2,
+          "known_cost_usd": 0.000703038,
+          "unknown_cost_calls": 0
+        },
+        "luna_low": {
+          "attempted_calls": 6,
+          "valid_calls": 3,
+          "correct_valid_calls": 2,
+          "known_cost_usd": 0.0095878,
+          "unknown_cost_calls": 0
+        }
+      }
+    },
+    "bbeh_cap_control": {
+      "source_summary_sha256": "b2a857eb44176efd6d96b14b36d8d83d02f08993119dec4e79b25f559893ea3d",
+      "attempted_calls": 6,
+      "valid_calls": 6,
+      "correct_valid_calls": 4,
+      "known_cost_usd": 0.0095842
+    },
+    "character_positions": {
+      "source_summary_sha256": "53e2f5a25c62fd75d1d7a9fa45e919dd45e1997e8d507f411dcb8de25f1e9710",
+      "character_position_only": {
+        "absent": {
+          "decisions": 12,
+          "correct": 8
+        },
+        "present": {
+          "decisions": 12,
+          "correct": 10
+        }
+      },
+      "note": "Two English words, repeated gold-prefix decisions; STOP after a complete word excluded."
+    },
+    "dom_original": {
+      "source_summary_sha256": "c2940a17776d1ed3fa0bc4adc12cc773985f5ffcb3d56a188a7f279f11da6cce",
+      "by_strategy": {
+        "jev_flat": {
+          "completed_cells": 7,
+          "exact_state_successes": 7,
+          "calls": 7,
+          "known_cost_usd": 0.0008066939999999999,
+          "median_entire_wall_ms": 463.854,
+          "input_tokens": 19207,
+          "output_tokens": 2076
+        },
+        "jev_greedy": {
+          "completed_cells": 7,
+          "exact_state_successes": 6,
+          "calls": 21,
+          "known_cost_usd": 0.00161532,
+          "median_entire_wall_ms": 1558.029,
+          "input_tokens": 38460,
+          "output_tokens": 1165
+        },
+        "luna_flat": {
+          "completed_cells": 7,
+          "exact_state_successes": 7,
+          "calls": 7,
+          "known_cost_usd": 0.0036592500000000006,
+          "median_entire_wall_ms": 1688.151,
+          "input_tokens": 14070,
+          "output_tokens": 119
+        },
+        "jev_beam2": {
+          "completed_cells": 4,
+          "exact_state_successes": 4,
+          "calls": 20,
+          "known_cost_usd": 0.00171696,
+          "median_entire_wall_ms": 1877.0615,
+          "input_tokens": 40880,
+          "output_tokens": 1240
+        },
+        "jev_progressive": {
+          "completed_cells": 2,
+          "exact_state_successes": 2,
+          "calls": 6,
+          "known_cost_usd": 0.00012171600000000001,
+          "median_entire_wall_ms": 1191.6345000000001,
+          "input_tokens": 2898,
+          "output_tokens": 298
+        }
+      }
+    },
+    "factorized_single-point-summary": {
+      "source_summary_sha256": "c35371ac819371c8ec0d1c35b09700d80685cc5baa17130eac331726d93681e5",
+      "totals": {
+        "utc": "2026-09-20T16:36:38.255048+00:00",
+        "event": "totals",
+        "known_cost_usd": 0.00051198,
+        "unknown_cost_calls": 0,
+        "requests": 20
+      },
+      "groups": {
+        "holistic/new": {
+          "cases": 8,
+          "correct": 6,
+          "false_execute": 2,
+          "known_cost_usd": 0.00015770999999999998
+        },
+        "factorized/new": {
+          "cases": 8,
+          "correct": 7,
+          "false_execute": 1,
+          "known_cost_usd": 0.00025179
+        },
+        "holistic/development": {
+          "cases": 2,
+          "correct": 0,
+          "false_execute": 2,
+          "known_cost_usd": 3.948e-05
+        },
+        "factorized/development": {
+          "cases": 2,
+          "correct": 1,
+          "false_execute": 1,
+          "known_cost_usd": 6.3e-05
+        }
+      }
+    },
+    "factorized_luna-summary": {
+      "source_summary_sha256": "ceccabd15de33cb24f738582cf3789c777e61a53816d61be1bd82cbc5a9357b5",
+      "totals": {
+        "utc": "2026-09-20T16:38:34.867500+00:00",
+        "event": "totals",
+        "requests": 8,
+        "known_cost_usd": 0.0010004000000000002,
+        "unknown_cost_calls": 0
+      },
+      "groups": {
+        "luna/new": {
+          "cases": 8,
+          "correct": 8,
+          "false_execute": 0,
+          "known_cost_usd": 0.0010004000000000002
+        }
+      }
+    },
+    "factorized_dom-summary": {
+      "source_summary_sha256": "d5553228f23abe5cad87298ef429d8061999016e039ceb6412c2467c6584154b",
+      "totals": {
+        "utc": "2026-09-20T16:43:24.764507+00:00",
+        "event": "totals",
+        "requests": 58,
+        "known_cost_usd": 0.0013194719999999997,
+        "unknown_cost_calls": 0
+      },
+      "groups": {
+        "jev_flat": {
+          "cases": 4,
+          "correct": 4,
+          "calls": 4,
+          "cost_usd": 0.000185556
+        },
+        "jev_recovery": {
+          "cases": 4,
+          "correct": 3,
+          "calls": 27,
+          "cost_usd": 0.000511686
+        },
+        "jev_factorized_recovery": {
+          "cases": 4,
+          "correct": 3,
+          "calls": 27,
+          "cost_usd": 0.00062223
+        }
+      }
+    },
+    "workflow_transfer": {
+      "source_summary_sha256": "31e1618131d3346246de4ae2a2be9719c64ce4a0da9264596adc5a0a81f601e8",
+      "totals": {
+        "luna_react": {
+          "workflows": 8,
+          "success": 8,
+          "goal_state": 8,
+          "explicit_stop": 8,
+          "luna_calls": 37,
+          "jev_calls": 0,
+          "luna_cost_usd": 0.007094590000000003,
+          "jev_cost_usd": 0.0,
+          "parameter_input_tokens": 0,
+          "business_completed": 4,
+          "safe_block": 4
+        },
+        "luna_plan": {
+          "workflows": 8,
+          "success": 7,
+          "goal_state": 7,
+          "explicit_stop": 7,
+          "luna_calls": 19,
+          "jev_calls": 0,
+          "luna_cost_usd": 0.0079544,
+          "jev_cost_usd": 0.0,
+          "parameter_input_tokens": 2836,
+          "business_completed": 3,
+          "safe_block": 4
+        },
+        "jev_compact": {
+          "workflows": 8,
+          "success": 7,
+          "goal_state": 8,
+          "explicit_stop": 7,
+          "luna_calls": 4,
+          "jev_calls": 51,
+          "luna_cost_usd": 0.0006996000000000003,
+          "jev_cost_usd": 0.002051154,
+          "parameter_input_tokens": 1098,
+          "business_completed": 4,
+          "safe_block": 3
+        }
+      },
+      "note": "business_completed and safe_block differ; explicit stop required; amendment is an independent later eight-case cohort."
+    },
+    "workflow_transfer_stop_amendment": {
+      "source_summary_sha256": "91bef1d9ce0b9b264c836ae0ae5ffd2008bea2bad22a801323727781fd9c89fb",
+      "totals": {
+        "protocol_success": 7,
+        "business_completed": 4,
+        "safe_block": 3,
+        "luna_calls": 4,
+        "jev_calls": 40,
+        "luna_cost_usd": 0.0006912000000000029,
+        "jev_cost_usd": 0.0015545459999999995
+      },
+      "note": "business_completed and safe_block differ; explicit stop required; amendment is an independent later eight-case cohort."
+    }
+  }
+}
