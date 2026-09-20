@@ -1,19 +1,21 @@
-# 研究项目
+# Experiments
 
-从具体的控制问题出发，每项研究独立保留方法、样本和限制。
+Three questions about how agents work.
 
-## Jev × Harness Engineering
+## Can cheap decisions make a cheap agent?
 
-**探索性研究 · 2026**
+Jev chose short-rule actions quickly and cheaply. Complete workflows exposed problems with stopping and recovery.
 
-哪些选择适合交给低延迟决策模型？哪些工作应交给代码或生成模型？从单体失败定位开始，再比较费用与完整系统行为。
+[Read the Jev study →](@/projects/jev/)
 
-[研究报告与公开汇总 →](@/projects/jev/)
+## Does planning ahead actually save time?
 
-## Compile, Then Act?
+A fixed dependency graph could expose parallel work. Across 40 research and competition questions, that did not become a consistent speedup.
 
-**已公开研究 · 2026**
+[Read Compile, Then Act? →](@/projects/compile-then-act/)
 
-把计划预先编译后执行，能否节省在线调度的代价？如何计入未完成、工具反馈与有界恢复？
+## Why didn’t three small models reason better together?
 
-[项目、方法与报告 →](@/projects/compile-then-act/)
+Correct answers sometimes appeared before discussion and vanished after it. A dedicated checker showed promise, but could inherit the same mistakes.
+
+[Read Debate Workbench →](@/projects/debate-workbench/)

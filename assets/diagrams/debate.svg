@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="title">
+<title id="title">A debate loop with an optional checker</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#38464a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect width="600" height="600" rx="14" fill="#fbf9f3"/>
+<text x="300" y="40" text-anchor="middle" fill="#38464a" font-size="25" font-family="Segoe Print, Bradley Hand, cursive">Turn 1: independent answers</text>
+<path d="M23.5 80.6 Q103.5 80.4 183.5 79.3 L184.7 164.1 Q103.5 162.7 20.9 163.8 Z" fill="#e0eaf1" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M21.0 78.8 Q103.5 77.3 183.5 79.8 L184.7 164.0 Q103.5 164.8 21.5 162.4 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="103.5" y="129.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">Solver A</text>
+<path d="M220.0 79.3 Q300.5 79.6 382.4 80.7 L381.5 164.9 Q300.5 163.5 219.3 164.6 Z" fill="#e0eaf1" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M218.3 77.5 Q300.5 78.9 382.8 79.3 L381.8 164.5 Q300.5 162.9 217.8 163.4 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="300.5" y="129.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">Solver B</text>
+<path d="M415.1 77.9 Q495.5 77.6 575.6 77.3 L576.2 164.3 Q495.5 165.2 413.4 163.5 Z" fill="#f4e0d5" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M413.2 78.3 Q495.5 80.0 577.2 78.1 L575.6 165.0 Q495.5 164.7 415.2 163.1 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="495.5" y="113.82" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">Solver /</text>
+<text x="495.5" y="144.82" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">checker</text>
+<path d="M104 170 L104 205 L300 205 L300 232" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M300 170 L300 202" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M495 170 L495 205 L310 205" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M92.2 241.5 Q300.0 240.3 509.6 238.8 L509.7 316.4 Q300.0 317.7 90.3 319.1 Z" fill="#e0eaf1" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M92.7 241.7 Q300.0 241.1 509.6 240.1 L509.8 318.9 Q300.0 317.4 93.7 317.6 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="300.0" y="286.82" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">Read peers’ previous reasoning</text>
+<path d="M300 323 Q298 341 300 358" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M145.9 363.5 Q300.0 364.9 451.9 366.6 L454.6 443.0 Q300.0 442.6 147.1 442.8 Z" fill="#e5eddf" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M147.2 366.1 Q300.0 364.1 452.7 366.4 L452.8 443.4 Q300.0 445.4 148.1 445.4 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="300.0" y="412.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">Revise + vote</text>
+<path d="M458 405 L550 405 L550 278 L514 278" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="485" y="476" text-anchor="middle" fill="#38464a" font-size="21" font-family="Segoe Print, Bradley Hand, cursive">repeat</text>
+<text x="295" y="531" text-anchor="middle" fill="#914c37" font-size="25" font-family="Segoe Print, Bradley Hand, cursive">A checker is still inside</text>
+<text x="295" y="564" text-anchor="middle" fill="#914c37" font-size="25" font-family="Segoe Print, Bradley Hand, cursive">the feedback loop.</text>
+</svg>

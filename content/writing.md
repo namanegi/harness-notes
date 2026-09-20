@@ -1,8 +1,7 @@
-# 文章
+# Notes
 
-从实验中的具体失败，讨论可以迁移的 harness 设计。
+[When is another model call worth it?](@/writing/2026-09-21-decisions-and-code/)
 
-## 2026 年 9 月
+September 21, 2026 · A question that connects three experiments: what does the next call actually add?
 
-[哪些判断交给模型，哪些留给代码](@/writing/2026-09-21-decisions-and-code/)  
-2026-09-21 · 两项研究中的控制边界与完整成本。
+[Browse the experiments →](@/projects/)

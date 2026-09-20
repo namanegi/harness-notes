@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>先排好计划，真的会更快吗？ · namanegi</title><meta name="description" content="在 40 道题上比较在线调度与预先编译计划。">
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/compile-then-act/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/compile-then-act/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/compile-then-act/">
+<meta name="theme-color" content="#f6f3ec"></head>
+<body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
+<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/compile-then-act/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/compile-then-act/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav></header>
+<main id="main" class="prose"><h1 id="_1">先排好计划，真的会更快吗？</h1>
+<div class="meta">Compile, Then Act? · 2026-08 · 约 4 分钟</div>
+
+<p>每调用一次工具，都让模型再想一遍“接下来做什么”，看起来很浪费。我的设想是：先把任务拆成一张依赖图，能并行的工作一起执行，省掉中途反复调度的时间。</p>
+<p><strong>实验没有得到稳定的加速。</strong> 提前规划保住了接近的答案正确率，却也让一些任务卡在原来的计划里。</p>
+<h2 id="_2">把决定提前，会失去什么？</h2>
+<p>我比较了三种做法：一个 agent 直接使用工具；控制器看完一批专家的结果再安排下一批（Online）；开始时一次排好依赖图，之后只按图执行（Compiled）。后两种共享专家、工具与资源上限。</p>
+<figure><img src="/harness-notes/assets/diagrams/zh/plan.svg" alt="在线调度在每批执行后读取结果，再安排下一批；预编译先排好依赖图，并行执行就绪任务，但不根据结果改图。"><figcaption>两种安排工作的时机。上面能根据新发现转向，下面提前获得并行机会。</figcaption></figure>
+
+<p>题目来自 FRAMES 的多跳事实检索和 OlympiadBench 的竞赛题，各取 20 题，每题运行三次。三种方法都用 Luna medium，共 360 次基础运行。这里最想知道的是：遇到执行前不知道的信息，固定计划要付出多大代价？</p>
+<h2 id="_3">答案差得不多，执行过程差得很大</h2>
+<table>
+<thead>
+<tr>
+<th>数据集</th>
+<th style="text-align: right;">单 agent 答对</th>
+<th style="text-align: right;">Online 答对</th>
+<th style="text-align: right;">Compiled 答对</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FRAMES</td>
+<td style="text-align: right;">21/60</td>
+<td style="text-align: right;">27/60</td>
+<td style="text-align: right;">26/60</td>
+</tr>
+<tr>
+<td>OlympiadBench</td>
+<td style="text-align: right;">29/60</td>
+<td style="text-align: right;">40/60</td>
+<td style="text-align: right;">38/60</td>
+</tr>
+</tbody>
+</table>
+<p>Compiled 总共比 Online 少答对三次。但它在 FRAMES 上只有 <strong>15/60 次正常完成</strong>，Online 是 51/60。两组数字并不冲突：流程没有完成时，已经产出的答案仍可能答对。</p>
+<p>时间也没有按设想发展。120 对运行里，Online 有 <strong>77 对更快</strong>。FRAMES 的少数长尾运行拉高了 Online 的平均耗时；看中位数，Compiled 在两个数据集上都更慢。费用记录倾向于 Compiled 更低，但 FRAMES 两种方法各只有 35/60 次留下完整费用，暂时算不清总账。</p>
+<p>我又对 56 次未完成的 Compiled 运行追加了有界恢复：重新开始，最多允许一次重规划。它把六个错答案改对，也把四个对答案改错，净增两次正确；代价是再跑一条执行路径。</p>
+<h2 id="_4">我会把固定计划用在哪里？</h2>
+<p>这次结果让我更关心<strong>任务开始时，究竟已经知道多少</strong>。如果依赖关系清楚，执行只是把已知步骤做完，提前排图仍值得尝试。若后面的工作要靠检索结果才能确定，就应为中途改路留下空间。这是下一步的设计判断，还需要专门对照验证。</p>
+<p>单 agent 则提供了一个容易被忽视的参照：它明显更快、更便宜，也明显少答对。增加调度结构值不值得，最终取决于多答对的那些题是否值得等待。</p>
+<details class="source-note">
+<summary>数据出处与必要限定</summary>
+<p>以上使用冻结主分析，未混入后来的基础设施重试。Compiled 与 Online 的总体正确率差为 −2.5 个百分点，描述性区间为 −10.0 至 +5.8，不能据此认定等效。56 次恢复只针对未完成运行，不能当作第四组平行对照。</p>
+<p><a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/results/formal-medium-v3/report.md">完整报告</a> · <a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/docs/methods.md">研究方法</a></p>
+</details></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

@@ -1,18 +1,21 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>研究项目 · namanegi</title><meta name="description" content="各自保留问题、方法、数据与适用范围。">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Experiments · namanegi</title><meta name="description" content="Three questions about how agents work.">
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/">
 <meta name="theme-color" content="#f6f3ec"></head>
-<body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
-<nav aria-label="主导航"><a href="/harness-notes/projects/">研究</a><a href="/harness-notes/writing/">文章</a><a href="/harness-notes/methods/">方法</a><a href="/harness-notes/about/">关于</a></nav></header>
-<main id="main" class="prose"><h1 id="_1">研究项目</h1>
-<p>从具体的控制问题出发，每项研究独立保留方法、样本和限制。</p>
-<h2 id="jev-harness-engineering">Jev × Harness Engineering</h2>
-<p><strong>探索性研究 · 2026</strong></p>
-<p>哪些选择适合交给低延迟决策模型？哪些工作应交给代码或生成模型？从单体失败定位开始，再比较费用与完整系统行为。</p>
-<p><a href="/harness-notes/projects/jev/">研究报告与公开汇总 →</a></p>
-<h2 id="compile-then-act">Compile, Then Act?</h2>
-<p><strong>已公开研究 · 2026</strong></p>
-<p>把计划预先编译后执行，能否节省在线调度的代价？如何计入未完成、工具反馈与有界恢复？</p>
-<p><a href="/harness-notes/projects/compile-then-act/">项目、方法与报告 →</a></p></main>
-<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">页面源文件 ↗</a><span>研究有边界，结论保留条件。</span></footer></body></html>
+<body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
+<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
+<main id="main" class="prose"><h1 id="experiments">Experiments</h1>
+<p>Three questions about how agents work.</p>
+<h2 id="can-cheap-decisions-make-a-cheap-agent">Can cheap decisions make a cheap agent?</h2>
+<p>Jev chose short-rule actions quickly and cheaply. Complete workflows exposed problems with stopping and recovery.</p>
+<p><a href="/harness-notes/projects/jev/">Read the Jev study →</a></p>
+<h2 id="does-planning-ahead-actually-save-time">Does planning ahead actually save time?</h2>
+<p>A fixed dependency graph could expose parallel work. Across 40 research and competition questions, that did not become a consistent speedup.</p>
+<p><a href="/harness-notes/projects/compile-then-act/">Read Compile, Then Act? →</a></p>
+<h2 id="why-didnt-three-small-models-reason-better-together">Why didn’t three small models reason better together?</h2>
+<p>Correct answers sometimes appeared before discussion and vanished after it. A dedicated checker showed promise, but could inherit the same mistakes.</p>
+<p><a href="/harness-notes/projects/debate-workbench/">Read Debate Workbench →</a></p></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

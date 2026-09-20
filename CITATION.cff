@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "For experimental findings, cite the corresponding study linked in SOURCES.md."
+title: "Harness Notes"
+type: software
+authors:
+  - name: namanegi
+url: "https://namanegi.github.io/harness-notes/"
+repository-code: "https://github.com/namanegi/harness-notes"
+license: Apache-2.0

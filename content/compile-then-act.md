@@ -1,30 +1,44 @@
-# Compile, Then Act?
+# Does planning ahead actually save time?
 
-<div class="meta">公开研究 / 模型控制与计划执行</div>
+<div class="meta">Compile, Then Act? · August 2026 · 4 min read</div>
 
-这个项目比较三个基本控制方式：Single-agent 直接调用工具；Online 在观察一批专家结果后决定下一批工作；Compiled 在执行前生成并验证一次依赖图，运行中不修改它。Bounded 则只对未完成的 Compiled 运行追加有限恢复。
+An agent that asks “what next?” after every tool call spends time deciding how to work. I wanted to move those decisions to the beginning: build a dependency graph once, then run independent tasks together.
 
-## 研究设计
+**The experiment did not find a consistent speedup.** A fixed plan kept answer accuracy close to adaptive scheduling, but many runs failed to finish.
 
-冻结主分析包含 FRAMES 与 OlympiadBench 各 20 个题目，每题三次 rollout、三种基本条件，共 360 次运行。基本配置使用同一 Luna medium。Bounded 是条件触发的后续路径，不是第四个随机主条件。
+## Decide now, or wait for evidence?
 
-## 从主分析能得出什么
+I compared three approaches. A single agent used tools directly. An **Online** controller read each completed batch of specialist work before assigning the next. A **Compiled** controller built one dependency graph before execution and never rewrote it. The two multi-agent approaches shared specialists, tools and resource limits.
 
-Compiled 的总体答案正确率点估计比 Online 低 2.5 个百分点；描述性区间为 −10.0 至 +5.8 个百分点。点估计落在事先规定的五点质量边界内，但这个区间不能确立等效。FRAMES 上 Compiled 的运行完成为 15/60；答案正确与完成运行是不同指标。
+<figure><img src="/harness-notes/assets/diagrams/plan.svg" alt="Online scheduling reads the result of each batch before choosing the next. Compiled scheduling builds a fixed graph first, then runs ready tasks in parallel."><figcaption>The timing of the decision is the difference: adapt after observing a result, or commit early and expose parallel work.</figcaption></figure>
 
-延迟方向随数据集变化。FRAMES 的费用用量有缺失，因此可观察运行的平均费用不能当作完整总体成本。它支持检查“在观察工具结果之前承诺计划”的代价，而不是宣称编译计划必然更快。
+The evaluation used 20 multi-hop research questions from FRAMES and 20 competition problems from OlympiadBench. Each ran three times under all three approaches, using Luna at medium reasoning effort: 360 base runs.
 
-以上来自[冻结主报告](https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/results/formal-medium-v3/report.md)。
+## Similar answers, very different completion
 
-## 阅读时区分两种视图
+| Dataset | Single agent correct | Online correct | Compiled correct |
+|---|---:|---:|---:|
+| FRAMES | 21/60 | 27/60 | 26/60 |
+| OlympiadBench | 29/60 | 40/60 | 38/60 |
 
-简报中的事后报告视图替换了 11 个固定基础设施问题记录，并将 64 个未触发救援的 Compiled 代理与 56 条实际 Bounded 路径拼接。它用于诊断，不能覆盖 360 次冻结主分析，也不能当作四策略同条件随机试验。
+Compiled answered three fewer runs correctly than Online overall. Yet on FRAMES it completed normally in only **15/60 runs**, against Online’s 51/60. An unfinished run could still leave a scoreable answer, so accuracy alone hid a substantial execution problem.
 
-## 原始出处
+The timing result also resisted a simple story. Online was faster in **77 of 120 paired runs**. A few long Online runs made its mean latency worse on FRAMES; its median was still lower on both datasets. Recorded costs favored Compiled, but only 35/60 FRAMES runs in each multi-agent condition had complete cost records.
 
-- [方法](https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/docs/methods.md)
-- [完整报告](https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/results/formal-medium-v3/report.md)
-- [简报与事后视图](https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/results/formal-medium-v3/report-brief.md)
-- [公开仓库与复现材料](https://github.com/namanegi/compile-then-act/tree/01c48be05391f6739fc59c88312a2c794cdf60b9)
+I then tried a bounded recovery on the 56 unfinished Compiled runs: start again, allowing at most one replan. It corrected six answers and spoiled four, a net gain of two. Recovery required paying for another execution path.
 
-本页引用固定公开版本。这里的 Online 不等于另一个 Jev pilot 的 Agents SDK ReAct；Compiled 也不等于允许重规划的计划执行器。两个项目的质量和费用不能直接排名。
+## Where I would try a fixed plan next
+
+The useful question seems to be **how much is already known when execution begins**. A fixed graph looks more promising when dependencies are clear and the remaining work is mostly execution. Research tasks often reveal the next useful question only after a search result arrives.
+
+That is a design hypothesis, not a boundary this study established. A controlled comparison between known and newly discovered dependencies would test it more directly.
+
+The single-agent baseline also deserves attention. It was much faster and cheaper in the available records, and answered fewer questions correctly. Extra orchestration has to earn its place through the answers it recovers.
+
+<details class="source-note" markdown="1"><summary>Sources and study limits</summary>
+
+These numbers use the frozen primary analysis, before supplementary infrastructure retries. Compiled’s overall accuracy difference from Online was −2.5 percentage points, with a descriptive interval of −10.0 to +5.8; this does not establish equivalence. Recovery was conditional on unfinished runs, not a fourth parallel baseline. Cost covers recorded model usage rather than total operating expense.
+
+[Full report](https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/results/formal-medium-v3/report.md) · [Methods](https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/docs/methods.md) · [Reproduction](https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/docs/reproduction.md)
+
+</details>

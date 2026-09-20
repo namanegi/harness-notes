@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jev experiment appendix · namanegi</title><meta name="description" content="Methods and results for each separate experimental cohort.">
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/research/jev-report/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/research/jev-report/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/research/jev-report/">
+<meta name="theme-color" content="#f6f3ec"></head>
+<body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
+<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/research/jev-report/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/research/jev-report/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
+<main id="main" class="prose"><h1 id="jev-experiment-appendix">Jev experiment appendix</h1>
+<div class="meta">Measurements: September 20–21, 2026 · Jev 1.13 · GPT-5.6 Luna</div>
+
+<p>This appendix preserves the separate cohorts behind <a href="/harness-notes/projects/jev/">the article</a>. Results are exploratory: samples are small, several tasks are synthetic, and repeated measurements are not independent benchmark samples.</p>
+<p><a href="/harness-notes/assets/jev-evidence.json">Download the aggregate data</a>. It includes source-summary hashes and grouped counts, not the private runner, raw requests or a complete reproduction package.</p>
+<h2 id="measurement">Measurement</h2>
+<p>Jev used the official OpenRouter Python SDK Decisions interface; Luna used the OpenAI SDK with strict JSON, and ReAct used the Agents SDK. SDK batches used TLS verification, connection reuse and no automatic retries. The resolved Jev model was <code>typesafe/jev-1.13-20260917</code>; Luna requests used <code>gpt-5.6-luna</code>.</p>
+<p>Jev cost is API-reported; Luna cost is estimated from input, cache and output usage. Neither was reconciled against provider invoices. Wall time includes local and network overhead. Structure validity, correct choice, goal state and explicit stopping were separate observations.</p>
+<p>Benchmark inputs came from pinned <a href="https://github.com/suzgunmirac/BIG-Bench-Hard/tree/9ee07bd481feebf959a6b59d61ea57bdcf30964d">BBH</a> and <a href="https://github.com/google-deepmind/bbeh/tree/80d12ca916b7158f22293fcf3144f4d3d854d4be">BBEH</a> revisions. Questions were sampled before calls; selected BBH boolean and swap labels were also checked in code. Training overlap is unknown. Benchmark records are not redistributed here.</p>
+<h2 id="1-single-decisions">1. Single decisions</h2>
+<table>
+<thead>
+<tr>
+<th>Cohort</th>
+<th style="text-align: right;">Jev correct</th>
+<th style="text-align: right;">Luna correct</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>14 distinct short-rule action states</td>
+<td style="text-align: right;">14/14</td>
+<td style="text-align: right;">none effort: 14/14</td>
+</tr>
+<tr>
+<td>BBH, six questions in each of three families</td>
+<td style="text-align: right;">17/18</td>
+<td style="text-align: right;">none: 11/18; low + step prompt: 17/18</td>
+</tr>
+<tr>
+<td>Original six BBEH five-choice questions</td>
+<td style="text-align: right;">2/6</td>
+<td style="text-align: right;">low / 1,024 tokens: 2/6; low / 4,096: 4/6</td>
+</tr>
+</tbody>
+</table>
+<p>For the 14 action states, Jev cost $0.000305592 in total, with median request time 485 ms. Luna cost $0.000882800, with median 1,470 ms and zero cache reads or writes. The requests were distinct.</p>
+<p>The BBH follow-up changed effort, prompt and output allowance together, partly across batches. It does not isolate reasoning effort. The original BBEH Luna limit produced only three valid answers; the higher allowance was applied to all six questions, restoring six valid answers.</p>
+<p>The 28-choice character probe used two English words, with repeated position judgments: 8/12 correct with the target hidden, 10/12 with it supplied. End-of-word STOP was counted separately. This does not establish a language-wide effect or identify the model architecture.</p>
+<h2 id="2-conditional-handoff">2. Conditional handoff</h2>
+<p>After exploratory work on separate questions, the rule accepted Jev when its maximum choice weight was at least 0.90, otherwise calling Luna. A new batch contained six BBH and six BBEH questions, excluding previously used indices. Independent always-Luna calls alternated order with the pipeline. Both Luna paths used low effort and a 4,096-token allowance; cache reads and writes were zero.</p>
+<table>
+<thead>
+<tr>
+<th>New cohort</th>
+<th style="text-align: right;">Jev</th>
+<th style="text-align: right;">Handoff</th>
+<th style="text-align: right;">Independent Luna</th>
+<th style="text-align: right;">Handoff cost</th>
+<th style="text-align: right;">Luna cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BBH, six</td>
+<td style="text-align: right;">5/6</td>
+<td style="text-align: right;">5/6</td>
+<td style="text-align: right;">6/6</td>
+<td style="text-align: right;">$0.000550038</td>
+<td style="text-align: right;">$0.001723400</td>
+</tr>
+<tr>
+<td>BBEH, six</td>
+<td style="text-align: right;">2/6</td>
+<td style="text-align: right;">3/6</td>
+<td style="text-align: right;">2/6</td>
+<td style="text-align: right;">$0.007627226</td>
+<td style="text-align: right;">$0.004370600</td>
+</tr>
+<tr>
+<td>Deliberate mixture, 12</td>
+<td style="text-align: right;">7/12</td>
+<td style="text-align: right;">8/12</td>
+<td style="text-align: right;">8/12</td>
+<td style="text-align: right;">$0.008177264</td>
+<td style="text-align: right;">$0.006094000</td>
+</tr>
+</tbody>
+</table>
+<p>Three answers were accepted directly, all correct; nine were handed off. Fallback repaired three Jev errors and spoiled two correct answers. Every BBEH question was handed off, so differences between those two Luna samples cannot be attributed to filtering. Choice weights were not established as calibrated success probabilities.</p>
+<p>A separate top-two shortlist on six new BBEH questions retained the correct answer in 4/6 and achieved 3/6 final correctness. Estimated standalone policy cost was $0.007917426; the experiment reused existing Jev distributions without paying twice.</p>
+<h2 id="3-dom-navigation">3. DOM navigation</h2>
+<p>An early seven-state cohort gave flat selection 7/7 and greedy tree navigation 6/7. Later work added local rejection, backtracking and verification. Two early missing-target pages had inconsistent titles and paths; they retain scoring ambiguity. A separate four-page cohort used consistent facts and physically removed absent targets.</p>
+<table>
+<thead>
+<tr>
+<th>Consistent four-page cohort</th>
+<th style="text-align: right;">Correct terminal result</th>
+<th style="text-align: right;">Calls</th>
+<th style="text-align: right;">Total cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flat Jev</td>
+<td style="text-align: right;">4/4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">$0.000183498</td>
+</tr>
+<tr>
+<td>Local navigation + backtracking + verification</td>
+<td style="text-align: right;">2/4</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">$0.000378672</td>
+</tr>
+</tbody>
+</table>
+<p>Both missing-target failures clicked a near match, despite full ancestor paths reaching the verifier. A separate exact-title missing-target probe exhausted 15 calls without resolving the task. That is different from correctly reporting no match.</p>
+<p>These were local actions over fixed HTML, not live browser navigation. Exact string and path predicates were also directly solvable in code.</p>
+<h2 id="4-initial-complete-workflows">4. Initial complete workflows</h2>
+<p>Four short tasks covered policy search, inventory fallback and validation feedback. Code copied known fields; Jev chose finite actions; Luna generated queries or explanations. Terminal scoring was separate from runtime observations.</p>
+<table>
+<thead>
+<tr>
+<th>Configuration</th>
+<th style="text-align: right;">Correct and stopped</th>
+<th style="text-align: right;">Calls</th>
+<th style="text-align: right;">Total cost</th>
+<th style="text-align: right;">Total wall time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Luna ReAct</td>
+<td style="text-align: right;">4/4</td>
+<td style="text-align: right;">20 Luna</td>
+<td style="text-align: right;">$0.004205870</td>
+<td style="text-align: right;">44.751 s</td>
+</tr>
+<tr>
+<td>Bounded Plan, separate enum repair batch</td>
+<td style="text-align: right;">4/4</td>
+<td style="text-align: right;">10 Luna</td>
+<td style="text-align: right;">$0.002867550</td>
+<td style="text-align: right;">26.669 s</td>
+</tr>
+<tr>
+<td>Jev + full-context Luna parameters</td>
+<td style="text-align: right;">4/4</td>
+<td style="text-align: right;">16 Jev + 4 Luna</td>
+<td style="text-align: right;">$0.001594020</td>
+<td style="text-align: right;">13.239 s</td>
+</tr>
+<tr>
+<td>Jev + compact sufficient context</td>
+<td style="text-align: right;">4/4</td>
+<td style="text-align: right;">16 Jev + 4 Luna</td>
+<td style="text-align: right;">$0.001146214</td>
+<td style="text-align: right;">12.231 s</td>
+</tr>
+</tbody>
+</table>
+<p>The original Plan schema allowed natural-language steps although the executor required action IDs, causing four interface failures. The original records were retained; a strict-enum repair was rerun separately. Two repaired tasks used the allowed replan.</p>
+<p>Compact parameter inputs fell from 2,888 to 1,319 tokens while retaining the selected tool contract. Total cost fell about 28%; the full-context condition also recorded 1,057 cache-write tokens, so this is not a pure token-count effect. ReAct generated a final reply after stop in this early cohort, unlike the other controllers. This asymmetry was removed for the next workflow cohort.</p>
+<h2 id="5-factorized-verification">5. Factorized verification</h2>
+<p>Two known clean failures served as development cases; eight fresh candidate states formed the probe. Holistic Jev verification got 6/8 final decisions right. One request with three Choice fields, combined in code, got 7/8. Field accuracy was 21/24. It repaired an acceptance with missing status but still accepted a wrong channel.</p>
+<p>Luna low, given the same candidate facts and a strict three-field JSON output, got 8/8 final decisions and 24/24 fields right. Jev’s factorized eight calls cost $0.000251790; Luna’s cost was $0.001000400. These are different observed quality levels.</p>
+<p>The prespecified small follow-up gate was met, so four new DOM states were evaluated:</p>
+<table>
+<thead>
+<tr>
+<th>New four-page cohort</th>
+<th style="text-align: right;">Correct terminal result</th>
+<th style="text-align: right;">Calls</th>
+<th style="text-align: right;">Total cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flat Jev</td>
+<td style="text-align: right;">4/4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">$0.000185556</td>
+</tr>
+<tr>
+<td>Tree + holistic verification</td>
+<td style="text-align: right;">3/4</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">$0.000511686</td>
+</tr>
+<tr>
+<td>Tree + factorized verification</td>
+<td style="text-align: right;">3/4</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">$0.000622230</td>
+</tr>
+</tbody>
+</table>
+<p>On the failing page, holistic verification exhausted the budget; factorized verification clicked incorrectly. The three fields were not independent evidence. Independent rollouts also prevent attributing every route difference solely to the verifier.</p>
+<h2 id="6-eight-new-workflows">6. Eight new workflows</h2>
+<p>The next cohort used two tasks each in policy, inventory, access and incident handling. Four could finish the business operation; four required missing information. All controllers exited immediately on the explicit stop tool. Generated queries affected simulated retrieval; known parameters came from code.</p>
+<table>
+<thead>
+<tr>
+<th>Original batch</th>
+<th style="text-align: right;">Correct disposition + stop</th>
+<th style="text-align: right;">Business completed</th>
+<th style="text-align: right;">Correct request + stop</th>
+<th style="text-align: right;">Total cost</th>
+<th style="text-align: right;">Median task time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Luna ReAct</td>
+<td style="text-align: right;">8/8</td>
+<td style="text-align: right;">4/4</td>
+<td style="text-align: right;">4/4</td>
+<td style="text-align: right;">$0.007094590</td>
+<td style="text-align: right;">7.38 s</td>
+</tr>
+<tr>
+<td>Bounded Plan</td>
+<td style="text-align: right;">7/8</td>
+<td style="text-align: right;">3/4</td>
+<td style="text-align: right;">4/4</td>
+<td style="text-align: right;">$0.007954400</td>
+<td style="text-align: right;">9.35 s</td>
+</tr>
+<tr>
+<td>Jev + compact parameters</td>
+<td style="text-align: right;">7/8</td>
+<td style="text-align: right;">4/4</td>
+<td style="text-align: right;">3/4</td>
+<td style="text-align: right;">$0.002750754</td>
+<td style="text-align: right;">3.44 s</td>
+</tr>
+</tbody>
+</table>
+<p>The Jev controller correctly requested additional approval in one task, then looped. Its stopping instruction was less explicit than those of the other controllers. A frozen amendment clarified stopping after business success or a justified prerequisite request, and reran all eight Jev tasks.</p>
+<p>The amendment still achieved 7/8: total cost $0.002245746, median 2.74 s. The access task now passed; an incident task stopped without reissuing a necessary information request after an earlier rejected action. No deployment ID was invented and no rollback was performed.</p>
+<p>The batches remain separate. Selecting the best outcome per task would falsely produce 8/8. The rerun happened later, so its differences cannot all be attributed to wording.</p>
+<h2 id="interpretation">Interpretation</h2>
+<p>The measured workflow savings came with an observed quality gap. Cheap local selection remains useful to investigate, particularly where code can check exact predicates and terminal state. These cohorts do not establish long-workflow reliability, probability calibration or a general hierarchy advantage.</p>
+<p>Interface references: <a href="https://docs.typesafe.ai/primitives/choice">TypeSafe Choice</a> and <a href="https://openrouter.ai/typesafe/jev-1.13">OpenRouter Jev</a>. The study reports the dated measurements above, not permanent provider prices or performance claims.</p></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

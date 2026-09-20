@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>三个小模型，为什么没能越辩越对？ · namanegi</title><meta name="description" content="Debate Workbench：关于纠错、检查员与错误共识的实验。">
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/debate-workbench/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/debate-workbench/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/debate-workbench/">
+<meta name="theme-color" content="#f6f3ec"></head>
+<body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
+<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/debate-workbench/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/debate-workbench/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav></header>
+<main id="main" class="prose"><h1 id="_1">三个小模型，为什么没能越辩越对？</h1>
+<div class="meta">Debate Workbench · 实验于 2026-08-27 · 约 4 分钟</div>
+
+<p>让几个模型先独立做题，再互相看答案、找错误，是一个很诱人的设想。即使每个模型都不强，只要有人先想到正确解法，讨论或许就能把大家带过去。</p>
+<p>我做了一个 debate workbench，把每一轮的回答和修改展开来看。结果最让我在意的，恰好是反方向：<strong>正确解法已经出现，讨论却把它丢掉了。</strong></p>
+<h2 id="_2">正确答案出现之后，为什么没留下来？</h2>
+<p>实验使用本地量化的 Qwen2.5-1.5B。主对照让三个 agent 讨论四轮，每轮能看到同伴上一轮的完整推理，最后按答案出现次数投票。另一组保持人数不变，把第三个解题者换成专门检查算术的角色。</p>
+<figure><img src="/harness-notes/assets/diagrams/zh/debate.svg" alt="三个 agent 各自作答，交换上一轮完整推理后修订，再按答案票数取结果。检查员替换其中一名解题者，但仍身处相同的信息循环。"><figcaption>检查员也会读到同伴的推理。它可能纠错，也可能跟着一起改错。</figcaption></figure>
+
+<p>GSM8K 取两批不重叠的 20 题。40 题合计，普通讨论从第一轮的 24 题正确退到 23 题；有算术检查员的组从 24 题升到 27 题。</p>
+<table>
+<thead>
+<tr>
+<th>三人组，四轮</th>
+<th style="text-align: right;">第一轮正确</th>
+<th style="text-align: right;">最后一轮正确</th>
+<th style="text-align: right;">原来错的改对</th>
+<th style="text-align: right;">原来对的改错</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>三个解题者</td>
+<td style="text-align: right;">24/40</td>
+<td style="text-align: right;">23/40</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>两个解题者 + 检查员</td>
+<td style="text-align: right;">24/40</td>
+<td style="text-align: right;">27/40</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+<p>有一题，两个 agent 最初读对了数量，另一个给出更复杂的错误解释。下一轮，两个原本正确的 agent 接受了这个解释，形成错误共识。还有一题，最后一轮算对了“死了多少棵树”，却把它当成“还剩多少棵树”回答。</p>
+<p>完整推理一直在场。缺少的是辨别哪段推理可信的能力。</p>
+<h2 id="_3">检查员有帮助，但还不够</h2>
+<p>算术检查员在两批 GSM8K 上都出现了正向改善，值得继续研究。不过最终的组间差距只涉及六道分歧题：检查员组独赢五题，普通组独赢一题，证据还不足以证明稳定优势。</p>
+<p>在更强调题意变化的 20 道 SVAMP 上，语义检查员也让组内正确数从 12 增到 14，却同时产生了四道<strong>全员一致的错答案</strong>。各组初始答案独立生成，起点不同，因此不能把组内提升全部归给角色设计。</p>
+<p>我又在十题、零温度下比较四个解题者与“三个解题者 + 检查员”。前者一直是 8/10，后者从 7/10 升到 8/10，随后又退回 7/10。检查员没有站在讨论之外，它也会被讨论影响。</p>
+<h2 id="_4">多加人，等待增加得更确定</h2>
+<p>固定讨论两轮，把人数从一加到七，同一批 20 题的最终正确率依次是 <strong>65%、55%、75%、65%、70%、70%、70%</strong>，没有持续上升；平均耗时却从 4.0 秒增加到 45.3 秒。</p>
+<p>这不说明三个人最佳。每组重新生成初始答案，票数相同时还按第一位 agent 决定，20 题的波动很大。它至少让我放弃了继续靠堆人数、堆轮数来改善这套系统。</p>
+<p>下一步更值得做的是：先固定同一份初始答案，再比较“循环讨论”和“最后只请一次独立裁判”。这样才能分清，到底是多生成了几个候选有用，还是交流本身真的帮助了纠错。这项对照还没有做。</p>
+<details class="source-note">
+<summary>报告、模型配置与复现材料</summary>
+<p>本次使用 Ollama Qwen2.5-1.5B-Instruct，Q4_K_M。主实验采用服务端默认采样；四人消融使用零温度。所有上述 Qwen2.5 条件均完成请求。结论仅适用于这些配置和小样本，不代表更大模型或其他辩论方式。</p>
+<p><a href="https://github.com/namanegi/multiagent-debate-workbench/blob/f9f8f7347bef1d2b91ad4f5141b658fc7f8a58ca/docs/reports/small-model-debate-failure-analysis.md">完整实验报告</a> · <a href="https://github.com/namanegi/multiagent-debate-workbench/tree/f9f8f7347bef1d2b91ad4f5141b658fc7f8a58ca">Workbench 源码</a></p>
+</details></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

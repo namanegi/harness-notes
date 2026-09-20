@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 752" role="img" aria-labelledby="title">
+<title id="title">Jev workflow control and parameter generation</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#38464a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect width="600" height="752" rx="14" fill="#fbf9f3"/>
+<path d="M180.7 22.5 Q300.0 24.4 421.2 25.2 L420.1 86.5 Q300.0 85.5 180.1 84.6 Z" fill="#e0eaf1" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M180.7 24.4 Q300.0 23.2 419.6 24.9 L419.8 87.7 Q300.0 87.7 181.2 84.5 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="300.0" y="62.82" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">Current state</text>
+<path d="M300 92 L300 118" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M178.5 123.2 Q300.0 123.5 420.7 125.2 L420.2 201.5 Q300.0 201.3 178.3 201.1 Z" fill="#e0eaf1" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M179.0 123.7 Q300.0 122.2 420.6 125.5 L418.4 201.3 Q300.0 199.3 179.5 199.8 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="300.0" y="169.98" text-anchor="middle" fill="#38464a" font-size="22" font-family="Segoe Print, Bradley Hand, cursive">Jev: choose action</text>
+<path d="M424 163 L437 163 L437 134 L443 134" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M448.3 104.8 Q512.0 105.4 576.0 104.8 L577.7 164.0 Q512.0 165.5 447.4 163.2 Z" fill="#f4e0d5" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M447.8 103.9 Q512.0 103.0 577.4 102.4 L576.8 164.2 Q512.0 162.2 447.5 162.5 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="512.0" y="141.82" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">Stop</text>
+<text x="506" y="196" text-anchor="middle" fill="#38464a" font-size="20" font-family="Segoe Print, Bradley Hand, cursive">end run</text>
+<path d="M240 207 L240 237 L146 237 L146 270" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M359 207 L359 237 L345 237 L345 270" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M37.5 276.4 Q144.5 275.3 253.8 275.4 L250.8 371.0 Q144.5 370.1 37.1 370.9 Z" fill="#e5eddf" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M37.3 277.2 Q144.5 276.3 251.0 277.7 L251.7 371.1 Q144.5 372.5 35.2 370.2 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="144.5" y="316.48" text-anchor="middle" fill="#38464a" font-size="22" font-family="Segoe Print, Bradley Hand, cursive">Known fields</text>
+<text x="144.5" y="346.48" text-anchor="middle" fill="#38464a" font-size="22" font-family="Segoe Print, Bradley Hand, cursive">copied by code</text>
+<path d="M290.2 275.4 Q397.5 277.9 504.6 276.3 L503.9 372.7 Q397.5 369.4 291.2 371.7 Z" fill="#e0eaf1" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M291.4 277.7 Q397.5 276.4 505.2 278.5 L503.3 372.3 Q397.5 371.6 288.9 372.7 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="397.5" y="316.48" text-anchor="middle" fill="#38464a" font-size="22" font-family="Segoe Print, Bradley Hand, cursive">Text needed?</text>
+<text x="397.5" y="346.48" text-anchor="middle" fill="#38464a" font-size="22" font-family="Segoe Print, Bradley Hand, cursive">Luna writes it</text>
+<path d="M145 377 L145 409 L300 409 L300 438" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M398 377 L398 409 L310 409" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M179.3 443.2 Q300.0 444.2 420.1 443.3 L420.3 509.8 Q300.0 509.4 180.9 510.4 Z" fill="#e5eddf" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M181.7 446.3 Q300.0 446.3 421.6 446.3 L420.0 508.4 Q300.0 509.8 180.4 511.7 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="300.0" y="485.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">Execute tool</text>
+<path d="M300 516 L300 548" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M180.6 555.3 Q300.0 553.5 420.5 553.3 L418.7 623.4 Q300.0 625.8 181.6 625.3 Z" fill="#e0eaf1" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M178.5 555.9 Q300.0 553.8 420.8 555.6 L421.6 623.8 Q300.0 624.0 179.3 623.5 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="300.0" y="597.82" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">Observe feedback</text>
+<path d="M174 590 L18 590 L18 56 L174 56" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="300" y="682" text-anchor="middle" fill="#38464a" font-size="23" font-family="Segoe Print, Bradley Hand, cursive">Score the final state separately.</text>
+<text x="300" y="720" text-anchor="middle" fill="#914c37" font-size="22" font-family="Segoe Print, Bradley Hand, cursive">Stopping does not prove success.</text>
+</svg>

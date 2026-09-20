@@ -1,0 +1,12 @@
+<section class="hero">
+<div><div class="eyebrow">namanegi / 实验笔记</div><h1>一个 agent，<br>应该怎样工作？</h1><p>关于计划、决策和多模型协作的小实验。也记录那些没有达到预期的想法。</p><a class="text-link" href="@/projects/debate-workbench/">新文章：讨论为什么丢掉了正确答案 →</a></div>
+<aside class="hero-side" aria-label="研究问题"><div class="eyebrow">我反复遇到的三个问题</div><div class="decision-row"><b>01</b><div><strong>什么时候做决定？</strong><small>先排好计划，还是等工具反馈？</small></div></div><div class="decision-row"><b>02</b><div><strong>由谁来决定？</strong><small>代码、快速选择器，还是语言模型？</small></div></div><div class="decision-row"><b>03</b><div><strong>多一个意见能增加什么？</strong><small>有效的检查，还是再犯一次同样的错？</small></div></div></aside>
+</section>
+<div class="section-top"><h2>三个实验</h2><span>RESEARCH / 01—03</span></div>
+<section class="projects-grid" aria-label="实验">
+<article class="project-card"><span class="tag">01 / 决策</span><h3>便宜的选择，<br>完整的任务？</h3><p>Jev 能快速处理短规则选择。接成工作流之后，停止和工具拒绝后的恢复更难。</p><a href="@/projects/jev/">阅读 Jev 实验 ↗</a></article>
+<article class="project-card"><span class="tag">02 / 计划</span><h3>先排好计划，<br>就能更快完成？</h3><p>把决定提前可以暴露并行机会，但没有在实验中换来稳定的加速。</p><a href="@/projects/compile-then-act/">阅读 Compile, Then Act? ↗</a></article>
+<article class="project-card"><span class="tag">03 / 讨论</span><h3>更多意见，<br>更好的答案？</h3><p>小模型有时已经找到了正确答案，却在讨论中说服彼此把它改掉。</p><a href="@/projects/debate-workbench/">阅读 Debate Workbench ↗</a></article>
+</section>
+<div class="section-top"><h2>随笔</h2><span>WRITING / 2026</span></div>
+<article class="article-preview"><time datetime="2026-09-21">2026.09.21</time><div><h3><a href="@/writing/2026-09-21-decisions-and-code/">哪些判断值得多问一次模型？</a></h3><p>加一个检查员、多讨论一轮、再规划一次之前，先问问这次调用带来了什么新信息。</p><a class="text-link" href="@/writing/2026-09-21-decisions-and-code/">阅读全文 →</a></div></article>

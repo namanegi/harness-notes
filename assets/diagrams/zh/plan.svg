@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 650" role="img" aria-labelledby="title">
+<title id="title">在线调度与预编译计划</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#38464a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect width="600" height="650" rx="14" fill="#fbf9f3"/>
+<text x="300" y="42" text-anchor="middle" fill="#38464a" font-size="25" font-family="KaiTi, STKaiti, cursive">在线调度：观察之后再决定</text>
+<path d="M29.8 82.2 Q107.5 83.5 184.9 82.0 L185.3 162.9 Q107.5 164.0 30.5 165.1 Z" fill="#e0eaf1" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M28.5 81.3 Q107.5 80.5 186.1 82.7 L183.4 165.7 Q107.5 165.7 30.6 164.4 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="107.5" y="115.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">选择</text>
+<text x="107.5" y="146.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">下一批任务</text>
+<path d="M223.8 80.3 Q300.0 82.1 373.4 80.9 L374.1 162.3 Q300.0 163.9 224.8 165.2 Z" fill="#e5eddf" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M225.1 82.5 Q300.0 82.0 375.6 81.8 L374.2 165.8 Q300.0 165.8 226.2 164.7 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="300.0" y="115.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">执行</text>
+<text x="300.0" y="146.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">任务</text>
+<path d="M414.3 81.0 Q492.5 81.2 568.5 83.0 L569.6 165.2 Q492.5 163.6 416.6 165.3 Z" fill="#e0eaf1" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M413.2 81.0 Q492.5 83.5 569.9 83.7 L569.6 162.5 Q492.5 164.5 416.0 163.2 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="492.5" y="115.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">读取</text>
+<text x="492.5" y="146.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">结果</text>
+<path d="M188 124 Q205 122 220 124" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M378 124 Q395 126 410 124" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M492 170 L492 218 Q302 225 108 218 L108 171" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="300" y="260" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">根据新发现安排下一批。</text>
+<path d="M28 295 Q300 292 572 295" stroke="#d9d8ce" fill="none" stroke-dasharray="4 6"/>
+<text x="300" y="337" text-anchor="middle" fill="#38464a" font-size="25" font-family="KaiTi, STKaiti, cursive">预编译：执行之前做决定</text>
+<path d="M33.5 403.4 Q125.0 405.7 215.9 402.6 L214.1 507.6 Q125.0 507.4 36.1 507.8 Z" fill="#e0eaf1" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M35.2 403.8 Q125.0 402.9 215.8 402.7 L215.5 507.6 Q125.0 508.7 34.0 508.2 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="125.0" y="448.82" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">生成一张</text>
+<text x="125.0" y="479.82" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">固定依赖图</text>
+<path d="M336.7 381.1 Q442.5 379.3 551.4 379.0 L549.6 454.3 Q442.5 453.5 333.6 454.8 Z" fill="#e5eddf" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M334.0 379.1 Q442.5 381.0 549.4 379.3 L548.5 451.5 Q442.5 453.3 334.1 453.4 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="442.5" y="424.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">就绪任务 A</text>
+<path d="M334.5 481.8 Q442.5 483.7 549.9 482.3 L551.3 553.9 Q442.5 553.8 336.5 556.1 Z" fill="#e5eddf" stroke="#38464a" stroke-width="1.5" opacity="1" stroke-linejoin="round"/>
+<path d="M334.1 480.9 Q442.5 482.9 551.6 480.9 L551.6 556.4 Q442.5 555.4 334.7 553.6 Z" fill="none" stroke="#38464a" stroke-width="0.7" opacity="0.5" stroke-linejoin="round"/>
+<text x="442.5" y="526.32" text-anchor="middle" fill="#38464a" font-size="23" font-family="KaiTi, STKaiti, cursive">就绪任务 B</text>
+<path d="M220 448 L275 448 L275 417 L330 417" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M275 448 L275 518 L330 518" fill="none" stroke="#38464a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="300" y="606" text-anchor="middle" fill="#38464a" font-size="22" font-family="KaiTi, STKaiti, cursive">并行执行就绪任务，运行中不改图。</text>
+</svg>

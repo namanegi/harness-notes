@@ -1,216 +1,65 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Jev：决策应该交给谁？ · namanegi</title><meta name="description" content="从单步判断，到实际转交与完整工具工作流。">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Can cheap decisions make a cheap agent? · namanegi</title><meta name="description" content="Jev was fast at local choices. Complete workflows exposed stopping and recovery problems.">
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/jev/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/jev/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/jev/">
 <meta name="theme-color" content="#f6f3ec"></head>
-<body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
-<nav aria-label="主导航"><a href="/harness-notes/projects/">研究</a><a href="/harness-notes/writing/">文章</a><a href="/harness-notes/methods/">方法</a><a href="/harness-notes/about/">关于</a></nav></header>
-<main id="main" class="prose"><h1 id="jev">Jev：决策应该交给谁？</h1>
-<div class="meta">探索性研究 / 2026-09-20—21 / Jev 1.13 · GPT-5.6 Luna</div>
+<body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
+<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/jev/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/jev/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
+<main id="main" class="prose"><h1 id="can-cheap-decisions-make-a-cheap-agent">Can cheap decisions make a cheap agent?</h1>
+<div class="meta">Jev × Harness · September 21, 2026 · 4 min read</div>
 
-<p><strong>短规则路由里，Jev 有便宜、快速的观察结果；复杂推理和多步搜索并没有自动获得同样收益。</strong>我们先做单步能力探针，再比较 Luna，最后检验转交、DOM 搜索和完整工具工作流。</p>
-<p>这是一份公开报告摘编。样本小、部分人工合成、每条件 rollout 少，不是模型排名或部署可靠性估计。<a href="/harness-notes/assets/jev-evidence.json">下载公开汇总表</a>。</p>
-<h2 id="_1">方法与公开范围</h2>
-<p>Jev 通过官方 OpenRouter Python SDK Decisions 接口调用；Luna 用官方 OpenAI SDK 的严格 JSON 输出，ReAct 用 Agents SDK。相关 SDK 批次使用 TLS 验证、连接复用和零自动重试。Jev 返回版本为 <code>typesafe/jev-1.13-20260917</code>；Luna 请求 <code>gpt-5.6-luna</code>。</p>
-<p>选择正确、结构合法、达到目标状态和显式停止分别计数。Jev 费用取 API 报费，Luna 根据输入、缓存读写和输出 token 估算；均未与供应商账单核销。墙钟包含本地和网络开销，不是纯推理时间。</p>
-<p>公开题来自固定版本的 <a href="https://github.com/suzgunmirac/BIG-Bench-Hard/tree/9ee07bd481feebf959a6b59d61ea57bdcf30964d">BBH</a> 和 <a href="https://github.com/google-deepmind/bbeh/tree/80d12ca916b7158f22293fcf3144f4d3d854d4be">BBEH</a>。先按固定种子抽题再调用，BBH 布尔与交换题另由代码核验 gold。未知训练重叠、题量和任务混杂限制推广；没有在这页重新分发题目原文。原始账本、完整输入和 runner 没有随博客公开，因此这些汇总支持检查报告的算术与分母，不构成完整独立复现包。</p>
-<h2 id="1">1. 候选少，不等于推理简单</h2>
+<p>An agent does not always need to write. Often it only needs to choose: search again, call a tool, or stop. Could a fast, inexpensive decision model handle those moments?</p>
+<p>I tested Jev through single-step probes and small workflows. <strong>Short routing decisions were cheap and fast. In a complete agent, stopping and recovering from rejected tools became the harder problems.</strong></p>
+<h2 id="first-can-it-choose-correctly">First: can it choose correctly?</h2>
+<p>On 14 distinct states with short action rules, Jev and Luna both got every choice right. Median request time was about 0.49 seconds for Jev and 1.47 seconds for Luna; Jev cost roughly a third as much. These were not replayed identical requests, and Luna recorded no cache reads or writes.</p>
+<p>But a small menu can hide a difficult question. On six harder BBEH questions with five choices each, Jev got 2/6 right. Luna got 4/6 after receiving enough output budget. Even with the target word <code>dog</code> and prefix <code>d</code> supplied, Jev twice chose <code>g</code> as the next character.</p>
+<p>This changed how I framed the task. Recognizing a suitable action and computing an answer before selecting its label both look like “choice” at the interface. They demand different capabilities.</p>
+<h2 id="from-a-choice-to-a-completed-task">From a choice to a completed task</h2>
+<p>I let Jev choose actions, used code to copy known parameters, and called Luna only when the tool needed generated text, such as a search query. The baselines were Luna ReAct and a plan executor allowed one replan.</p>
+<figure><img src="/harness-notes/assets/diagrams/jev.svg" alt="Jev chooses an action from current state. Code copies known parameters; Luna generates text when needed. Tool feedback updates state for the next choice. Choosing stop ends the run, whose final state is scored separately."><figcaption>A cheaper controller still depends on parameter generation, tool feedback and a sound stopping decision.</figcaption></figure>
+
+<p>Eight new synthetic tasks covered policy, inventory, access and incident handling. Four could be completed; four required asking for missing information. A pass required both the right disposition and an explicit end.</p>
 <table>
 <thead>
 <tr>
-<th>同题条件</th>
-<th style="text-align: right;">Jev 正确</th>
-<th style="text-align: right;">Luna 正确</th>
-<th>解释</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>14 个不同短规则动作状态</td>
-<td style="text-align: right;">14/14</td>
-<td style="text-align: right;">none：14/14</td>
-<td>同一观察质量下可比较费用和时间</td>
-</tr>
-<tr>
-<td>BBH 三类各六题</td>
-<td style="text-align: right;">17/18</td>
-<td style="text-align: right;">none：11/18；low＋步骤提示：17/18</td>
-<td>不能用最低推理配置概括 Luna</td>
-</tr>
-<tr>
-<td>BBEH 原六道五选一题</td>
-<td style="text-align: right;">2/6</td>
-<td style="text-align: right;">low／1024：2/6；low／4096：4/6</td>
-<td>原 1024 限额只有三个有效答案</td>
-</tr>
-</tbody>
-</table>
-<p>14 个动作状态中，Jev 总费 $0.000305592、请求耗时中位数 485 ms；Luna none 总费 $0.000882800、中位数 1,470 ms。Luna 缓存读写均为零。这一小批动态状态不依赖精确请求重放。</p>
-<p>BBH low 配置同时改变步骤提示、effort 和输出预算，且跨批补齐，不能作纯 effort 归因。BBEH 的提高额度诊断对原六题全部执行，恢复了六次有效响应，但仍有两题错误。BBH 与 BBEH 同时改变嵌套、知识、长度和运算组成，未定位单一深度阈值。</p>
-<p>英文 <code>red</code>、<code>dog</code> 字符位置探针的 28 候选中，隐藏目标为 8/12，给出目标为 10/12；已知 <code>dog</code> 和前缀 <code>d</code> 时仍两次把下一字符 <code>o</code> 选成 <code>g</code>。这些是两个词上的重复位置判断，完整词后的 STOP 另计。它说明语义动作识别与序列位置计算不能互相替代，也不能归因于某个未经验证的内部模型架构。</p>
-<h2 id="2">2. 低分转交：纠错也会改错</h2>
-<p>先在不同题上探索分数，再固定 <code>pmax≥.90</code> 接受 Jev，否则实际调用 Luna。新批抽六道 BBH 和六道 BBEH，排除已用索引；这是刻意的压力混合，不代表部署比例。独立 always-Luna 逐题调用，先后顺序交替，Luna 均为 low／4096。新批使用显式缓存且无断点，实际读写均为零。</p>
-<table>
-<thead>
-<tr>
-<th>新题组</th>
-<th style="text-align: right;">Jev 直接</th>
-<th style="text-align: right;">转交系统</th>
-<th style="text-align: right;">独立 Luna</th>
-<th style="text-align: right;">转交费用</th>
-<th style="text-align: right;">独立 Luna 费用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>BBH 六题</td>
-<td style="text-align: right;">5/6</td>
-<td style="text-align: right;">5/6</td>
-<td style="text-align: right;">6/6</td>
-<td style="text-align: right;">$0.000550038</td>
-<td style="text-align: right;">$0.001723400</td>
-</tr>
-<tr>
-<td>BBEH 六题</td>
-<td style="text-align: right;">2/6</td>
-<td style="text-align: right;">3/6</td>
-<td style="text-align: right;">2/6</td>
-<td style="text-align: right;">$0.007627226</td>
-<td style="text-align: right;">$0.004370600</td>
-</tr>
-<tr>
-<td>固定混合 12 题</td>
-<td style="text-align: right;">7/12</td>
-<td style="text-align: right;">8/12</td>
-<td style="text-align: right;">8/12</td>
-<td style="text-align: right;">$0.008177264</td>
-<td style="text-align: right;">$0.006094000</td>
-</tr>
-</tbody>
-</table>
-<p>三题直接接受且全对，九题转交。Fallback 纠正三个 Jev 错误，也把两个正确选择改错。全部 BBEH 都转交，所以两批 Luna 的质量差只是独立生成波动，不能归给筛选器。转交系统费用更高，尚未证明通用门槛有收益。</p>
-<p>另在六道新 BBEH 保留 Jev top-2 再交 Luna，gold 只保留 4/6，最后原题正确 3/6。独立完整策略费用约 $0.007917426；本实验复用了已有 Jev 分布，研究账本没有重复收费。筛掉正确答案后，知道“两项皆非”也无法恢复原题答案。</p>
-<h2 id="3">3. 树形选择与同模型复核</h2>
-<p>早期七个固定 DOM 状态里，扁平 Jev 为 7/7，逐层贪心为 6/7。后续加入局部拒选、回溯与候选复核。首批两个缺失页有标题和路径冲突，保留评分歧义；另冻结事实一致的四个页面，无目标条件真正删除目标元素。</p>
-<table>
-<thead>
-<tr>
-<th>一致事实四页</th>
-<th style="text-align: right;">终态正确</th>
-<th style="text-align: right;">模型调用</th>
-<th style="text-align: right;">总费</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Jev 扁平</td>
-<td style="text-align: right;">4/4</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">$0.000183498</td>
-</tr>
-<tr>
-<td>局部路由＋回溯＋复核</td>
-<td style="text-align: right;">2/4</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: right;">$0.000378672</td>
-</tr>
-</tbody>
-</table>
-<p>回溯在两个无目标页都误点：把年度套餐当试用套餐、把 Direct 渠道当 Partner。复核看到完整祖先仍接受，显示同模型再次判断不能保证全部约束成立。另一个精确标题无目标页没有误点，但耗尽 15 次调用后未解决，不能算正确 <code>none</code>。精确字符串和路径条件的代码基线无需模型即可完成该对照。</p>
-<p>这些是固定 HTML 的本地动作模拟，不包含真实浏览器导航或点击可执行性。路径权重也不是已校准的最终成功概率，未展开部分不能悄悄消失。</p>
-<h2 id="4">4. 完整工作流与充分参数上下文</h2>
-<p>四个短任务包含政策检索、备仓预留与两种验证反馈。已知字段由代码复制，Jev 选择有限动作，Luna 只生成查询和说明。所有成功终态另行核验，不向运行时返回 gold。</p>
-<table>
-<thead>
-<tr>
-<th>配置</th>
-<th style="text-align: right;">正确终态且结束</th>
-<th style="text-align: right;">模型调用</th>
-<th style="text-align: right;">四题总费</th>
-<th style="text-align: right;">四题墙钟合计</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Luna Agents SDK ReAct</td>
-<td style="text-align: right;">4/4</td>
-<td style="text-align: right;">20 Luna</td>
-<td style="text-align: right;">$0.004205870</td>
-<td style="text-align: right;">44.751 s</td>
-</tr>
-<tr>
-<td>bounded Plan，独立严格枚举修正批</td>
-<td style="text-align: right;">4/4</td>
-<td style="text-align: right;">10 Luna</td>
-<td style="text-align: right;">$0.002867550</td>
-<td style="text-align: right;">26.669 s</td>
-</tr>
-<tr>
-<td>Jev＋Luna 全上下文填参</td>
-<td style="text-align: right;">4/4</td>
-<td style="text-align: right;">16 Jev＋4 Luna</td>
-<td style="text-align: right;">$0.001594020</td>
-<td style="text-align: right;">13.239 s</td>
-</tr>
-<tr>
-<td>Jev＋Luna 充分精简填参</td>
-<td style="text-align: right;">4/4</td>
-<td style="text-align: right;">16 Jev＋4 Luna</td>
-<td style="text-align: right;">$0.001146214</td>
-<td style="text-align: right;">12.231 s</td>
-</tr>
-</tbody>
-</table>
-<p>原 Plan 的字符串 schema 允许自然语言步骤，执行器只接受动作 ID，造成工具执行前四格接口失败。保留原记录后，仅收紧为严格枚举并独立跑完整四题；其计时是后续批次。两个任务用了一次有界重规划，不能将成功归于初始静态计划。</p>
-<p>充分精简的 Luna 参数输入从 2,888 降至 1,319 token，总费约低 28%，四题都成功；它保留完整选中工具契约。完整视图另有 1,057 缓存写入 token，费用差也包含计费结构变化。ReAct 在 stop 后还生成最终回复，其他控制器直接退出；这些是具体系统结果，不是等步骤纯模型速度排名。</p>
-<h2 id="5">5. 条件分解：可诊断不等于可靠验证</h2>
-<p>两个已知错误作开发例，另冻结八个新候选。在同一原始目标与候选事实下，一次整体 Jev 判断为 6/8；同次请求三字段 Choice、由代码合取为 7/8。分字段修复了缺少状态却接受的错误，仍把 Direct 渠道当 Partner，字段本身只有 21/24 正确。Luna low 的同题严格字段 JSON 为 8/8 最终判断、24/24 字段正确。</p>
-<p>分字段 Jev 八次 $0.000251790，Luna 八次估算 $0.001000400。两者未达到相同观察质量；不能仅按便宜排序。</p>
-<p>单点达到了预先规定的有限推进条件，于是另冻结四个 DOM 页面。扁平 Jev 4/4、四次调用；整体复核树与分字段复核树均 3/4、各 27 次。唯一失败页中，前者耗尽预算未解决，后者误点。分字段树总费 $0.000622230，扁平 $0.000185556。多字段输出暴露了错误位置，但没有带来完整系统收益；同请求的多个字段也不是统计独立的证据。</p>
-<h2 id="6">6. 八个新工作流：便宜仍有质量代价</h2>
-<p>统一停止工具立即退出后，新实验用政策、库存、访问与事故四类各两题。四题可完成业务，四题必须请求补充；请求补充与业务完成分列。生成的查询真实影响模拟文档或日志检索，已知字段由代码复制。它们仍是合成封闭任务，不是真实服务或公开 benchmark。</p>
-<table>
-<thead>
-<tr>
-<th>原八题批次</th>
-<th style="text-align: right;">正确处置且结束</th>
-<th style="text-align: right;">业务完成</th>
-<th style="text-align: right;">正确请求补充并结束</th>
-<th style="text-align: right;">总费</th>
-<th style="text-align: right;">每格耗时中位数</th>
+<th>Approach</th>
+<th style="text-align: right;">Passed</th>
+<th style="text-align: right;">Cost, all eight</th>
+<th style="text-align: right;">Median task time</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Luna ReAct</td>
 <td style="text-align: right;">8/8</td>
-<td style="text-align: right;">4/4</td>
-<td style="text-align: right;">4/4</td>
-<td style="text-align: right;">$0.007095</td>
+<td style="text-align: right;">$0.00709</td>
 <td style="text-align: right;">7.38 s</td>
 </tr>
 <tr>
-<td>bounded Plan</td>
+<td>Luna Plan</td>
 <td style="text-align: right;">7/8</td>
-<td style="text-align: right;">3/4</td>
-<td style="text-align: right;">4/4</td>
-<td style="text-align: right;">$0.007954</td>
+<td style="text-align: right;">$0.00795</td>
 <td style="text-align: right;">9.35 s</td>
 </tr>
 <tr>
-<td>Jev＋充分参数上下文</td>
+<td>Jev + Luna parameters</td>
 <td style="text-align: right;">7/8</td>
-<td style="text-align: right;">4/4</td>
-<td style="text-align: right;">3/4</td>
-<td style="text-align: right;">$0.002751</td>
+<td style="text-align: right;">$0.00275</td>
 <td style="text-align: right;">3.44 s</td>
 </tr>
 </tbody>
 </table>
-<p>原 Jev 在一题中正确请求审批补充，却反复动作不结束。其停止指令比另外两配置含糊，所以另冻结仅明确停止条件的 Jev 配置，完整重跑八题。仍为 7/8、费用 $0.002246、中位数 2.74 s：访问题成功了，事故题却在提前请求部署 ID 被拒后，查到日志便结束，漏掉再次请求必要信息。它没有猜造部署 ID 或回滚。</p>
-<p>两批分别保留，不能挑每题最优拼成 8/8；不同时间的重复也不能将差异全归因于措辞。Jev 有记录费用优势，但没有达到本批 ReAct 的观察质量。明确的结束与工具拒绝后的恢复，仍需要 harness 处理。</p>
-<h2 id="_2">工程判断与限制</h2>
-<p>优先让代码承担字段复制、精确过滤和可计算规则；让决策模型承担经过任务检验的有限语义分叉；生成模型只看充分契约与必要观察。终态判断、缺失信息、停止和预算耗尽需要明确的不同定义。</p>
-<p>这些发现定位了失败并验证部分设计设想。它们还不足以证明概率校准、真实业务可靠性或长工作流迁移。本页保留前批和追加诊断各自的分母。后续八任务与字段分解结果进一步限定了早期成功的适用范围。</p>
-<p>接口参考：<a href="https://docs.typesafe.ai/primitives/choice">TypeSafe Choice</a>、<a href="https://openrouter.ai/typesafe/jev-1.13">OpenRouter Jev</a>、<a href="https://developers.openai.com/api/docs/guides/prompt-caching">OpenAI 缓存文档</a>。页面定义与营销主张不替代本地实验。</p></main>
-<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">页面源文件 ↗</a><span>研究有边界，结论保留条件。</span></footer></body></html>
+<p>Jev’s failure was specific: it correctly requested additional approval, then kept taking actions. I clarified its stopping instruction and reran all eight tasks separately. It still passed 7/8. The approval task now worked, but an incident task ended without making a required information request after an earlier tool rejection.</p>
+<p>The savings were real. So was the missing step. Fixing one stopping example did not solve recovery in general.</p>
+<h2 id="more-checks-did-not-reliably-help">More checks did not reliably help</h2>
+<p>I also tried navigating a DOM tree a few branches at a time, then asking Jev to verify the chosen button. On four new pages, selecting from the full candidate list got 4/4 right. Tree navigation with verification got 3/4, using 27 calls instead of four.</p>
+<p>Splitting verification into separate fields improved a single-point test from 6/8 to 7/8. That gain did not carry through to the DOM system. A field could still be judged incorrectly, and code combining those judgments would faithfully approve the wrong button.</p>
+<p>I would start with <strong>local choices whose outcomes are easy to verify</strong>. Copying fields, exact matching and checking completed state belong in code. The model earns its place at the remaining semantic forks. If backtracking and repeated checks consume the latency saved by each cheap call, the surrounding design needs another look.</p>
+<details class="source-note">
+<summary>Methods, full tables and data</summary>
+<p>These are small exploratory samples. Workflows and DOM pages were local synthetic tasks, not live services. Each cohort retains its own denominator. The model was Jev 1.13; Luna settings varied by experiment and are listed in the appendix. Costs and times describe the measured systems, including network and context differences. The stopping amendment was a later independent batch.</p>
+<p><a href="/harness-notes/research/jev-report/">Experiment appendix</a> · <a href="/harness-notes/assets/jev-evidence.json">Public aggregate data</a></p>
+</details></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

@@ -1,13 +1,9 @@
-# 关于 Harness Notes
+# About
 
-我是 namanegi。这里记录我对 **Harness Engineering** 的兴趣：怎样把模型、工具、状态和反馈组合成能完成任务的系统。
+I’m namanegi. I study harness engineering: how models, tools and feedback can work together to finish a task.
 
-我用小规模实验检验具体设想，也保留失败、实现错误和结论的限制。文章是研究笔记，不是生产可靠性承诺。
+These are small, spare-time experiments, including ideas that did not work as hoped. Each article tries to explain why I tried something, how I compared it and what I learned.
 
-## 来源与更正
+Research and writing use AI assistance. Sources appear at the end of each article; substantive corrections are noted in the text.
 
-每项研究的结果回到其独立方法和数据。已发表文章保留日期；影响结论的更正在原文注明。博客页面与编辑历史可在 [GitHub](https://github.com/namanegi/harness-notes) 检查。
-
-文章整理与代码实现使用 AI 辅助。模型生成的解释不会自动视为证据；任务标准、实际调用记录与完整终态仍需核对。
-
-[GitHub / namanegi](https://github.com/namanegi)
+[GitHub](https://github.com/namanegi) · [Site source](https://github.com/namanegi/harness-notes)

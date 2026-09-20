@@ -1,28 +1,57 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compile, Then Act? · namanegi</title><meta name="description" content="在线调度、编译计划与有界恢复的公开实验。">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Does planning ahead actually save time? · namanegi</title><meta name="description" content="Comparing adaptive scheduling with fixed plans across 40 questions.">
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/compile-then-act/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/compile-then-act/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/compile-then-act/">
 <meta name="theme-color" content="#f6f3ec"></head>
-<body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
-<nav aria-label="主导航"><a href="/harness-notes/projects/">研究</a><a href="/harness-notes/writing/">文章</a><a href="/harness-notes/methods/">方法</a><a href="/harness-notes/about/">关于</a></nav></header>
-<main id="main" class="prose"><h1 id="compile-then-act">Compile, Then Act?</h1>
-<div class="meta">公开研究 / 模型控制与计划执行</div>
+<body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
+<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/compile-then-act/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/compile-then-act/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
+<main id="main" class="prose"><h1 id="does-planning-ahead-actually-save-time">Does planning ahead actually save time?</h1>
+<div class="meta">Compile, Then Act? · August 2026 · 4 min read</div>
 
-<p>这个项目比较三个基本控制方式：Single-agent 直接调用工具；Online 在观察一批专家结果后决定下一批工作；Compiled 在执行前生成并验证一次依赖图，运行中不修改它。Bounded 则只对未完成的 Compiled 运行追加有限恢复。</p>
-<h2 id="_1">研究设计</h2>
-<p>冻结主分析包含 FRAMES 与 OlympiadBench 各 20 个题目，每题三次 rollout、三种基本条件，共 360 次运行。基本配置使用同一 Luna medium。Bounded 是条件触发的后续路径，不是第四个随机主条件。</p>
-<h2 id="_2">从主分析能得出什么</h2>
-<p>Compiled 的总体答案正确率点估计比 Online 低 2.5 个百分点；描述性区间为 −10.0 至 +5.8 个百分点。点估计落在事先规定的五点质量边界内，但这个区间不能确立等效。FRAMES 上 Compiled 的运行完成为 15/60；答案正确与完成运行是不同指标。</p>
-<p>延迟方向随数据集变化。FRAMES 的费用用量有缺失，因此可观察运行的平均费用不能当作完整总体成本。它支持检查“在观察工具结果之前承诺计划”的代价，而不是宣称编译计划必然更快。</p>
-<p>以上来自<a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/results/formal-medium-v3/report.md">冻结主报告</a>。</p>
-<h2 id="_3">阅读时区分两种视图</h2>
-<p>简报中的事后报告视图替换了 11 个固定基础设施问题记录，并将 64 个未触发救援的 Compiled 代理与 56 条实际 Bounded 路径拼接。它用于诊断，不能覆盖 360 次冻结主分析，也不能当作四策略同条件随机试验。</p>
-<h2 id="_4">原始出处</h2>
-<ul>
-<li><a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/docs/methods.md">方法</a></li>
-<li><a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/results/formal-medium-v3/report.md">完整报告</a></li>
-<li><a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/results/formal-medium-v3/report-brief.md">简报与事后视图</a></li>
-<li><a href="https://github.com/namanegi/compile-then-act/tree/01c48be05391f6739fc59c88312a2c794cdf60b9">公开仓库与复现材料</a></li>
-</ul>
-<p>本页引用固定公开版本。这里的 Online 不等于另一个 Jev pilot 的 Agents SDK ReAct；Compiled 也不等于允许重规划的计划执行器。两个项目的质量和费用不能直接排名。</p></main>
-<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">页面源文件 ↗</a><span>研究有边界，结论保留条件。</span></footer></body></html>
+<p>An agent that asks “what next?” after every tool call spends time deciding how to work. I wanted to move those decisions to the beginning: build a dependency graph once, then run independent tasks together.</p>
+<p><strong>The experiment did not find a consistent speedup.</strong> A fixed plan kept answer accuracy close to adaptive scheduling, but many runs failed to finish.</p>
+<h2 id="decide-now-or-wait-for-evidence">Decide now, or wait for evidence?</h2>
+<p>I compared three approaches. A single agent used tools directly. An <strong>Online</strong> controller read each completed batch of specialist work before assigning the next. A <strong>Compiled</strong> controller built one dependency graph before execution and never rewrote it. The two multi-agent approaches shared specialists, tools and resource limits.</p>
+<figure><img src="/harness-notes/assets/diagrams/plan.svg" alt="Online scheduling reads the result of each batch before choosing the next. Compiled scheduling builds a fixed graph first, then runs ready tasks in parallel."><figcaption>The timing of the decision is the difference: adapt after observing a result, or commit early and expose parallel work.</figcaption></figure>
+
+<p>The evaluation used 20 multi-hop research questions from FRAMES and 20 competition problems from OlympiadBench. Each ran three times under all three approaches, using Luna at medium reasoning effort: 360 base runs.</p>
+<h2 id="similar-answers-very-different-completion">Similar answers, very different completion</h2>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th style="text-align: right;">Single agent correct</th>
+<th style="text-align: right;">Online correct</th>
+<th style="text-align: right;">Compiled correct</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FRAMES</td>
+<td style="text-align: right;">21/60</td>
+<td style="text-align: right;">27/60</td>
+<td style="text-align: right;">26/60</td>
+</tr>
+<tr>
+<td>OlympiadBench</td>
+<td style="text-align: right;">29/60</td>
+<td style="text-align: right;">40/60</td>
+<td style="text-align: right;">38/60</td>
+</tr>
+</tbody>
+</table>
+<p>Compiled answered three fewer runs correctly than Online overall. Yet on FRAMES it completed normally in only <strong>15/60 runs</strong>, against Online’s 51/60. An unfinished run could still leave a scoreable answer, so accuracy alone hid a substantial execution problem.</p>
+<p>The timing result also resisted a simple story. Online was faster in <strong>77 of 120 paired runs</strong>. A few long Online runs made its mean latency worse on FRAMES; its median was still lower on both datasets. Recorded costs favored Compiled, but only 35/60 FRAMES runs in each multi-agent condition had complete cost records.</p>
+<p>I then tried a bounded recovery on the 56 unfinished Compiled runs: start again, allowing at most one replan. It corrected six answers and spoiled four, a net gain of two. Recovery required paying for another execution path.</p>
+<h2 id="where-i-would-try-a-fixed-plan-next">Where I would try a fixed plan next</h2>
+<p>The useful question seems to be <strong>how much is already known when execution begins</strong>. A fixed graph looks more promising when dependencies are clear and the remaining work is mostly execution. Research tasks often reveal the next useful question only after a search result arrives.</p>
+<p>That is a design hypothesis, not a boundary this study established. A controlled comparison between known and newly discovered dependencies would test it more directly.</p>
+<p>The single-agent baseline also deserves attention. It was much faster and cheaper in the available records, and answered fewer questions correctly. Extra orchestration has to earn its place through the answers it recovers.</p>
+<details class="source-note">
+<summary>Sources and study limits</summary>
+<p>These numbers use the frozen primary analysis, before supplementary infrastructure retries. Compiled’s overall accuracy difference from Online was −2.5 percentage points, with a descriptive interval of −10.0 to +5.8; this does not establish equivalence. Recovery was conditional on unfinished runs, not a fourth parallel baseline. Cost covers recorded model usage rather than total operating expense.</p>
+<p><a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/results/formal-medium-v3/report.md">Full report</a> · <a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/docs/methods.md">Methods</a> · <a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/docs/reproduction.md">Reproduction</a></p>
+</details></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

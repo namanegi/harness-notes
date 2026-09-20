@@ -1,21 +1,19 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>如何做这些小实验 · namanegi</title><meta name="description" content="让范围、分母、失败与费用可以被检查。">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How I run these experiments · namanegi</title><meta name="description" content="Small comparisons, complete task costs and close inspection of failures.">
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/methods/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/methods/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/methods/">
 <meta name="theme-color" content="#f6f3ec"></head>
-<body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
-<nav aria-label="主导航"><a href="/harness-notes/projects/">研究</a><a href="/harness-notes/writing/">文章</a><a href="/harness-notes/methods/">方法</a><a href="/harness-notes/about/">关于</a></nav></header>
-<main id="main" class="prose"><h1 id="_1">如何做这些小实验</h1>
-<p>这些研究首先服务于工程判断。让案例、方法和限制能被检查，比给所有任务凑出一个总分更有用。</p>
-<h2 id="_2">从一个判断开始</h2>
-<p>先明确输入、候选和可核验的答案，再改变一个因素。观察到一次失败，可以定位问题；反复全对，也只说明当前案例没触及边界。适用能力清楚后，再比较模型，最后测试完整系统。</p>
-<h2 id="_3">冻结与追加分开</h2>
-<p>调用前固定题目、配置、评分与预算。看见结果后选择的诊断另立清单，不覆盖原始分母。工具或 SDK 错误与推理错误分开；修复后重跑单独报告。</p>
-<h2 id="_4">不只看答案</h2>
-<p>合法结构、正确决策、正确终态与显式结束是不同指标。<code>none</code> 表示无匹配，<code>stop</code> 表示停止，缺少信息和耗尽预算也需要独立状态。完整工作流要计入判断、参数生成、验证与恢复。</p>
-<h2 id="_5">给每次调用算账</h2>
-<p>区分 API 报费、按用量估算与费用缺失；缓存读写单列。精确请求重放用于观察波动，不作为动态业务的默认成本。计时说明是请求还是完整任务，是否包含网络、工具和恢复。</p>
-<h2 id="_6">尊重证据范围</h2>
-<p>小样本、合成任务与公开基准各有局限；同一词的重复不算独立语言样本，归一化分布不等于概率校准，模型再次验证也不等于独立证据。</p>
-<p>本博客提供审阅后的报告和汇总。实验原始账本并非全部公开；每个项目说明公开复核所能达到的范围。</p></main>
-<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">页面源文件 ↗</a><span>研究有边界，结论保留条件。</span></footer></body></html>
+<body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
+<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/methods/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/methods/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
+<main id="main" class="prose"><h1 id="how-i-run-these-experiments">How I run these experiments</h1>
+<p>I start with a specific doubt: does planning ahead save time? Can a checker keep a correct answer from being lost? Can cheap choices support a complete workflow?</p>
+<h2 id="give-the-idea-a-chance-to-fail">Give the idea a chance to fail</h2>
+<p>When simple cases all pass, I introduce harder questions, missing information, rejected tools or an absent target. Comparisons use the same tasks and visible evidence. Model settings, budgets and scoring are fixed where possible; revisions made after seeing results become separate batches.</p>
+<h2 id="measure-through-the-end">Measure through the end</h2>
+<p>A fast model response may not make a fast task. Tool calls, parameter generation, retries and fallback belong in the total. Answer correctness and workflow completion are separate observations. Missing costs stay missing.</p>
+<h2 id="inspect-the-moment-an-answer-changes">Inspect the moment an answer changes</h2>
+<p>I look for wrong answers rescued, correct answers spoiled and runs that stop too early. A small sample rarely supports a model ranking, but can expose a design assumption worth changing.</p>
+<p>Each article links to its report or aggregates. Detailed configurations and complete tables live there.</p></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

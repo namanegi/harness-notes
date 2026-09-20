@@ -1,25 +1,17 @@
-# 如何做这些小实验
+# How I run these experiments
 
-这些研究首先服务于工程判断。让案例、方法和限制能被检查，比给所有任务凑出一个总分更有用。
+I start with a specific doubt: does planning ahead save time? Can a checker keep a correct answer from being lost? Can cheap choices support a complete workflow?
 
-## 从一个判断开始
+## Give the idea a chance to fail
 
-先明确输入、候选和可核验的答案，再改变一个因素。观察到一次失败，可以定位问题；反复全对，也只说明当前案例没触及边界。适用能力清楚后，再比较模型，最后测试完整系统。
+When simple cases all pass, I introduce harder questions, missing information, rejected tools or an absent target. Comparisons use the same tasks and visible evidence. Model settings, budgets and scoring are fixed where possible; revisions made after seeing results become separate batches.
 
-## 冻结与追加分开
+## Measure through the end
 
-调用前固定题目、配置、评分与预算。看见结果后选择的诊断另立清单，不覆盖原始分母。工具或 SDK 错误与推理错误分开；修复后重跑单独报告。
+A fast model response may not make a fast task. Tool calls, parameter generation, retries and fallback belong in the total. Answer correctness and workflow completion are separate observations. Missing costs stay missing.
 
-## 不只看答案
+## Inspect the moment an answer changes
 
-合法结构、正确决策、正确终态与显式结束是不同指标。`none` 表示无匹配，`stop` 表示停止，缺少信息和耗尽预算也需要独立状态。完整工作流要计入判断、参数生成、验证与恢复。
+I look for wrong answers rescued, correct answers spoiled and runs that stop too early. A small sample rarely supports a model ranking, but can expose a design assumption worth changing.
 
-## 给每次调用算账
-
-区分 API 报费、按用量估算与费用缺失；缓存读写单列。精确请求重放用于观察波动，不作为动态业务的默认成本。计时说明是请求还是完整任务，是否包含网络、工具和恢复。
-
-## 尊重证据范围
-
-小样本、合成任务与公开基准各有局限；同一词的重复不算独立语言样本，归一化分布不等于概率校准，模型再次验证也不等于独立证据。
-
-本博客提供审阅后的报告和汇总。实验原始账本并非全部公开；每个项目说明公开复核所能达到的范围。
+Each article links to its report or aggregates. Detailed configurations and complete tables live there.
