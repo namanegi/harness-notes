@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Jev 实验附录 · namanegi</title><meta name="description" content="各批实验的方法、结果和公开汇总。">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/research/jev-report/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/research/jev-report/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/research/jev-report/">
-<meta name="theme-color" content="#f6f3ec"></head>
+</head>
 <body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
 <nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
-<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/research/jev-report/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/research/jev-report/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav></header>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/research/jev-report/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/research/jev-report/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="jev">Jev 实验附录</h1>
 <div class="meta">探索性研究 / 2026-09-20—21 / Jev 1.13 · GPT-5.6 Luna</div>
 
-<p><a href="/harness-notes/zh/projects/jev/">返回文章</a></p>
+<p><a href="/harness-notes/zh/projects/jev-choices/">第一篇：Choice 能力与候选分数</a> · <a href="/harness-notes/zh/projects/jev-comparison/">第二篇：Jev／Luna 单点对照</a> · <a href="/harness-notes/zh/projects/jev/">第三篇：完整工作流</a></p>
 <p><strong>短规则路由里，Jev 有便宜、快速的观察结果；复杂推理和多步搜索并没有自动获得同样收益。</strong>我们先做单步能力探针，再比较 Luna，最后检验转交、DOM 搜索和完整工具工作流。</p>
 <p>这是一份公开报告摘编。样本小、部分人工合成、每条件 rollout 少，不是模型排名或部署可靠性估计。<a href="/harness-notes/assets/jev-evidence.json">下载公开汇总表</a>。</p>
 <h2 id="_1">方法与公开范围</h2>
@@ -18,6 +19,36 @@
 <p>选择正确、结构合法、达到目标状态和显式停止分别计数。Jev 费用取 API 报费，Luna 根据输入、缓存读写和输出 token 估算；均未与供应商账单核销。墙钟包含本地和网络开销，不是纯推理时间。</p>
 <p>公开题来自固定版本的 <a href="https://github.com/suzgunmirac/BIG-Bench-Hard/tree/9ee07bd481feebf959a6b59d61ea57bdcf30964d">BBH</a> 和 <a href="https://github.com/google-deepmind/bbeh/tree/80d12ca916b7158f22293fcf3144f4d3d854d4be">BBEH</a>。先按固定种子抽题再调用，BBH 布尔与交换题另由代码核验 gold。未知训练重叠、题量和任务混杂限制推广；没有在这页重新分发题目原文。原始账本、完整输入和 runner 没有随博客公开，因此这些汇总支持检查报告的算术与分母，不构成完整独立复现包。</p>
 <h2 id="1">1. 候选少，不等于推理简单</h2>
+<h3 id="_2">单体合成探针</h3>
+<p>以下调用早于匹配的 Jev／Luna 对照。政策探针和后来的模型对照沿用同一题目设计，但属于不同调用批次。</p>
+<table>
+<thead>
+<tr>
+<th>探针</th>
+<th>设计</th>
+<th style="text-align: right;">Jev 有效／正确</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>简短动作与规则</td>
+<td>六个任务族、12 个变体，各两次</td>
+<td style="text-align: right;">24/24 有效；24/24 正确</td>
+</tr>
+<tr>
+<td>独立的选项顺序诊断</td>
+<td>三个语义选择变体，把正确项移到末尾，各两次</td>
+<td style="text-align: right;">6/6 有效；6/6 正确</td>
+</tr>
+<tr>
+<td>政策适用性</td>
+<td>四种证据适用状态、两种措辞，各三次</td>
+<td style="text-align: right;">24/24 有效；24/24 正确</td>
+</tr>
+</tbody>
+</table>
+<p>短规则探针改变动作说明，以及是否直接给出规则结论；顺序诊断不合并进主批分母。政策探针固定文档数量和元数据，只改变摘要与已打开正文的适用范围，用户事实完整。它测选择动作，不测检索和最终答案生成。API 报告费用依次为 $0.000452088、$0.000104496、$0.000895104；汇总项为 <code>single_rule_actions</code>、<code>single_rule_order_diagnostic</code>、<code>single_policy_applicability</code>。没有运行有竞争力的代码基线，专门针对这些规则句型的解析器也可解题。</p>
+<h3 id="_3">不同动作状态与公开推理题</h3>
 <table>
 <thead>
 <tr>
@@ -212,7 +243,14 @@
 </table>
 <p>原 Jev 在一题中正确请求审批补充，却反复动作不结束。其停止指令比另外两配置含糊，所以另冻结仅明确停止条件的 Jev 配置，完整重跑八题。仍为 7/8、费用 $0.002246、中位数 2.74 s：访问题成功了，事故题却在提前请求部署 ID 被拒后，查到日志便结束，漏掉再次请求必要信息。它没有猜造部署 ID 或回滚。</p>
 <p>两批分别保留，不能挑每题最优拼成 8/8；不同时间的重复也不能将差异全归因于措辞。Jev 有记录费用优势，但没有达到本批 ReAct 的观察质量。明确的结束与工具拒绝后的恢复，仍需要 harness 处理。</p>
-<h2 id="_2">工程判断与限制</h2>
+<p><a id="matched-comparisons"></a></p>
+<h2 id="7">7. 单点匹配对照</h2>
+<p>单点对照在每组 Jev／Luna 配对内固定决策事实、候选动作及顺序。Jev 使用 Choice，Luna 使用 Responses 的严格 JSON 枚举；gold 动作由调用前确定的规则给出。这里测的是有效选择、Jev API 报费、按 Luna 用量估算的费用，以及客户端端到端耗时，并未执行完整政策或报销流程。</p>
+<p><strong>文档适用性。</strong> 四种适用状态各写成两种等义措辞，每个变体重复三次，每配置共 24 次调用、八个设计变体。Jev <strong>24/24</strong> 正确。最初的 Luna <code>none</code> 把指令嵌在仿照 Jev 结构的用户 JSON 中，为 <strong>13/24</strong>。后来另行冻结的控制将相同指令移到原生 <code>instructions</code>，同时移除协议包装，Luna <code>none</code> 提高到 <strong>21/24</strong>。原生 <code>low</code> 还把输出上限从 128 提到 1,024 token，达到 <strong>23/24</strong>。13/24 到 21/24 是封装组合变化，不能只归因于一个字段；23/24 又同时改变 effort 和额度。原生指令条件下剩余的错误都来自“两份文档都不适用”的一种措辞。Jev 24 次总费 $0.000895；三种 Luna 配置估费分别为 $0.002994、$0.002953、$0.003606。原生控制在另一会话运行，其耗时不能与先前 Jev 批次重新组成配对速度比较。</p>
+<p><strong>例外条款。</strong> 四种逻辑状态分别要求作答、读附录、询问缺失授权、搜索附录；每种提供长短两档上下文，并各重复三次，每配置 24 次调用。Jev、原生 Luna <code>none</code>、原生 Luna <code>low</code> 均为 <strong>24/24</strong>。批次费用依次是 <strong>$0.002862</strong>、<strong>$0.005341</strong>、<strong>$0.006625</strong>；客户端耗时中位数为 <strong>442.9 ms</strong>、<strong>1,335.5 ms</strong>、<strong>1,733.5 ms</strong>。长档增加无关档案条目，也把相关证据推后，因此不是纯长度干预。长输入被原样重复：Luna <code>none</code> 写入缓存时的单次估费中位数约 <strong>$0.000636</strong>，后续读取约 <strong>$0.000067</strong>；对应的 Jev 长档调用约 <strong>$0.000180</strong>。在这组精确回放中，热缓存的 Luna 读取比 Jev 单次便宜，但 Jev 整批总费仍较低。工具结果不断改变的 agent 未必有相同缓存命中；Jev 也没有报告可比的缓存读写分项。</p>
+<p><strong>变化的状态。</strong> 第三组把 14 个不同短规则状态分别交给两个模型各一次。其中六个是先前成功的探针状态，八个新的保修与工作空间状态在本批看到结果前已冻结；同一任务族中，事实变化会改变必需动作。Jev 与 Luna <code>none</code> 均为 <strong>14/14</strong>。Jev 总费 <strong>$0.000305592</strong>、客户端耗时中位数 <strong>485 ms</strong>；Luna 估费 <strong>$0.000882800</strong>、中位数 <strong>1,470 ms</strong>，记录到的缓存读写均为零。这是变化请求下有用的费用观察，但六个开发案例和八个新合成案例不能拼成生产错误率；两者都没出错，也无法测出升级转交的收益。</p>
+<p>这三组说明，指令封装和缓存状态会实质改变质量与费用的解释。重复调用不是独立业务任务，客户端耗时还包括不同供应商的网络和协议路径。<a href="/harness-notes/zh/projects/jev-comparison/">单点对照文章</a>进一步讨论这些工程含义。</p>
+<h2 id="_4">工程判断与限制</h2>
 <p>优先让代码承担字段复制、精确过滤和可计算规则；让决策模型承担经过任务检验的有限语义分叉；生成模型只看充分契约与必要观察。终态判断、缺失信息、停止和预算耗尽需要明确的不同定义。</p>
 <p>这些发现定位了失败并验证部分设计设想。它们还不足以证明概率校准、真实业务可靠性或长工作流迁移。本页保留前批和追加诊断各自的分母。后续八任务与字段分解结果进一步限定了早期成功的适用范围。</p>
 <p>接口参考：<a href="https://docs.typesafe.ai/primitives/choice">TypeSafe Choice</a>、<a href="https://openrouter.ai/typesafe/jev-1.13">OpenRouter Jev</a>、<a href="https://developers.openai.com/api/docs/guides/prompt-caching">OpenAI 缓存文档</a>。页面定义与营销主张不替代本地实验。</p></main>

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What can a decision model actually decide? · namanegi</title><meta name="description" content="Where Jev can take over an agent decision: rules, reasoning and candidate scores.">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/jev-choices/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/jev-choices/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/jev-choices/">
+</head>
+<body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/jev-choices/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/jev-choices/" lang="zh-CN" hreflang="zh-CN">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
+<main id="main" class="prose"><h1 id="what-can-a-decision-model-actually-decide">What can a decision model actually decide?</h1>
+<div class="meta">Jev / Part 1 · September 21, 2026 · 9 min read</div>
+
+<p>An assistant answering a travel-expense question may need to search for a policy, open a document, check its scope, and then produce a supported answer. If an eligibility fact is missing, it must ask the user first. Writing the final response is only part of the job. Before that, the system repeatedly decides what to do next.</p>
+<p>In a ReAct-style agent, a general language model handles those decisions. It considers the task and observations, selects an action, receives the tool result, and decides again. The feedback loop allows work to change as evidence arrives, but each decision can add another model call's latency and cost. Here, “ReAct-style” means that feedback-driven way of acting; the <a href="https://react-lm.github.io/">original ReAct research</a> develops the interleaving of reasoning and actions.</p>
+<p>Jev introduces another implementation option. <a href="https://openrouter.ai/typesafe/jev-1.13">Jev is a structured decision model from TypeSafe</a>, intended for classification, routing and bounded choices inside software. An application supplies information to evaluate and receives a typed decision. Could a model designed to choose take over some of the general language model's work, such as deciding which evidence to read or whether a prerequisite is missing? That need not replace the whole ReAct loop. It first requires identifying decisions worth moving.</p>
+<p>This article investigates that prerequisite: <strong>what can Jev select correctly on its own, where does it fail, and what do its candidate scores tell us?</strong> The experiments start with verifiable synthetic rules and actions, then introduce public reasoning questions and character-position tasks. Jev did well on the tested short rules and evidence-applicability cases. Harder Boolean reasoning and character selection produced clear errors. Candidate scores supplied some ranking information, but were not established as reliable probabilities of correctness.</p>
+<p>At this stage, another model does not repair Jev's answers, and tools do not turn them into a complete workflow. Understanding the isolated successes and failures comes before the <a href="/harness-notes/projects/jev-comparison/">matched Jev / Luna comparison</a> and the <a href="/harness-notes/projects/jev/">complete-agent study</a>.</p>
+<h2 id="turning-the-next-action-into-a-measurable-question">Turning the next action into a measurable question</h2>
+<p>The experiments use Jev's <strong>Choice</strong> question type: a single selection with context. The developer supplies facts, a decision instruction and candidates; the model returns a selection. Choice is the input/output arrangement used here, not an agent that searches or operates tools by itself. The <a href="https://docs.typesafe.ai/primitives/choice">interface documentation</a> describes its selection, candidate distribution and confidence outputs.</p>
+<p>A judgment in this study has the following parts:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Meaning</th>
+<th>Role in the expense-search scenario</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Current state, <code>state</code></td>
+<td>Facts and evidence visible for this decision</td>
+<td>User question, travel facts, search summaries and opened text</td>
+</tr>
+<tr>
+<td>Instruction, <code>instructions</code></td>
+<td>The rule for choosing</td>
+<td>Answer from applicable text; otherwise read an applicable hit or keep searching</td>
+</tr>
+<tr>
+<td>Candidates, <code>criteria</code></td>
+<td>Legal options and their meanings</td>
+<td>Search, read, ask for a missing fact, or answer</td>
+</tr>
+<tr>
+<td>Returned result</td>
+<td>The selection and candidate weights</td>
+<td>A program could dispatch the action; this study scores the choice itself</td>
+</tr>
+</tbody>
+</table>
+<p>The expense assistant introduced above becomes a <strong>local synthetic test scenario</strong>. Its materials are supplied in advance, without accessing a real company system. For example, <code>read_document</code> is the identifier for opening a document and <code>submit_answer</code> means the model judges the evidence sufficient to answer. Selecting the latter does not generate or validate an expense-policy response.</p>
+<p>This isolates the decision from search quality, argument generation and execution. The expected answer is determined from the rules before Jev is called. A response must pass interface validation and select that answer. Returning a legal but wrong option is different from failing to obtain a valid response at all.</p>
+<h2 id="method-increase-the-work-hidden-inside-the-choice">Method: increase the work hidden inside the choice</h2>
+<p>The experiments examine separate capabilities rather than mixing all selection tasks into one score.</p>
+<p>The initial tasks supply short facts and explicit actions. Follow-ups change distractors, remove an explicitly stated conclusion, or move the correct option to test whether the rule still leads to the right choice. The policy scenario holds document count and appearance fixed while changing applicability, reducing shortcuts such as answering whenever an opened document exists.</p>
+<p>Public reasoning questions then test whether Jev can compute an answer before choosing its label. Finally, character candidates test whether turning text output into selections makes position judgments reliable. Each cohort has its own inputs, denominator and failure interpretation.</p>
+<table>
+<thead>
+<tr>
+<th>Experiment</th>
+<th>Design and sample</th>
+<th style="text-align: right;">Jev correct</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Short actions and rules</td>
+<td>Six task families, twelve variants, two calls each</td>
+<td style="text-align: right;">24/24</td>
+</tr>
+<tr>
+<td>Policy applicability</td>
+<td>Four evidence states, two wordings, three calls each</td>
+<td style="text-align: right;">24/24</td>
+</tr>
+<tr>
+<td>Public BBH reasoning</td>
+<td>Three families, six distinct questions each</td>
+<td style="text-align: right;">17/18</td>
+</tr>
+<tr>
+<td>Harder BBEH expressions</td>
+<td>Six distinct questions, five expressions per question</td>
+<td style="text-align: right;">2/6</td>
+</tr>
+<tr>
+<td>Next character, target hidden</td>
+<td>Two short words, six character positions, two calls each</td>
+<td style="text-align: right;">8/12</td>
+</tr>
+<tr>
+<td>Next character, target supplied</td>
+<td>The same positions and repeats, with the target added</td>
+<td style="text-align: right;">10/12</td>
+</tr>
+</tbody>
+</table>
+<p>Adding these denominators would not estimate “Jev's overall accuracy.” Repeating an input observes its behavior without adding independent business problems. The standalone policy probe here and the matched comparison in the next article reuse a task design, but contain separate batches of calls and are reported separately.</p>
+<h2 id="short-rules-worked-within-a-specific-scope">Short rules worked, within a specific scope</h2>
+<p>The initial action tasks distinguish changing a billing address from changing a shipping address, pausing a subscription from cancelling it, and selecting actions under warranty or return exceptions. Some variants state the conclusion directly; others remove it while keeping the facts and rules. Jev selected correctly on all twelve variants, called twice each.</p>
+<p>However, the correct options in three semantic-choice tasks initially occupied the first position. A separate six-call diagnostic moved those answers to the end and still scored 6/6. This rules out always picking the first option as the explanation for those cases. It does not establish general order robustness, and the six calls were not merged into the original 24.</p>
+<p>The policy probe asks a more specific question: is Jev checking what the evidence means, or merely noticing that documents are available? Each state contains two search hits and one opened document, with titles, dates and identifiers held fixed. Only the applicability of a search summary and the opened text changes between business travel and employee relocation. Both versions mention the relevant topics, so the mere presence of a travel keyword cannot solve the task.</p>
+<table>
+<thead>
+<tr>
+<th>Available evidence</th>
+<th>Required action under the supplied rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Applicable opened text sufficient to answer</td>
+<td>Submit an answer</td>
+</tr>
+<tr>
+<td>Inapplicable opened text, but an applicable search pointer</td>
+<td>Open that document</td>
+</tr>
+<tr>
+<td>Neither the opened text nor search pointer applies</td>
+<td>Search again</td>
+</tr>
+</tbody>
+</table>
+<p>A search summary is only a pointer; it does not replace the document. The user's facts are complete, so asking for clarification is a legal but incorrect candidate. Across four applicability combinations, two equivalent wordings and three calls each, Jev scored 24/24. A field-only rule that answers whenever opened text is nonempty would get only 12/24.</p>
+<p>This supports a concrete capability: following an explicit routing rule while judging the scope of short text. It does not cover noisy retrieval, conflicting policies, version authority or citation generation. A parser written for these fixed sentence forms could also solve the task. The result identifies a useful type of decision to compare next; it does not establish an advantage over code.</p>
+<h2 id="when-choosing-first-requires-harder-computation">When choosing first requires harder computation</h2>
+<p>The rule-task successes leave an open question. Can Jev only identify actions already close to the answer, or can it perform more demanding computation? The next batch uses the public reasoning collection <strong>BIG-Bench Hard (BBH)</strong>. Before calls, it samples six questions each from logical ordering, shuffled-object tracking and Boolean expressions, without selecting questions based on model outcomes.</p>
+<p>Jev answered 6/6 ordering questions, 6/6 object-tracking questions and 5/6 Boolean questions, or 17/18 overall. These cases require more than direct action matching. Six questions per family are nevertheless too few for a broad reasoning ranking.</p>
+<p>The harder <strong>BIG-Bench Extra Hard (BBEH)</strong> test uses six five-choice Boolean questions. Each option is a complete expression, and only one is true. Jev returned valid options for all six but selected correctly on just 2/6. Five candidates are not many; the difficulty lies in the logical computation needed before selecting the label.</p>
+<p>The character experiment examines the same issue from another direction. Could text generation be performed as successive decisions over letters? It uses two three-letter English words. Every call receives the correct prefix and chooses the next step from 28 candidates, including letters and an end option. Supplying the correct prefix prevents earlier generation mistakes from contaminating later positions.</p>
+<p>Counting character positions only, the hidden-target condition scored 8/12 and the visible-target condition 10/12. Even when given both the target <code>dog</code> and the correct prefix <code>d</code>, Jev twice selected <code>g</code> rather than <code>o</code>. This is neither a tool-execution error nor an accumulation of previous wrong characters.</p>
+<p>End-of-word decisions were counted separately and scored 4/4 in both conditions. Two short words and repeated positions cannot establish a general character-processing limit or identify the architecture. They do provide a counterexample to assuming that expressing a task as a choice removes its underlying computational difficulty.</p>
+<h2 id="what-else-do-the-candidate-scores-tell-us">What else do the candidate scores tell us?</h2>
+<p>Alongside the selection, Choice returns a distribution over candidates. The analysis calls its largest weight <code>pmax</code> and checks where the correct answer ranks. The question is whether these numbers can flag unreliable decisions or preserve an alternative worth checking.</p>
+<p>The sole BBH error returned a 0.50 / 0.50 distribution, which does look uncertain. But one correctly answered object-tracking question had a maximum weight of only 0.48. Low scores can accompany errors or reject answers that were already right.</p>
+<p>In the initial BBEH sample, the two correct answers had maximum weights of 0.50 and 0.37. The four wrong answers ranged from 0.41 to 0.53. Those ranges overlap. A 0.90 acceptance threshold would reject all six: it catches every error while leaving no automatically handled questions.</p>
+<p>Ranking offers another clue. On three of the four BBEH errors, the correct answer ranked second; on the other it ranked fourth. Keeping two candidates could preserve some answers, but retention does not establish that a later decision will select correctly. In BBH Boolean questions with only two options, retaining the correct answer in the top two is inevitable and supplies no extra benefit.</p>
+<p>The API also returns a field named <code>confidence</code>. This study keeps it separate from <code>pmax</code> and does not establish either as calibrated against task correctness: whether decisions assigned 0.90 really turn out right about nine times in ten on new tasks. Candidate weights are a control signal to test. The <a href="/harness-notes/projects/jev-comparison/">matched comparison and handoff study</a> measures whether acting on them actually repairs errors or saves money.</p>
+<h2 id="what-does-this-change-about-agent-design">What does this change about agent design?</h2>
+<p>Return to the expense assistant. When supplied facts and rules are short and the available actions are explicit, Jev is a plausible candidate for selecting the next step. Such decisions merit a comparison of cost and time at an acceptable quality level. Exact date calculations, field copying and directly computable conditions can remain in code.</p>
+<p>More complex reasoning and character-by-character generation already produced concrete failures. A valid output format does not justify moving all of that work to Jev. Its scores also do not yet guarantee reliable automatic execution.</p>
+<p>The resulting design direction is conditional: <strong>start with bounded action judgments whose rules are clear, facts are supplied and outcomes can be checked; handle harder computation and generation separately.</strong> This is a starting point from small capability probes. It establishes neither general replacement of a language model nor a reliable ReAct alternative assembled from locally correct choices.</p>
+<details class="source-note">
+<summary>Methods and evidence</summary>
+<p>Measurements used Jev 1.13 on September 20–21, 2026. Each cohort retains its own sample and denominator; synthetic variants, repeated calls and public questions are not pooled into an overall accuracy estimate. Training overlap was not assessed. Some tasks can be solved directly in code, and this article does not establish a competitive code baseline.</p>
+<p><a href="/harness-notes/research/jev-report/">Experiment appendix</a> · <a href="/harness-notes/assets/jev-evidence.json">Aggregate data</a> · <a href="/harness-notes/projects/jev-comparison/">Next: matched Jev / Luna decisions</a></p>
+</details></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

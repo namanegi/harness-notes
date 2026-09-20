@@ -8,11 +8,13 @@ ROOT = Path(__file__).parent
 BASE = '/harness-notes/'
 PAGES = [
     ('home', '', 'Harness Notes', 'Small experiments with planning, decisions and model collaboration.'),
-    ('projects', 'projects/', 'Experiments', 'Three questions about how agents work.'),
+    ('projects', 'projects/', 'Experiments', 'Research on decisions, planning and model collaboration.'),
     ('jev', 'projects/jev/', 'Can cheap decisions make a cheap agent?', 'Jev was fast at local choices. Complete workflows exposed stopping and recovery problems.'),
+    ('jev-choices', 'projects/jev-choices/', 'What can a decision model actually decide?', 'Where Jev can take over an agent decision: rules, reasoning and candidate scores.'),
+    ('jev-comparison', 'projects/jev-comparison/', 'Jev vs. Luna: compare the decision, then count the cost', 'Matched Jev–Luna decisions, caching and the cost of conditional handoff.'),
     ('jev-report', 'research/jev-report/', 'Jev experiment appendix', 'Methods and results for each separate experimental cohort.'),
     ('compile-then-act', 'projects/compile-then-act/', 'Does planning ahead actually save time?', 'Comparing adaptive scheduling with fixed plans across 40 questions.'),
-    ('debate', 'projects/debate-workbench/', 'Why didn’t three small models reason better together?', 'Debate Workbench: correction, checkers and wrong consensus.'),
+    ('debate', 'projects/debate-workbench/', 'When small models debate, who checks the answer?', 'Debate Workbench: correction, checkers and wrong consensus.'),
     ('writing', 'writing/', 'Notes', 'What the experiments changed about how I build agents.'),
     ('decisions-and-code', 'writing/2026-09-21-decisions-and-code/', 'When is another model call worth it?', 'What does an extra check, debate round or planning step add?'),
     ('methods', 'methods/', 'How I run these experiments', 'Small comparisons, complete task costs and close inspection of failures.'),
@@ -39,14 +41,15 @@ for language, prefix in [('en', ''), ('zh-CN', 'zh/')]:
     en_current = ' aria-current="page"' if language == 'en' else ''
     zh_current = ' aria-current="page"' if language == 'zh-CN' else ''
     page = f'''<!doctype html>
-<html lang="{language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="{language}" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(title)} · namanegi</title><meta name="description" content="{escape(description)}">
+<meta name="theme-color" content="#12191e"><script src="{BASE}assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io{local_base}{route}"><link rel="stylesheet" href="{BASE}assets/style.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io{BASE}{route}"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io{BASE}zh/{route}">
-<meta name="theme-color" content="#f6f3ec"></head>
+</head>
 <body><a class="skip" href="#main">{skip}</a><header class="site-header"><a class="brand" href="{local_base}">Harness<span>/</span>Notes</a>
 <nav class="main-nav" aria-label="{nav_label}">{nav}</nav>
-<nav class="language-switch" aria-label="Language / 语言"><a href="{BASE}{route}" lang="en" hreflang="en"{en_current}>EN</a><span aria-hidden="true">/</span><a href="{BASE}zh/{route}" lang="zh-CN" hreflang="zh-CN"{zh_current}>中文</a></nav></header>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="{BASE}{route}" lang="en" hreflang="en"{en_current}>EN</a><span aria-hidden="true">/</span><a href="{BASE}zh/{route}" lang="zh-CN" hreflang="zh-CN"{zh_current}>中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="{'home' if name=='home' else 'prose'}">{body}</main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>'''
     dest=ROOT/prefix/route/'index.html'

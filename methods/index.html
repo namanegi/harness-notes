@@ -1,19 +1,20 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>How I run these experiments · namanegi</title><meta name="description" content="Small comparisons, complete task costs and close inspection of failures.">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/methods/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/methods/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/methods/">
-<meta name="theme-color" content="#f6f3ec"></head>
+</head>
 <body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
 <nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
-<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/methods/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/methods/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/methods/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/methods/" lang="zh-CN" hreflang="zh-CN">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="how-i-run-these-experiments">How I run these experiments</h1>
-<p>I start with a specific doubt: does planning ahead save time? Can a checker keep a correct answer from being lost? Can cheap choices support a complete workflow?</p>
+<p>Each experiment starts with a specific doubt: does planning ahead save time? Can a checker keep a correct answer from being lost? Can cheap choices support a complete workflow?</p>
 <h2 id="give-the-idea-a-chance-to-fail">Give the idea a chance to fail</h2>
-<p>When simple cases all pass, I introduce harder questions, missing information, rejected tools or an absent target. Comparisons use the same tasks and visible evidence. Model settings, budgets and scoring are fixed where possible; revisions made after seeing results become separate batches.</p>
+<p>When simple cases all pass, the next probes introduce harder questions, missing information, rejected tools or an absent target. Comparisons use the same tasks and visible evidence. Model settings, budgets and scoring are fixed where possible; revisions made after seeing results become separate batches.</p>
 <h2 id="measure-through-the-end">Measure through the end</h2>
 <p>A fast model response may not make a fast task. Tool calls, parameter generation, retries and fallback belong in the total. Answer correctness and workflow completion are separate observations. Missing costs stay missing.</p>
 <h2 id="inspect-the-moment-an-answer-changes">Inspect the moment an answer changes</h2>
-<p>I look for wrong answers rescued, correct answers spoiled and runs that stop too early. A small sample rarely supports a model ranking, but can expose a design assumption worth changing.</p>
+<p>The useful events are wrong answers rescued, correct answers spoiled and runs that stop too early. A small sample rarely supports a model ranking, but can expose a design assumption worth changing.</p>
 <p>Each article links to its report or aggregates. Detailed configurations and complete tables live there.</p></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

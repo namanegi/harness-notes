@@ -2,7 +2,7 @@
 
 <div class="meta">Measurements: September 20–21, 2026 · Jev 1.13 · GPT-5.6 Luna</div>
 
-This appendix preserves the separate cohorts behind [the article](@/projects/jev/). Results are exploratory: samples are small, several tasks are synthetic, and repeated measurements are not independent benchmark samples.
+This appendix preserves the separate cohorts behind the Jev series: [Choice capability and candidate scores](@/projects/jev-choices/), [matched Jev–Luna decisions](@/projects/jev-comparison/), and [complete workflows](@/projects/jev/). Results are exploratory: samples are small, several tasks are synthetic, and repeated measurements are not independent benchmark samples.
 
 [Download the aggregate data](@/assets/jev-evidence.json). It includes source-summary hashes and grouped counts, not the private runner, raw requests or a complete reproduction package.
 
@@ -15,6 +15,21 @@ Jev cost is API-reported; Luna cost is estimated from input, cache and output us
 Benchmark inputs came from pinned [BBH](https://github.com/suzgunmirac/BIG-Bench-Hard/tree/9ee07bd481feebf959a6b59d61ea57bdcf30964d) and [BBEH](https://github.com/google-deepmind/bbeh/tree/80d12ca916b7158f22293fcf3144f4d3d854d4be) revisions. Questions were sampled before calls; selected BBH boolean and swap labels were also checked in code. Training overlap is unknown. Benchmark records are not redistributed here.
 
 ## 1. Single decisions
+
+### Standalone synthetic probes
+
+These calls precede the matched Jev–Luna comparisons. The policy probe and later comparison reuse the same design but have separate call batches.
+
+| Probe | Design | Jev valid / correct |
+|---|---|---:|
+| Short actions and rules | Six task families, twelve variants, two calls each | 24/24 valid; 24/24 correct |
+| Separate option-order diagnostic | Three semantic-choice variants with the correct answer moved last, two calls each | 6/6 valid; 6/6 correct |
+| Policy applicability | Four evidence-applicability states, two wordings, three calls each | 24/24 valid; 24/24 correct |
+
+The short-rule probe varies action descriptions and whether a rule's conclusion is stated explicitly. The order diagnostic is not merged into that primary denominator. The policy probe holds document count and metadata fixed while changing search-summary and opened-text applicability; all user facts are supplied. It tests action selection, not retrieval or final answer generation. API-reported costs were $0.000452088, $0.000104496 and $0.000895104, respectively. Aggregate entries are `single_rule_actions`, `single_rule_order_diagnostic` and `single_policy_applicability`. No competitive code baseline was run; a parser specialized to these rule forms could solve them.
+
+### Distinct action states and public reasoning
+
 
 | Cohort | Jev correct | Luna correct |
 |---|---:|---:|
@@ -101,6 +116,20 @@ The Jev controller correctly requested additional approval in one task, then loo
 The amendment still achieved 7/8: total cost $0.002245746, median 2.74 s. The access task now passed; an incident task stopped without reissuing a necessary information request after an earlier rejected action. No deployment ID was invented and no rollback was performed.
 
 The batches remain separate. Selecting the best outcome per task would falsely produce 8/8. The rerun happened later, so its differences cannot all be attributed to wording.
+
+<a id="matched-comparisons"></a>
+
+## 7. Matched single-step comparisons
+
+The single-decision comparisons held decision facts, candidate actions and their order fixed within each Jev–Luna pair. Jev used Choice; Luna used Responses with a strict JSON enum. Gold actions came from rules fixed before calls. These comparisons measure valid action selection, API-reported Jev cost, usage-estimated Luna cost and client wall time. They do not execute a full policy or reimbursement workflow.
+
+**Document applicability.** Four applicability states, each with two equivalent wordings and three repeats, produced 24 calls per configuration over eight designed variants. Jev chose correctly **24/24**. The original Luna `none` condition, with the instruction embedded in a Jev-shaped user JSON wrapper, managed **13/24**. A separately frozen control moved the same instruction into native `instructions` and removed the wrapper; Luna `none` reached **21/24**. Native `low`, also given a larger output allowance (1,024 rather than 128 tokens), reached **23/24**. The change from 13/24 to 21/24 tests a packaging combination, not the effect of one field alone; the further change to 23/24 also changes effort and allowance. All remaining native-instruction errors came from one wording of the state in which neither document applied. Jev cost $0.000895 for its 24 calls; the three Luna configurations cost an estimated $0.002994, $0.002953 and $0.003606, respectively. The native controls ran in a later session, so their times are not a new paired speed comparison with the earlier Jev batch.
+
+**Exception boundary.** Four logical states required four different actions: answer, read an appendix, ask for a missing authorization, or search for an appendix. Each had short and long context and three repeats, again 24 calls per configuration. Jev, native Luna `none` and native Luna `low` were all **24/24** correct. Their batch costs were **$0.002862**, **$0.005341** and **$0.006625**; median client times were **442.9 ms**, **1,335.5 ms** and **1,733.5 ms**. The long input added irrelevant archive entries and moved relevant evidence later, so this was not a pure length intervention. It was repeated verbatim: for Luna `none`, median per-call estimated cost was about **$0.000636** when that input wrote to cache and **$0.000067** on subsequent reads. Jev's corresponding long calls cost about **$0.000180** each. Thus warm Luna reads were cheaper than Jev calls on this exact replay, although Jev's full-batch total was lower. Changing agent state after tool results may yield a different cache pattern; Jev did not report comparable cache subdivisions.
+
+**Changing states.** A third comparison sent 14 distinct short-rule states once to each model. Six were reused successful probe states; eight new warranty and workspace states were frozen before this batch's results were seen. Facts changed the required action within each family. Jev and Luna `none` were both **14/14** correct. Jev's total was **$0.000305592** with **485 ms** median client time; Luna's estimated total was **$0.000882800** with **1,470 ms** median time and zero recorded cache reads or writes. This is a useful changing-request cost observation, but six development cases and eight new synthetic cases cannot be pooled into a production error-rate estimate. With no observed errors, the batch also cannot measure the benefit of escalation.
+
+Across the three comparisons, wrapper choice and cache state materially change the economic and quality interpretation. Repeated calls are not independent tasks, and the measured client times include different providers' network and protocol paths. [The matched-comparison article](@/projects/jev-comparison/) develops the engineering implications.
 
 ## Interpretation
 

@@ -1,19 +1,20 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>我怎样做这些实验 · namanegi</title><meta name="description" content="小规模对照、完整任务成本与失败分析。">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/methods/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/methods/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/methods/">
-<meta name="theme-color" content="#f6f3ec"></head>
+</head>
 <body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
 <nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
-<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/methods/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/methods/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav></header>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/methods/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/methods/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="_1">我怎样做这些实验</h1>
 <p>先找一个具体疑问，再设计一个足够小的对照。例如：先排好计划能否节省时间？检查员能否阻止正确答案被改错？便宜的决策能否撑起完整任务？</p>
 <h2 id="_2">先让实验有机会失败</h2>
-<p>简单题全对之后，我会换更难的题，或者加入缺失信息、工具拒绝和无匹配选项。比较使用相同题目与可见信息；能固定的模型配置、预算和评分方式先固定下来。看到结果后的修正，作为新一批记录。</p>
+<p>简单题全对之后，后续探针换用更难的题，或者加入缺失信息、工具拒绝和无匹配选项。比较使用相同题目与可见信息；能固定的模型配置、预算和评分方式先固定下来。看到结果后的修正，作为新一批记录。</p>
 <h2 id="_3">算到任务结束</h2>
 <p>一次模型回答很快，未必让任务更快。调用工具、补参数、重试和回退都算在内。答案正确、流程完成分别记录，费用缺失时保留缺失。</p>
 <h2 id="_4">回看改变答案的那一步</h2>
-<p>我会看哪些错答案被救回，哪些对答案被改错，以及系统在哪里提前停止。小样本很难给模型排名，但通常已经足够暴露一个值得修正的设计假设。</p>
+<p>重点是哪些错答案被救回，哪些对答案被改错，以及系统在哪里提前停止。小样本很难给模型排名，但通常已经足够暴露一个值得修正的设计假设。</p>
 <p>每篇文章末尾附报告或汇总数据，具体条件和完整表格留在那里。</p></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

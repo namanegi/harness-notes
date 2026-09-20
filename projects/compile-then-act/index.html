@@ -1,57 +1,101 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Does planning ahead actually save time? · namanegi</title><meta name="description" content="Comparing adaptive scheduling with fixed plans across 40 questions.">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/compile-then-act/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/compile-then-act/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/compile-then-act/">
-<meta name="theme-color" content="#f6f3ec"></head>
+</head>
 <body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
 <nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
-<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/compile-then-act/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/compile-then-act/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/compile-then-act/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/compile-then-act/" lang="zh-CN" hreflang="zh-CN">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="does-planning-ahead-actually-save-time">Does planning ahead actually save time?</h1>
-<div class="meta">Compile, Then Act? · August 2026 · 4 min read</div>
+<div class="meta">Compile, Then Act? · August 2026 · 8 min read</div>
 
-<p>An agent that asks “what next?” after every tool call spends time deciding how to work. I wanted to move those decisions to the beginning: build a dependency graph once, then run independent tasks together.</p>
-<p><strong>The experiment did not find a consistent speedup.</strong> A fixed plan kept answer accuracy close to adaptive scheduling, but many runs failed to finish.</p>
-<h2 id="decide-now-or-wait-for-evidence">Decide now, or wait for evidence?</h2>
-<p>I compared three approaches. A single agent used tools directly. An <strong>Online</strong> controller read each completed batch of specialist work before assigning the next. A <strong>Compiled</strong> controller built one dependency graph before execution and never rewrote it. The two multi-agent approaches shared specialists, tools and resource limits.</p>
-<figure><img src="/harness-notes/assets/diagrams/plan.svg" alt="Online scheduling reads the result of each batch before choosing the next. Compiled scheduling builds a fixed graph first, then runs ready tasks in parallel."><figcaption>The timing of the decision is the difference: adapt after observing a result, or commit early and expose parallel work.</figcaption></figure>
+<p>An assistant researching a question may need to search several sources, check what they say, and combine the findings. Several specialist agents can share that work, but someone must decide which jobs can start together and which depend on earlier results. Making that decision after every batch takes time. Making all the decisions before work begins risks missing a follow-up that only a search result reveals. This experiment asked whether planning the specialist work once could keep answer quality while reducing total time or model cost.</p>
+<p><strong>The fixed plan preserved nearly as many correct answers as adaptive scheduling, but did not deliver a consistent speedup.</strong> Its most striking weakness was operational: on the research tasks, many Compiled runs did not complete normally, even when they left a scoreable answer.</p>
+<h2 id="what-was-compiled">What was compiled?</h2>
+<p>The comparison had three ways of organizing work. <strong>Single-agent</strong> gave one tool-capable assistant the whole task, without specialist delegation. <strong>Online</strong> let a controller read each completed batch of specialist work before choosing the next, with up to three specialist jobs at a time. <strong>Compiled</strong> made a dependency graph before execution: a list of jobs and arrows showing which results each job must wait for. After checking that graph, the runtime started jobs whose prerequisites were complete. The graph stayed fixed even when a result suggested a different next step.</p>
+<figure><img src="/harness-notes/assets/diagrams/plan.svg" alt="Online scheduling reads completed specialist batches before choosing more work. Compiled scheduling creates an immutable dependency graph before execution, then runs ready nodes in parallel."><figcaption>Both multi-agent policies can parallelize specialist work. They differ in when the controller is allowed to decide what work exists.</figcaption></figure>
 
-<p>The evaluation used 20 multi-hop research questions from FRAMES and 20 competition problems from OlympiadBench. Each ran three times under all three approaches, using Luna at medium reasoning effort: 360 base runs.</p>
-<h2 id="similar-answers-very-different-completion">Similar answers, very different completion</h2>
+<p>Consider a research question that needs two independent facts before combining them. A graph can expose both searches at once. If the first result instead reveals that a name is ambiguous or a source is outdated, Online can choose a new search. Compiled can pass the unexpected result through its existing graph, but it cannot insert a new branch. This is the practical bet behind the experiment: fewer decisions during execution may save time, provided the initial dependencies are good enough.</p>
+<p>The two multi-agent policies shared specialist roles, tools, limits on simultaneous work, and a fixed resource budget. Every condition used the same language model, <code>gpt-5.6-luna</code> (Luna), at medium reasoning effort; Luna powered the controller and specialist calls in this study. The direct Single-agent baseline used a separate, high-ceiling tool loop so its budget would not be artificially capped by the multi-agent controller limit. It is a useful system comparison, though it cannot isolate the cost of planning from every other difference in how work is done.</p>
+<h2 id="a-frozen-comparison-with-two-kinds-of-task">A frozen comparison, with two kinds of task</h2>
+<p>The evaluation fixed 20 <a href="https://arxiv.org/abs/2409.12941">FRAMES</a> multi-hop factual questions and 20 English, text-only, open-ended <a href="https://arxiv.org/abs/2402.14008">OlympiadBench</a> competition problems. FRAMES agents could use shell, search, and safe page scraping. OlympiadBench used mathematics and physics specialists with shell tools, without web search. The two datasets therefore stress different kinds of dependency: evidence acquisition in one, problem solving in the other.</p>
+<p>Each task ran three times under each of the three base policies. That gives <strong>40 tasks × 3 rollouts × 3 policies = 360 base runs</strong>, randomly interleaved. The formal analysis pairs policies by dataset, task ID, and rollout, so a timing comparison is made on the same question and repeat. The primary result keeps all frozen runs, including infrastructure-affected or unscored runs; later fixed-key retries appear only in a separate reporting view.</p>
+<p>Two outcomes need separate names. <strong>Answer correctness</strong> counts a correct scored answer over all formal runs; unscored runs remain in the denominator. <strong>Completion</strong> records whether the runtime finished successfully. A run can fail to complete and still leave a final answer that the scorer can judge. Conversely, a successfully completed run may give a wrong answer. Treating either measure as a substitute for the other would hide an important part of the result.</p>
+<h2 id="close-answer-scores-uneven-completion">Close answer scores, uneven completion</h2>
 <table>
 <thead>
 <tr>
 <th>Dataset</th>
-<th style="text-align: right;">Single agent correct</th>
-<th style="text-align: right;">Online correct</th>
-<th style="text-align: right;">Compiled correct</th>
+<th>Policy</th>
+<th style="text-align: right;">Correct answers</th>
+<th style="text-align: right;">Completed runs</th>
+<th style="text-align: right;">Median latency</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>FRAMES</td>
+<td>Single-agent</td>
 <td style="text-align: right;">21/60</td>
+<td style="text-align: right;">54/60</td>
+<td style="text-align: right;">28.7s</td>
+</tr>
+<tr>
+<td>FRAMES</td>
+<td>Online</td>
 <td style="text-align: right;">27/60</td>
+<td style="text-align: right;">51/60</td>
+<td style="text-align: right;">51.0s</td>
+</tr>
+<tr>
+<td>FRAMES</td>
+<td>Compiled</td>
 <td style="text-align: right;">26/60</td>
+<td style="text-align: right;">15/60</td>
+<td style="text-align: right;">55.5s</td>
 </tr>
 <tr>
 <td>OlympiadBench</td>
+<td>Single-agent</td>
 <td style="text-align: right;">29/60</td>
+<td style="text-align: right;">60/60</td>
+<td style="text-align: right;">21.8s</td>
+</tr>
+<tr>
+<td>OlympiadBench</td>
+<td>Online</td>
 <td style="text-align: right;">40/60</td>
+<td style="text-align: right;">54/60</td>
+<td style="text-align: right;">39.1s</td>
+</tr>
+<tr>
+<td>OlympiadBench</td>
+<td>Compiled</td>
 <td style="text-align: right;">38/60</td>
+<td style="text-align: right;">49/60</td>
+<td style="text-align: right;">52.7s</td>
 </tr>
 </tbody>
 </table>
-<p>Compiled answered three fewer runs correctly than Online overall. Yet on FRAMES it completed normally in only <strong>15/60 runs</strong>, against Online’s 51/60. An unfinished run could still leave a scoreable answer, so accuracy alone hid a substantial execution problem.</p>
-<p>The timing result also resisted a simple story. Online was faster in <strong>77 of 120 paired runs</strong>. A few long Online runs made its mean latency worse on FRAMES; its median was still lower on both datasets. Recorded costs favored Compiled, but only 35/60 FRAMES runs in each multi-agent condition had complete cost records.</p>
-<p>I then tried a bounded recovery on the 56 unfinished Compiled runs: start again, allowing at most one replan. It corrected six answers and spoiled four, a net gain of two. Recovery required paying for another execution path.</p>
-<h2 id="where-i-would-try-a-fixed-plan-next">Where I would try a fixed plan next</h2>
-<p>The useful question seems to be <strong>how much is already known when execution begins</strong>. A fixed graph looks more promising when dependencies are clear and the remaining work is mostly execution. Research tasks often reveal the next useful question only after a search result arrives.</p>
-<p>That is a design hypothesis, not a boundary this study established. A controlled comparison between known and newly discovered dependencies would test it more directly.</p>
-<p>The single-agent baseline also deserves attention. It was much faster and cheaper in the available records, and answered fewer questions correctly. Extra orchestration has to earn its place through the answers it recovers.</p>
+<p>Compiled trailed Online by one correct answer on FRAMES and two on OlympiadBench: <strong>64/120 versus 67/120 overall</strong>. The combined difference was −2.5 percentage points. Its 95% descriptive, task-cluster bootstrap interval ran from −10.0 to +5.8 points. The point estimate fell inside the study's frozen five-point answer-quality boundary, but the interval is too wide to establish equivalence. It says even less about completion, which that boundary never covered.</p>
+<p>On FRAMES, Compiled completed just <strong>15/60</strong> runs, while Online completed <strong>51/60</strong>. Yet their correct-answer counts were 26 and 27. Those facts are compatible because incomplete executions could still produce scoreable answers. From a user's perspective, however, an answer surviving a broken workflow is different from a reliable system that finishes and reports its result. OlympiadBench had a smaller completion gap, 49/60 for Compiled against 54/60 for Online. The contrast warns against declaring a fixed graph successful from answer scores alone.</p>
+<p>The direct baseline adds another trade-off. Single-agent was faster in 55/60 FRAMES pairs and 59/60 OlympiadBench pairs against Online, but lost 10.0 and 18.3 accuracy points respectively. Delegation recovered answers on these tasks; it also added substantial time. This does not identify one overhead source, since the policies may differ in tool use, context length, and specialist work.</p>
+<h2 id="why-the-latency-average-tells-only-part-of-the-story">Why the latency average tells only part of the story</h2>
+<p>Compiled did not consistently turn early parallelism into a shorter end-to-end run. On FRAMES, mean Online latency divided by mean Compiled latency was <strong>1.165</strong>, which favors Compiled if read alone. But Compiled was faster in only <strong>27/60</strong> direct pairs. A few long Online runs raised its mean; the FRAMES median was still lower for Online, 51.0 seconds versus 55.5 seconds.</p>
+<p>OlympiadBench pointed the other way even by the mean: the same ratio was <strong>0.936</strong>, and Compiled was faster in only <strong>16/60</strong> pairs. Across the two datasets, Online won <strong>77/120 paired timings</strong>. The median pairwise speedup for Compiled was below one on both. Means matter for total capacity planning, while medians and paired wins describe what a typical repeated task experienced. Here those views disagree on FRAMES, so a single average would make the efficiency claim sound firmer than the data allow.</p>
+<p>Recorded model costs also appeared to favor Compiled, but the coverage is uneven. In the frozen primary comparison, paired Compiled-to-Online LLM-cost ratios were <strong>0.555 on 23 available FRAMES pairs</strong> and <strong>0.854 on all 60 OlympiadBench pairs</strong>. FRAMES had complete usage records for only <strong>35/60 runs in each multi-agent condition</strong>. Unknown usage stayed unknown; it was not counted as zero. Missingness is substantial and depends on condition, so the FRAMES ratio describes observed pairs, not all 60. These estimates cover model tokens at a dated price snapshot, excluding search, containers, and other operating costs.</p>
+<h2 id="what-happens-if-the-graph-stalls">What happens if the graph stalls?</h2>
+<p>After the base phase, the study tried a <strong>Bounded</strong> rescue only on the <strong>56 Compiled runs recorded as incomplete</strong>: 45 FRAMES and 11 OlympiadBench runs. This was a conditional follow-up, not a fourth randomized policy. Each trigger started a fresh run from scratch. That run could make at most one replanning decision and execute at most one small continuation graph; it did not resume or edit the original Compiled graph.</p>
+<p>Among those selected cases, six previously incorrect outcomes became correct and four previously correct outcomes became incorrect, moving from 26 to 28 correct answers overall. Bounded completed 37/56 rescue runs. Its replanner was invoked in 30 runs, and a continuation graph actually ran in 20. The full parent-plus-rescue path had a median latency of <strong>125.3 seconds</strong>; joint cost was known for only <strong>22/56</strong> paths. Thus the net gain of two answers came with a second planning and execution path, not merely the marginal price of one extra scheduling call.</p>
+<p>The public report also includes a later presentation table and figures. That view replaces 11 fixed infrastructure-affected base records with retries and fills a 120-row Bounded line using 64 untriggered Compiled outcomes plus the 56 actual rescue paths. It helps inspect outcomes, but it does not replace the frozen 360-run comparison or make Bounded an independently assigned fourth condition. The numbers above use the frozen primary analysis unless explicitly labeled as conditional rescue.</p>
+<h2 id="where-a-fixed-graph-might-fit">Where a fixed graph might fit</h2>
+<p>These 40 fixed tasks do not identify a universal winner. They suggest a useful boundary to test: <strong>how much of the task structure is known before the first tool result?</strong> When dependencies are explicit and execution mostly fills known slots, a graph can schedule independent work early. When evidence determines the next question, the ability to choose work after observing a result may matter more than the scheduling calls saved. That is a design hypothesis, not a causal conclusion established by this comparison.</p>
+<p>For this configuration, the result is a <strong>partial reproduction with an inconclusive efficiency claim</strong>. Compiled's answer-quality point estimate met the predefined boundary; its uncertainty interval did not prove equivalence. Its latency advantage appeared in one dataset's mean but not its typical paired runs, and missing FRAMES usage limits the cost claim. The broader engineering lesson is to measure the whole execution path: a plan that preserves answer accuracy may still be a poor operational bargain if it fails to finish or requires an expensive rescue.</p>
 <details class="source-note">
 <summary>Sources and study limits</summary>
-<p>These numbers use the frozen primary analysis, before supplementary infrastructure retries. Compiled’s overall accuracy difference from Online was −2.5 percentage points, with a descriptive interval of −10.0 to +5.8; this does not establish equivalence. Recovery was conditional on unfinished runs, not a fourth parallel baseline. Cost covers recorded model usage rather than total operating expense.</p>
+<p>This article uses the frozen primary analysis before supplementary infrastructure retries. The sample is 20 fixed tasks per dataset, with three rollouts each. The bootstrap intervals are descriptive, not hypothesis tests. Exact or numeric scorers were used; no manual semantic grading was performed. Dataset revisions, run profile, and reproduction steps are pinned in the public artifact, while run-specific prompts, responses, traces, and cached pages are excluded.</p>
 <p><a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/results/formal-medium-v3/report.md">Full report</a> · <a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/docs/methods.md">Methods</a> · <a href="https://github.com/namanegi/compile-then-act/blob/01c48be05391f6739fc59c88312a2c794cdf60b9/docs/reproduction.md">Reproduction</a></p>
 </details></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

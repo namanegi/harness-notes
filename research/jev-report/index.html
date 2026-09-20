@@ -1,22 +1,53 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Jev experiment appendix · namanegi</title><meta name="description" content="Methods and results for each separate experimental cohort.">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/research/jev-report/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/research/jev-report/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/research/jev-report/">
-<meta name="theme-color" content="#f6f3ec"></head>
+</head>
 <body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
 <nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
-<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/research/jev-report/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/research/jev-report/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/research/jev-report/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/research/jev-report/" lang="zh-CN" hreflang="zh-CN">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="jev-experiment-appendix">Jev experiment appendix</h1>
 <div class="meta">Measurements: September 20–21, 2026 · Jev 1.13 · GPT-5.6 Luna</div>
 
-<p>This appendix preserves the separate cohorts behind <a href="/harness-notes/projects/jev/">the article</a>. Results are exploratory: samples are small, several tasks are synthetic, and repeated measurements are not independent benchmark samples.</p>
+<p>This appendix preserves the separate cohorts behind the Jev series: <a href="/harness-notes/projects/jev-choices/">Choice capability and candidate scores</a>, <a href="/harness-notes/projects/jev-comparison/">matched Jev–Luna decisions</a>, and <a href="/harness-notes/projects/jev/">complete workflows</a>. Results are exploratory: samples are small, several tasks are synthetic, and repeated measurements are not independent benchmark samples.</p>
 <p><a href="/harness-notes/assets/jev-evidence.json">Download the aggregate data</a>. It includes source-summary hashes and grouped counts, not the private runner, raw requests or a complete reproduction package.</p>
 <h2 id="measurement">Measurement</h2>
 <p>Jev used the official OpenRouter Python SDK Decisions interface; Luna used the OpenAI SDK with strict JSON, and ReAct used the Agents SDK. SDK batches used TLS verification, connection reuse and no automatic retries. The resolved Jev model was <code>typesafe/jev-1.13-20260917</code>; Luna requests used <code>gpt-5.6-luna</code>.</p>
 <p>Jev cost is API-reported; Luna cost is estimated from input, cache and output usage. Neither was reconciled against provider invoices. Wall time includes local and network overhead. Structure validity, correct choice, goal state and explicit stopping were separate observations.</p>
 <p>Benchmark inputs came from pinned <a href="https://github.com/suzgunmirac/BIG-Bench-Hard/tree/9ee07bd481feebf959a6b59d61ea57bdcf30964d">BBH</a> and <a href="https://github.com/google-deepmind/bbeh/tree/80d12ca916b7158f22293fcf3144f4d3d854d4be">BBEH</a> revisions. Questions were sampled before calls; selected BBH boolean and swap labels were also checked in code. Training overlap is unknown. Benchmark records are not redistributed here.</p>
 <h2 id="1-single-decisions">1. Single decisions</h2>
+<h3 id="standalone-synthetic-probes">Standalone synthetic probes</h3>
+<p>These calls precede the matched Jev–Luna comparisons. The policy probe and later comparison reuse the same design but have separate call batches.</p>
+<table>
+<thead>
+<tr>
+<th>Probe</th>
+<th>Design</th>
+<th style="text-align: right;">Jev valid / correct</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Short actions and rules</td>
+<td>Six task families, twelve variants, two calls each</td>
+<td style="text-align: right;">24/24 valid; 24/24 correct</td>
+</tr>
+<tr>
+<td>Separate option-order diagnostic</td>
+<td>Three semantic-choice variants with the correct answer moved last, two calls each</td>
+<td style="text-align: right;">6/6 valid; 6/6 correct</td>
+</tr>
+<tr>
+<td>Policy applicability</td>
+<td>Four evidence-applicability states, two wordings, three calls each</td>
+<td style="text-align: right;">24/24 valid; 24/24 correct</td>
+</tr>
+</tbody>
+</table>
+<p>The short-rule probe varies action descriptions and whether a rule's conclusion is stated explicitly. The order diagnostic is not merged into that primary denominator. The policy probe holds document count and metadata fixed while changing search-summary and opened-text applicability; all user facts are supplied. It tests action selection, not retrieval or final answer generation. API-reported costs were $0.000452088, $0.000104496 and $0.000895104, respectively. Aggregate entries are <code>single_rule_actions</code>, <code>single_rule_order_diagnostic</code> and <code>single_policy_applicability</code>. No competitive code baseline was run; a parser specialized to these rule forms could solve them.</p>
+<h3 id="distinct-action-states-and-public-reasoning">Distinct action states and public reasoning</h3>
 <table>
 <thead>
 <tr>
@@ -239,6 +270,13 @@
 <p>The Jev controller correctly requested additional approval in one task, then looped. Its stopping instruction was less explicit than those of the other controllers. A frozen amendment clarified stopping after business success or a justified prerequisite request, and reran all eight Jev tasks.</p>
 <p>The amendment still achieved 7/8: total cost $0.002245746, median 2.74 s. The access task now passed; an incident task stopped without reissuing a necessary information request after an earlier rejected action. No deployment ID was invented and no rollback was performed.</p>
 <p>The batches remain separate. Selecting the best outcome per task would falsely produce 8/8. The rerun happened later, so its differences cannot all be attributed to wording.</p>
+<p><a id="matched-comparisons"></a></p>
+<h2 id="7-matched-single-step-comparisons">7. Matched single-step comparisons</h2>
+<p>The single-decision comparisons held decision facts, candidate actions and their order fixed within each Jev–Luna pair. Jev used Choice; Luna used Responses with a strict JSON enum. Gold actions came from rules fixed before calls. These comparisons measure valid action selection, API-reported Jev cost, usage-estimated Luna cost and client wall time. They do not execute a full policy or reimbursement workflow.</p>
+<p><strong>Document applicability.</strong> Four applicability states, each with two equivalent wordings and three repeats, produced 24 calls per configuration over eight designed variants. Jev chose correctly <strong>24/24</strong>. The original Luna <code>none</code> condition, with the instruction embedded in a Jev-shaped user JSON wrapper, managed <strong>13/24</strong>. A separately frozen control moved the same instruction into native <code>instructions</code> and removed the wrapper; Luna <code>none</code> reached <strong>21/24</strong>. Native <code>low</code>, also given a larger output allowance (1,024 rather than 128 tokens), reached <strong>23/24</strong>. The change from 13/24 to 21/24 tests a packaging combination, not the effect of one field alone; the further change to 23/24 also changes effort and allowance. All remaining native-instruction errors came from one wording of the state in which neither document applied. Jev cost $0.000895 for its 24 calls; the three Luna configurations cost an estimated $0.002994, $0.002953 and $0.003606, respectively. The native controls ran in a later session, so their times are not a new paired speed comparison with the earlier Jev batch.</p>
+<p><strong>Exception boundary.</strong> Four logical states required four different actions: answer, read an appendix, ask for a missing authorization, or search for an appendix. Each had short and long context and three repeats, again 24 calls per configuration. Jev, native Luna <code>none</code> and native Luna <code>low</code> were all <strong>24/24</strong> correct. Their batch costs were <strong>$0.002862</strong>, <strong>$0.005341</strong> and <strong>$0.006625</strong>; median client times were <strong>442.9 ms</strong>, <strong>1,335.5 ms</strong> and <strong>1,733.5 ms</strong>. The long input added irrelevant archive entries and moved relevant evidence later, so this was not a pure length intervention. It was repeated verbatim: for Luna <code>none</code>, median per-call estimated cost was about <strong>$0.000636</strong> when that input wrote to cache and <strong>$0.000067</strong> on subsequent reads. Jev's corresponding long calls cost about <strong>$0.000180</strong> each. Thus warm Luna reads were cheaper than Jev calls on this exact replay, although Jev's full-batch total was lower. Changing agent state after tool results may yield a different cache pattern; Jev did not report comparable cache subdivisions.</p>
+<p><strong>Changing states.</strong> A third comparison sent 14 distinct short-rule states once to each model. Six were reused successful probe states; eight new warranty and workspace states were frozen before this batch's results were seen. Facts changed the required action within each family. Jev and Luna <code>none</code> were both <strong>14/14</strong> correct. Jev's total was <strong>$0.000305592</strong> with <strong>485 ms</strong> median client time; Luna's estimated total was <strong>$0.000882800</strong> with <strong>1,470 ms</strong> median time and zero recorded cache reads or writes. This is a useful changing-request cost observation, but six development cases and eight new synthetic cases cannot be pooled into a production error-rate estimate. With no observed errors, the batch also cannot measure the benefit of escalation.</p>
+<p>Across the three comparisons, wrapper choice and cache state materially change the economic and quality interpretation. Repeated calls are not independent tasks, and the measured client times include different providers' network and protocol paths. <a href="/harness-notes/projects/jev-comparison/">The matched-comparison article</a> develops the engineering implications.</p>
 <h2 id="interpretation">Interpretation</h2>
 <p>The measured workflow savings came with an observed quality gap. Cheap local selection remains useful to investigate, particularly where code can check exact predicates and terminal state. These cohorts do not establish long-workflow reliability, probability calibration or a general hierarchy advantage.</p>
 <p>Interface references: <a href="https://docs.typesafe.ai/primitives/choice">TypeSafe Choice</a> and <a href="https://openrouter.ai/typesafe/jev-1.13">OpenRouter Jev</a>. The study reports the dated measurements above, not permanent provider prices or performance claims.</p></main>

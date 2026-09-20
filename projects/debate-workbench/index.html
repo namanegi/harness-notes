@@ -1,30 +1,32 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Why didn’t three small models reason better together? · namanegi</title><meta name="description" content="Debate Workbench: correction, checkers and wrong consensus.">
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>When small models debate, who checks the answer? · namanegi</title><meta name="description" content="Debate Workbench: correction, checkers and wrong consensus.">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/debate-workbench/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/debate-workbench/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/debate-workbench/">
-<meta name="theme-color" content="#f6f3ec"></head>
+</head>
 <body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
 <nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
-<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/debate-workbench/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/debate-workbench/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
-<main id="main" class="prose"><h1 id="why-didnt-three-small-models-reason-better-together">Why didn’t three small models reason better together?</h1>
-<div class="meta">Debate Workbench · Experiments: August 27, 2026 · 4 min read</div>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/debate-workbench/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/debate-workbench/" lang="zh-CN" hreflang="zh-CN">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
+<main id="main" class="prose"><h1 id="when-small-models-debate-who-checks-the-answer">When small models debate, who checks the answer?</h1>
+<div class="meta">Debate Workbench · Experiments: August 27, 2026 · 8 min read</div>
 
-<p>Let several models solve a problem independently, then show them one another’s reasoning. Even if each model is weak, perhaps one finds the right answer and brings the others along.</p>
-<p>I built a debate workbench to inspect those revisions turn by turn. The most revealing failures went the other way: <strong>the correct answer appeared early, and discussion lost it.</strong></p>
-<h2 id="finding-an-answer-is-not-the-same-as-keeping-it">Finding an answer is not the same as keeping it</h2>
-<p>The main experiment used a locally quantized Qwen2.5-1.5B model. Three agents debated for four turns, reading their peers’ complete reasoning from the previous turn. The group answer was the most frequent answer. A second condition kept three agents but replaced one solver with an arithmetic checker.</p>
-<figure><img src="/harness-notes/assets/diagrams/debate.svg" alt="Three agents answer separately, share their previous reasoning, revise and vote. A checker can replace the third solver but remains inside the same feedback loop."><figcaption>The checker reads the same peer reasoning. It can catch an error—or inherit one.</figcaption></figure>
+<p>Running a small language model locally can keep an experiment inexpensive and under direct control, but the model may miss a step in a word problem. One proposed remedy is to ask several copies to solve it, share their work, and revise. If one finds the right calculation, the others might recover it. They might also copy a convincing mistake. The question for this workbench was whether discussion helps a small model <em>check</em> an answer, rather than merely agree on one.</p>
+<p>The <a href="https://openreview.net/forum?id=zj7YuTE4t8">multi-agent debate paper</a> found gains with stronger models and reported that sharing full reasoning helped. This experiment tested the same basic idea near the other end of the capability range, using a local, quantized Qwen2.5-1.5B-Instruct. “Quantized” here means the model's weights were stored at reduced precision to run in the local setup. The test kept every answer at every turn so that it could distinguish finding a correct answer from preserving it. The striking result was that <strong>correct answers often appeared, then disappeared during discussion.</strong></p>
+<h2 id="a-small-inspectable-debate">A small, inspectable debate</h2>
+<p>For the main test, three copies of the model answered each GSM8K arithmetic word problem for four turns. At turn one they worked independently. On subsequent turns, each saw its own conversation history and the latest <em>full reasoning</em> from its peers. The group answer was the most frequent final answer, following the paper’s plurality rule; ties went to the first agent. There were no tools, search results, response schemas, or hidden claim metadata guiding the exchange.</p>
+<p>A second condition kept three model participants but instructed the third to act as an arithmetic checker instead of another solver. Its job was to recompute the numbers and challenge unsupported steps. This tests a concrete setup change: assigning verification responsibility while leaving the model and discussion loop intact.</p>
+<figure><img src="/harness-notes/assets/diagrams/debate.svg" alt="Three agents answer separately, share their previous reasoning, revise and vote. A checker can replace the third solver but remains inside the same feedback loop."><figcaption>The checker reads the same peer reasoning as everyone else. It can catch an error—or inherit one.</figcaption></figure>
 
-<p>Across two disjoint 20-question GSM8K cohorts, ordinary debate fell from 24 correct answers to 23. The checker condition rose from 24 to 27.</p>
+<p>The 40 GSM8K questions came from two disjoint 20-question cohorts. Main runs used the Ollama provider’s default sampling, so each condition generated its own initial answers. This matters: similar first-turn scores do not mean the agents started from identical answers on each question. The table measures change <em>within</em> each run, not a clean randomized estimate of the checker’s causal effect.</p>
 <table>
 <thead>
 <tr>
 <th>Three agents, four turns</th>
-<th style="text-align: right;">Initially correct</th>
-<th style="text-align: right;">Finally correct</th>
-<th style="text-align: right;">Wrong → right</th>
-<th style="text-align: right;">Right → wrong</th>
+<th style="text-align: right;">T1 correct</th>
+<th style="text-align: right;">T4 correct</th>
+<th style="text-align: right;">Initially wrong rescued</th>
+<th style="text-align: right;">Initially correct lost</th>
 </tr>
 </thead>
 <tbody>
@@ -32,31 +34,38 @@
 <td>Three solvers</td>
 <td style="text-align: right;">24/40</td>
 <td style="text-align: right;">23/40</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">3</td>
+<td style="text-align: right;">2/16</td>
+<td style="text-align: right;">3/24</td>
 </tr>
 <tr>
-<td>Two solvers + checker</td>
+<td>Two solvers + arithmetic checker</td>
 <td style="text-align: right;">24/40</td>
 <td style="text-align: right;">27/40</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">5/16</td>
+<td style="text-align: right;">2/24</td>
 </tr>
 </tbody>
 </table>
-<p>In one question, two agents initially interpreted a quantity correctly. The third supplied a more elaborate wrong explanation. On the next turn, the two correct agents adopted it, creating a wrong consensus. In another, the group correctly calculated how many trees had died, then reported that number as how many remained.</p>
-<p>The reasoning was available. The receiving models could not reliably tell which reasoning deserved trust.</p>
-<h2 id="a-checker-helped-sometimes-but-was-not-an-oracle">A checker helped sometimes, but was not an oracle</h2>
-<p>The arithmetic checker improved from the first to last turn in both GSM8K cohorts. That signal is worth pursuing. The final difference between conditions, however, came down to just six disagreeing questions: five checker-only wins and one ordinary-debate-only win. This was too little evidence for a stable advantage.</p>
-<p>On 20 SVAMP questions, which stress sensitivity to the quantity being asked for, a semantic checker raised the group’s correct count from 12 to 14. It also produced four unanimously wrong answers. Conditions generated their initial answers independently, so different starting points complicate attribution.</p>
-<p>A ten-question, zero-temperature comparison was less encouraging. Four ordinary solvers stayed at 8/10. Three solvers plus a checker went from 7/10 to 8/10 and back to 7/10. The checker was participating in the discussion it was meant to verify.</p>
-<h2 id="more-agents-made-the-wait-more-predictable-than-the-gain">More agents made the wait more predictable than the gain</h2>
-<p>With two turns fixed, increasing the group from one to seven agents gave final accuracies of <strong>65%, 55%, 75%, 65%, 70%, 70%, 70%</strong> on the same 20 questions. Mean latency rose from <strong>4.0 to 45.3 seconds</strong>.</p>
-<p>Three agents were not established as an optimum. Each condition regenerated its starting answers, ties favored the first agent, and 20 questions leave plenty of room for variation. The result did give me a reason to stop adding agents and rounds to this setup.</p>
-<p>The more useful next comparison would freeze identical initial answers, then branch into repeated discussion or a single final adjudication. That would help distinguish the value of having more candidate answers from the value of exchanging them. This comparison has not yet been run.</p>
+<p>The checker condition improved in both cohorts: 60% to 70% in one and 60% to 65% in the other. The all-solver condition went 65% to 55% in one cohort and 55% to 60% in the other. That repeated direction is more interesting than the headline ten-point T4 gap, because the gap rests on only six questions where the conditions differed: five checker-only wins and one solver-only win. The paired exact McNemar result was <code>p=0.219</code>. These runs suggest a mechanism worth testing; they do not establish a stable accuracy advantage.</p>
+<h2 id="what-changed-during-the-conversation">What changed during the conversation?</h2>
+<p>The aggregate score hides the answer traffic. Across the homogeneous GSM8K runs, individual agents changed answers 171 times. Forty-four changes went from wrong to right, while 39 went from right to wrong. With a checker, there were fewer changes—150—but 47 were wrong to right and 33 were right to wrong. The checker did not make the group revise more often. It improved the balance of revisions, and some corrections survived to the final vote.</p>
+<p>The failures show why verification matters. In one GSM8K question, the source used the awkward phrase “She ate 5 five cookies.” Two agents interpreted it as five cookies and initially gave the correct answer. A third read it as <code>5 × 5</code> and wrote a more elaborate explanation. On the next turn, the two correct agents adopted that interpretation. The debate created a unanimous wrong answer from a correct majority.</p>
+<p>Another group’s answer moved <code>91 → 515 → 91 → 39</code> across four turns. In the last response, an agent computed that 39 trees had died, then reported 39 as the number <em>remaining</em>. The arithmetic was present; the requested quantity was lost. These are not examples of a missing context window. All 480 homogeneous GSM8K messages were retained for analysis, and later-turn responses were generally substantial. The weak point was deciding which candidate argument answered the actual question.</p>
+<h2 id="change-the-question-a-semantic-checker-on-svamp">Change the question: a semantic checker on SVAMP</h2>
+<p><a href="https://aclanthology.org/2021.naacl-main.168/">SVAMP</a> varies the wording and structure of arithmetic problems, including irrelevant numbers. Here the third agent checked which quantity and unit the question requested, recomputed from the original facts, and looked for the first semantic or arithmetic divergence. It was told not to defer to a majority or a longer explanation without its own support.</p>
+<p>On 20 SVAMP questions, the three-solver group moved from 15/20 to 13/20. The semantic-checker group moved from 12/20 to 14/20, rescuing two of eight initially wrong group answers and losing none of its twelve initially correct ones. But their first-turn scores were already 15 percentage points apart, and at T4 the checker group alone won two questions while the solver group alone won one. Different initial draws and the small sample prevent an absolute ranking.</p>
+<p>There is a second warning in this result. Final unanimity rose from 60% with three solvers to 85% with a semantic checker, yet four of the 20 checker questions ended in <strong>unanimous wrong answers</strong>. A focused role can make agents converge without making the conclusion true. The checker itself reached 65% individual accuracy at T4 on both GSM8K and SVAMP; it was a participant that changed what the group examined, not an oracle.</p>
+<h2 id="does-adding-a-checker-solve-it">Does adding a checker solve it?</h2>
+<p>To remove sampling temperature as one source of movement, I also compared two four-agent configurations at temperature zero on the same ten GSM8K questions. Four identical solvers stayed at 8/10 throughout four turns, making no answer changes. Three solvers plus a semantic checker started at 7/10, briefly reached 8/10 on turn two, then returned to 7/10. The checker configuration produced 15 individual answer changes; seven wrong-to-right transitions were exactly offset by seven right-to-wrong transitions. Its false-consensus rate was 30%, compared with 20% for four solvers.</p>
+<p>This small ablation is not a definitive comparison of roles. It does rule out the simple story that adding another synchronous checker necessarily helps. The checker repeatedly reads its peers and can be pulled into the same mistaken interpretation it was assigned to inspect. A final adjudicator that sees frozen solver outputs just once would test a different mechanism.</p>
+<h2 id="more-agents-more-waiting">More agents, more waiting</h2>
+<p>The reference paper also varied agent count, so I fixed debate at two turns and ran one through seven homogeneous agents on the same 20 GSM8K questions. Each condition independently sampled its first-turn answers. Final plurality accuracy was <strong>65%, 55%, 75%, 65%, 70%, 70%, 70%</strong>. Mean latency grew from <strong>4.0 to 45.3 seconds</strong>. The seven-agent condition took about eleven times as long as one agent without a monotonic gain.</p>
+<p>This curve does not identify three agents as the optimum. Twenty questions are few, the conditions did not share frozen initial completions, and the paper-compatible vote gives the first agent a tie-breaking advantage. At six and seven agents, plurality was 70% while strict-majority accuracy was only 55%; dispersed wrong answers can let the correct answer win a plurality without making most agents correct. Counting votes alone would obscure that distinction.</p>
+<p>The next useful experiment is therefore narrower than “try more agents.” Freeze the same first-turn solver outputs, branch them into continued synchronous debate and a one-shot independent adjudicator, then compare rescued answers, lost answers, and false consensus across multiple seeds. That would separate the benefit of having several candidates from the effect of letting them influence one another. It has not been run yet.</p>
+<p>These observations apply to this quantized 1.5B model, these prompts, and small samples. They do not contradict the debate paper’s results with other models. They show a boundary the harness must handle: a model may be able to <em>produce</em> a correct line of reasoning without reliably <em>recognizing and preserving</em> it in a room full of alternatives.</p>
 <details class="source-note">
 <summary>Report, model settings and code</summary>
-<p>The model was Ollama Qwen2.5-1.5B-Instruct, Q4_K_M. Main runs used provider-default sampling; the four-agent ablation used temperature zero. All Qwen2.5 conditions reported here completed their requested samples. These observations do not establish how larger models or other debate protocols behave.</p>
+<p>The model was Ollama Qwen2.5-1.5B-Instruct, Q4_K_M. All reported Qwen2.5 conditions completed their requested samples. Main runs used provider-default sampling; the four-agent ablation used temperature zero. The full report includes per-turn tables, transition counts, protocol details, and limitations. Raw transcripts and aggregate files remain in local storage.</p>
 <p><a href="https://github.com/namanegi/multiagent-debate-workbench/blob/f9f8f7347bef1d2b91ad4f5141b658fc7f8a58ca/docs/reports/small-model-debate-failure-analysis.md">Full report</a> · <a href="https://github.com/namanegi/multiagent-debate-workbench/tree/f9f8f7347bef1d2b91ad4f5141b658fc7f8a58ca">Workbench source</a></p>
 </details></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

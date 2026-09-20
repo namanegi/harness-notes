@@ -417,6 +417,112 @@
         "jev_cost_usd": 0.0015545459999999995
       },
       "note": "business_completed and safe_block differ; explicit stop required; amendment is an independent later eight-case cohort."
+    },
+    "semantic_applicability": {
+      "source_summary_sha256": "70ddead9008a72aa1c9788bb825c1eba6a7d3b97594d43f56e5b3874aac358ce",
+      "totals": {
+        "jev": {
+          "attempted_calls": 24,
+          "valid_calls": 24,
+          "correct_valid_calls": 24,
+          "known_cost_usd": 0.000895104,
+          "unknown_cost_calls": 0
+        },
+        "luna": {
+          "attempted_calls": 24,
+          "valid_calls": 24,
+          "correct_valid_calls": 13,
+          "known_cost_usd": 0.002994,
+          "unknown_cost_calls": 0
+        }
+      },
+      "median_client_ms": {
+        "jev": 408.727,
+        "luna": 1261.9535
+      }
+    },
+    "semantic_native_control": {
+      "source_summary_sha256": "c2d49bedc5e375968e2fcd6eceb5c900a149bca1c599eeacfb23e63bd56f999e",
+      "totals": {
+        "none": {
+          "attempted_calls": 24,
+          "valid_calls": 24,
+          "correct_valid_calls": 21,
+          "known_cost_usd": 0.0029532,
+          "unknown_cost_calls": 0
+        },
+        "low": {
+          "attempted_calls": 24,
+          "valid_calls": 24,
+          "correct_valid_calls": 23,
+          "known_cost_usd": 0.0036060000000000003,
+          "unknown_cost_calls": 0
+        }
+      }
+    },
+    "exception_boundary": {
+      "source_summary_sha256": "a40cb591d08e63da7cc76819417313ffd308b3aa42825dad9063e88097f253b3",
+      "totals": {
+        "jev": {
+          "attempted_calls": 24,
+          "valid_calls": 24,
+          "correct_valid_calls": 24,
+          "known_cost_usd": 0.002861712,
+          "unknown_cost_calls": 0
+        },
+        "luna_none": {
+          "attempted_calls": 24,
+          "valid_calls": 24,
+          "correct_valid_calls": 24,
+          "known_cost_usd": 0.00534068,
+          "unknown_cost_calls": 0
+        },
+        "luna_low": {
+          "attempted_calls": 24,
+          "valid_calls": 24,
+          "correct_valid_calls": 24,
+          "known_cost_usd": 0.006624680000000001,
+          "unknown_cost_calls": 0
+        }
+      },
+      "median_client_ms": {
+        "jev": 442.92150000000004,
+        "luna_none": 1335.4665,
+        "luna_low": 1733.4865
+      }
+    },
+    "single_rule_actions": {
+      "source_summary_sha256": "a54efd38577b64029a757d7bbddffaa9c86dc1d1d0523098914f704b578bd227",
+      "totals": {
+        "attempted_calls": 24,
+        "valid_calls": 24,
+        "correct_valid_calls": 24,
+        "known_cost_usd": 0.000452088,
+        "unknown_cost_calls": 0
+      },
+      "note": "Standalone Jev probe. Repeated design variants are not independent business tasks. Separate from matched model-comparison calls."
+    },
+    "single_rule_order_diagnostic": {
+      "source_summary_sha256": "93765fd9838241e3bbd6415308cb1aa5dedc6ed918ed43e103732f87be74fe5f",
+      "totals": {
+        "attempted_calls": 6,
+        "valid_calls": 6,
+        "correct_valid_calls": 6,
+        "known_cost_usd": 0.00010449600000000001,
+        "unknown_cost_calls": 0
+      },
+      "note": "Standalone Jev probe. Repeated design variants are not independent business tasks. Separate from matched model-comparison calls."
+    },
+    "single_policy_applicability": {
+      "source_summary_sha256": "b0d864b4fb96d9670f7e0c20addb77fd3dd1c1901aca6585df1e8ff53210369b",
+      "totals": {
+        "attempted_calls": 24,
+        "valid_calls": 24,
+        "correct_valid_calls": 24,
+        "known_cost_usd": 0.000895104,
+        "unknown_cost_calls": 0
+      },
+      "note": "Standalone Jev probe. Repeated design variants are not independent business tasks. Separate from matched model-comparison calls."
     }
   }
 }

@@ -1,21 +1,27 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Experiments · namanegi</title><meta name="description" content="Three questions about how agents work.">
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Experiments · namanegi</title><meta name="description" content="Research on decisions, planning and model collaboration.">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/">
-<meta name="theme-color" content="#f6f3ec"></head>
+</head>
 <body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
 <nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
-<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/" lang="zh-CN" hreflang="zh-CN">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="experiments">Experiments</h1>
-<p>Three questions about how agents work.</p>
-<h2 id="can-cheap-decisions-make-a-cheap-agent">Can cheap decisions make a cheap agent?</h2>
-<p>Jev chose short-rule actions quickly and cheaply. Complete workflows exposed problems with stopping and recovery.</p>
-<p><a href="/harness-notes/projects/jev/">Read the Jev study →</a></p>
+<p>Research on decisions, planning and model collaboration, from single calls to complete agent systems.</p>
+<h2 id="jev-from-a-choice-to-a-finished-task">Jev: from a choice to a finished task</h2>
+<p>The same choice interface can hide very different demands. This series first maps the capability, then compares alternatives, then measures the complete system.</p>
+<ol>
+<li><a href="/harness-notes/projects/jev-choices/">What can a decision model actually decide?</a> — standalone action probes, reasoning failures and candidate scores.</li>
+<li><a href="/harness-notes/projects/jev-comparison/">Jev vs. Luna: compare the decision, then count the cost</a> — matched states, instruction packaging, caching and conditional handoff.</li>
+<li><a href="/harness-notes/projects/jev/">Can cheap decisions make a cheap agent?</a> — parameter generation, rejected tools, verification and stopping.</li>
+</ol>
+<p><a href="/harness-notes/research/jev-report/">Shared methods and results appendix</a></p>
 <h2 id="does-planning-ahead-actually-save-time">Does planning ahead actually save time?</h2>
-<p>A fixed dependency graph could expose parallel work. Across 40 research and competition questions, that did not become a consistent speedup.</p>
+<p>A fixed dependency graph can expose parallel work. Across 40 research and competition questions, that did not become a consistent speedup. Completion and latency distributions explain why accuracy alone misses much of the result.</p>
 <p><a href="/harness-notes/projects/compile-then-act/">Read Compile, Then Act? →</a></p>
-<h2 id="why-didnt-three-small-models-reason-better-together">Why didn’t three small models reason better together?</h2>
-<p>Correct answers sometimes appeared before discussion and vanished after it. A dedicated checker showed promise, but could inherit the same mistakes.</p>
+<h2 id="when-small-models-debate-who-checks-the-answer">When small models debate, who checks the answer?</h2>
+<p>Correct answers sometimes appeared before discussion and vanished after it. A dedicated checker showed promise, but could inherit the same mistakes. Follow the changes across rounds, tasks and group sizes.</p>
 <p><a href="/harness-notes/projects/debate-workbench/">Read Debate Workbench →</a></p></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

@@ -1,25 +1,26 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>哪些判断值得多问一次模型？ · namanegi</title><meta name="description" content="额外的检查、讨论或规划究竟增加了什么？">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/writing/2026-09-21-decisions-and-code/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/writing/2026-09-21-decisions-and-code/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/writing/2026-09-21-decisions-and-code/">
-<meta name="theme-color" content="#f6f3ec"></head>
+</head>
 <body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
 <nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
-<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/writing/2026-09-21-decisions-and-code/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/writing/2026-09-21-decisions-and-code/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav></header>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/writing/2026-09-21-decisions-and-code/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/writing/2026-09-21-decisions-and-code/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="_1">哪些判断值得多问一次模型？</h1>
 <div class="meta">2026-09-21 · 约 2 分钟</div>
 
-<p>做 agent 时，我很容易在不放心的地方再加一次模型调用：检查答案、复核按钮，或者再想一遍下一步。最近几个实验让我开始反过来问：<strong>这一次调用，究竟补上了什么？</strong></p>
+<p>对答案不放心时，很容易再加一次模型调用：检查结果、复核按钮，或者重新考虑下一步。单看每一步都有道理。但三个小实验说明，更值得追问的是：<strong>这次调用补充了什么证据，又有没有改变结果？</strong></p>
 <h2 id="_2">多一个意见，不一定多一份证据</h2>
 <p>在 <a href="/harness-notes/zh/projects/debate-workbench/">Debate Workbench</a> 里，正确答案有时第一轮就出现了，几轮讨论后反而消失。增加一个检查员有改善迹象，但它也会接受同伴的错误解释。</p>
 <p><a href="/harness-notes/zh/projects/jev/">Jev 的按钮选择实验</a> 遇到了类似情况：把一次判断拆成选路径、找按钮、再复核，没有胜过直接看全部候选。检查员和原来的决策者会犯相似的错，多走一步并没有自动增加可信度。</p>
-<p>这两次经历让我更想优先加入可核验的信息：回到原始数量、检查完整路径，或者让代码确认工具前置条件。只多问一句“你确定吗”，通常还不够。</p>
+<p>当检查有具体对象时，额外调用更容易体现价值：回到原始数量、检查完整路径，或者核对工具前置条件。精确条件可以由代码执行；再加一个模型判断，仍需要单独测它会犯什么错。</p>
 <h2 id="_3">有些等待，是为了获得新信息</h2>
 <p><a href="/harness-notes/zh/projects/compile-then-act/">Compile, Then Act?</a> 尝试把决定提前：开始时排好依赖图，减少执行中的模型调度。结果没有稳定变快，固定计划在检索任务里还经常未完成。</p>
 <p>观察工具反馈后再规划，确实多花一次调用，但这时系统已经知道了开始时不知道的事。相比让两个模型反复评价同一段文本，这种调用更有明确的用途。</p>
-<h2 id="_4">我会先留下这些边界</h2>
+<h2 id="_4">把额外调用放在能改变结果的地方</h2>
 <p>对一个库存请求，订单里的 SKU 和数量由代码复制；库存不足后要不要查备仓，可以让模型根据反馈选择；库存是否已经预留成功，则读取工具状态确认。</p>
-<p>这给了我一个实际的取舍顺序：能算清的交给代码；缺证据的先拿证据；仍有语义分歧，再让模型判断。多 agent、多轮讨论或更便宜的决策模型，都放到这个顺序里考察。</p>
-<p>接下来我想检验的，是保留同样输入和预算，只改变“额外一次判断发生在哪里”。这样才更容易知道，省掉的是浪费，还是完成任务所需的一次观察。</p></main>
+<p>这给出了一个实际的取舍顺序：能算清的交给代码；缺证据的先拿证据；仍有语义分歧，再让模型判断。多 agent、多轮讨论或更便宜的决策模型，都可以放到这个顺序里考察。</p>
+<p>下一步可以保留同样输入和预算，只改变“额外一次判断发生在哪里”。同时记录救回的错误、新引入的错误，以及到任务结束的全部费用，才更容易分清省下的是调用开销，还是完成任务需要的一次观察。这仍是待测的比较，不是已有实验结论。</p></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

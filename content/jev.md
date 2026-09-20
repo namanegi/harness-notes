@@ -1,48 +1,64 @@
 # Can cheap decisions make a cheap agent?
 
-<div class="meta">Jev × Harness · September 21, 2026 · 4 min read</div>
+<div class="meta">Jev / Part 3 · September 21, 2026 · 8 min read</div>
 
-An agent does not always need to write. Often it only needs to choose: search again, call a tool, or stop. Could a fast, inexpensive decision model handle those moments?
+Imagine an assistant asked to reserve four units from inventory. It must read the order to learn the item and quantity, check the primary warehouse, notice that only two units are available there, and try the backup. A tool might reject an action along the way. Even after a successful reservation, the assistant must recognize that the task is done and stop. Picking the next tool is only one decision in that sequence.
 
-I tested Jev through single-step probes and small workflows. **Short routing decisions were cheap and fast. In a complete agent, stopping and recovering from rejected tools became the harder problems.**
+A common approach is to let a general language model run the whole loop: choose a tool, supply its arguments, read the result, then decide again. This study asks whether some of those local choices can instead go to TypeSafe Jev, a model that returns a structured selection from a bounded list. GPT-5.6 Luna, the general language model called Luna below, supplies the comparison and writes text when the task actually needs new words. **In these short workflows the Jev combination cost less and ran faster, but a missed stop and a missed retry after tool rejection each lost a task.**
 
-## First: can it choose correctly?
+[Part 1](@/projects/jev-choices/) examines Jev's single choices, and [Part 2](@/projects/jev-comparison/) compares those choices with Luna. Here the outcome is a complete task, including its final stop.
 
-On 14 distinct states with short action rules, Jev and Luna both got every choice right. Median request time was about 0.49 seconds for Jev and 1.47 seconds for Luna; Jev cost roughly a third as much. These were not replayed identical requests, and Luna recorded no cache reads or writes.
+## How the workflows were tested
 
-But a small menu can hide a difficult question. On six harder BBEH questions with five choices each, Jev got 2/6 right. Luna got 4/6 after receiving enough output budget. Even with the target word `dog` and prefix `d` supplied, Jev twice chose `g` as the next character.
+The *controller* selects the next action. A shared *executor* runs it and returns observable feedback. In the Jev system, the controller offered a finite menu after every result. Code copied facts already visible in state—order IDs, SKU, quantities, policy locations and verification profiles—into tool arguments. Luna generated text only where a tool required it, such as a search query or final explanation. This division kept copying an ID from masquerading as a language-generation challenge. Jev never received the executor's private expected result.
 
-This changed how I framed the task. Recognizing a suitable action and computing an answer before selecting its label both look like “choice” at the interface. They demand different capabilities.
+<figure><img src="/harness-notes/assets/diagrams/jev.svg" alt="Jev chooses an action from current state. Code copies known parameters; Luna generates text when needed. Tool feedback updates state for the next choice. Choosing stop ends the run, whose final state is scored separately."><figcaption>Action selection is only one part of a workflow. Parameter creation, feedback and stopping have their own failure modes.</figcaption></figure>
 
-## From a choice to a completed task
+The Luna-only baselines used the same worlds and tools. *ReAct* here means an action-and-feedback loop: Luna chose a tool after each observed result through the Agents SDK. *Bounded Plan* began with a linear list of action IDs and could replan once after a rejection or an exhausted plan. It was a revisable plan, unlike the immutable compiled graph in the separate compile-then-act study.
 
-I let Jev choose actions, used code to copy known parameters, and called Luna only when the tool needed generated text, such as a search query. The baselines were Luna ReAct and a plan executor allowed one replan.
+The tasks used frozen synthetic tool results, not live business services. A run passed only when the independent final-state check found the required outcome **and** the controller explicitly stopped. Where a prerequisite was missing, requesting it with evidence and then stopping was a correct *safe block*; it did not mean the business operation had completed. Costs below include all model calls made along a task path, and times include serial requests and client overhead.
 
-<figure><img src="/harness-notes/assets/diagrams/jev.svg" alt="Jev chooses an action from current state. Code copies known parameters; Luna generates text when needed. Tool feedback updates state for the next choice. Choosing stop ends the run, whose final state is scored separately."><figcaption>A cheaper controller still depends on parameter generation, tool feedback and a sound stopping decision.</figcaption></figure>
+## First make sure the workflow can close
 
-Eight new synthetic tasks covered policy, inventory, access and incident handling. Four could be completed; four required asking for missing information. A pass required both the right disposition and an explicit end.
+The first cohort had four synthetic tasks. A policy search had to distinguish a relevant travel rule from a relocation rule. An inventory task discovered the ordered quantity before checking a primary warehouse with no stock and a backup with enough. Two package tasks required different paths depending on whether fast verification passed or failed. Tool results were revealed only after the relevant action.
 
-| Approach | Passed | Cost, all eight | Median task time |
-|---|---:|---:|---:|
-| Luna ReAct | 8/8 | $0.00709 | 7.38 s |
-| Luna Plan | 7/8 | $0.00795 | 9.35 s |
-| Jev + Luna parameters | 7/8 | $0.00275 | 3.44 s |
+There was an instructive protocol failure before a fair Plan result existed. Its original schema accepted free-form strings, so Luna returned conditional prose such as “if fast fails, run thorough.” The executor accepted only action IDs. Four Plan runs stopped before executing a tool. A separately frozen repair changed the steps to strict legal-action enums without changing the worlds or allowing more replans. The repaired Plan completed 4/4. The initial four calls still count as experiment expense; they are not evidence that Luna could not plan.
 
-Jev’s failure was specific: it correctly requested additional approval, then kept taking actions. I clarified its stopping instruction and reran all eight tasks separately. It still passed 7/8. The approval task now worked, but an incident task ended without making a required information request after an earlier tool rejection.
+After that repair, all four systems reached the right terminal state and explicitly stopped: ReAct, bounded Plan, Jev with a full parameter-writing context, and Jev with a smaller *sufficient* context. Both Jev configurations took the same action paths and each made 16 Jev choices plus four Luna text calls across the four tasks. The inventory task needed no Luna text at all; known fields were copied by code.
 
-The savings were real. So was the missing step. Fixing one stopping example did not solve recovery in general.
+The full-context Jev system cost $0.001594 across four tasks. The sufficient-context version cost $0.001146, versus $0.004206 for ReAct and $0.002868 for repaired Plan. The smaller Luna prompts kept the goal, selected tool contract and relevant current observations, reducing their input from 2,888 to 1,319 tokens. Both Jev systems finished 4/4, so nothing necessary was lost in these cases. Yet the context comparison is not a clean token-only experiment: generated text can alter later state, Luna cache writes appeared in the full view, and call order differed. The measured wall-clock totals, 13.2 versus 12.2 seconds, are too close to claim a stable speed gain from trimming context.
 
-## More checks did not reliably help
+## Transfer to unseen branches
 
-I also tried navigating a DOM tree a few branches at a time, then asking Jev to verify the chosen button. On four new pages, selecting from the full candidate list got 4/4 right. Tree navigation with verification got 3/4, using 27 calls instead of four.
+The next cohort froze eight new tasks before calls: two each for policy, inventory, access and incident handling. One task in each pair could complete its business operation. The other had a real missing prerequisite—such as approval scope or deployment ID—and required a justified information request. An unsafe action, premature stop or looping to the 12-action cap failed.
 
-Splitting verification into separate fields improved a single-point test from 6/8 to 7/8. That gain did not carry through to the DOM system. A field could still be judged incorrectly, and code combining those judgments would faithfully approve the wrong button.
+| Controller, eight new tasks | Correct terminal state and stop | Business completed | Correct safe blocks | Total cost | Median task time |
+|---|---:|---:|---:|---:|---:|
+| Luna ReAct | 8/8 | 4/4 | 4/4 | $0.007095 | 7.38 s |
+| Luna bounded Plan | 7/8 | 3/4 | 4/4 | $0.007954 | 9.35 s |
+| Jev choices + Luna text | 7/8 | 4/4 | 3/4 | $0.002751 | 3.44 s |
 
-I would start with **local choices whose outcomes are easy to verify**. Copying fields, exact matching and checking completed state belong in code. The model earns its place at the remaining semantic forks. If backtracking and repeated checks consume the latency saved by each cheap call, the surrounding design needs another look.
+The Plan miss took two bad turns in one inventory task. It requested a quantity that was already known, consuming its one replan after the tool rejected the action. Its revised plan then tried to reserve from a warehouse with insufficient stock. A second rejection ended the run before reservation. Other Plan tasks did recover after one rejection; the observation is about this one-replan budget, not planning in general.
 
-<details class="source-note" markdown="1"><summary>Methods, full tables and data</summary>
+Jev's first miss was different. In an access task it correctly requested approval with the required scope. The state was now a valid safe block, yet the controller kept requesting approval or training and never chose stop before the cap. The final business disposition and the protocol outcome therefore disagreed. Looking only at whether an approval request occurred would count a failure as success.
 
-These are small exploratory samples. Workflows and DOM pages were local synthetic tasks, not live services. Each cohort retains its own denominator. The model was Jev 1.13; Luna settings varied by experiment and are listed in the appendix. Costs and times describe the measured systems, including network and context differences. The stopping amendment was a later independent batch.
+The original Jev instruction said to stop when the “goal is reached,” while the other controllers explicitly allowed stopping after a justified request for a missing prerequisite. A later batch changed only Jev's stopping instruction and reran all eight tasks. It again scored 7/8, with a different miss. The approval case now stopped correctly. In the incident case, Jev requested a deployment ID before collecting matching log evidence; the tool rejected it. After querying the logs, Jev stopped without repeating the now-justified request. It did not invent an ID or roll back anything, but it left the required safe block incomplete. Picking the best cases from the two batches would manufacture an 8/8 result that neither run achieved.
+
+The amendment reduced recorded Jev calls from 51 to 40 and cost from $0.002751 to $0.002246, while the observed median task time fell from 3.44 to 2.74 seconds. Different run times and prompt wording limit a causal speed claim. More importantly, the failure moved from recognizing when to stop to knowing which previously rejected action to retry after new evidence.
+
+## More decisions are not necessarily safer
+
+A separate experiment tested button selection on web pages represented as a DOM (Document Object Model): a tree of page elements that the controller could inspect. The controller could select from a flat list of visible buttons or navigate a tree of local choices, backtrack, and ask Jev to verify a candidate. On four later, internally consistent synthetic pages, the flat list reached the exact final state on 4/4 with four Jev requests. Tree navigation with a whole-candidate check reached 3/4 with 27 requests; tree navigation with a field-by-field check also reached 3/4 with 27. One failed tree run remained unresolved at its call limit; the other executed a wrong button.
+
+The field check had seemed promising in isolation. On eight new candidate judgments, asking Jev for account, plan and status judgments separately and combining them in code improved final decisions from 6/8 to 7/8. It correctly kept one missing-status case unknown. But Jev still marked a Direct-channel candidate as matching a Partner-channel request. In the full tree, code faithfully combined those wrong field judgments and approved the wrong leaf. The verifier had the full ancestor path; evidence was available. Splitting a decision did not make each part reliable, and repeated local calls raised total tokens, cost and latency.
+
+These are synthetic, short, locally simulated tasks, each run once per condition. They do not measure production reliability, browser click behavior or a general model ranking. The costs describe whole controllers—including serial calls, SDK and network behavior, parameter generation and cache differences—rather than a pure model speed contest.
+
+The design boundary is still useful. Let code enforce known fields and check observable end states. Give Jev bounded choices where errors can be detected and corrected. Use Luna when new text is required. Most of all, test the controller on *rejections and exits*: cheap choices only form a cheap agent when the loop can close.
+
+<details class="source-note" markdown="1"><summary>Methods and aggregate evidence</summary>
+
+The workflows and DOM pages used frozen local scenarios and independent final-state checks. The stop amendment was a later full eight-task batch, not a replacement of the original. Jev was version 1.13; Luna settings, cache accounting and per-cohort denominators appear in the appendix. API-reported Jev cost and usage-estimated Luna cost were not reconciled to invoices.
 
 [Experiment appendix](@/research/jev-report/) · [Public aggregate data](@/assets/jev-evidence.json)
 

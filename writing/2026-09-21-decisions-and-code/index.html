@@ -1,25 +1,26 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>When is another model call worth it? · namanegi</title><meta name="description" content="What does an extra check, debate round or planning step add?">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/writing/2026-09-21-decisions-and-code/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/writing/2026-09-21-decisions-and-code/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/writing/2026-09-21-decisions-and-code/">
-<meta name="theme-color" content="#f6f3ec"></head>
+</head>
 <body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
 <nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
-<nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/writing/2026-09-21-decisions-and-code/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/writing/2026-09-21-decisions-and-code/" lang="zh-CN" hreflang="zh-CN">中文</a></nav></header>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/writing/2026-09-21-decisions-and-code/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/writing/2026-09-21-decisions-and-code/" lang="zh-CN" hreflang="zh-CN">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="when-is-another-model-call-worth-it">When is another model call worth it?</h1>
 <div class="meta">September 21, 2026 · 2 min read</div>
 
-<p>When building an agent, I find it easy to add another model call wherever I feel uncertain: check the answer, verify the button, reconsider the next step. Three recent experiments made me ask a more concrete question: <strong>what does that extra call add?</strong></p>
+<p>An uncertain answer invites another model call: check the result, verify the button, reconsider the next step. Each sounds useful on its own. Three small experiments show why the better question is <strong>what evidence that extra call adds, and whether it changes the outcome.</strong></p>
 <h2 id="another-opinion-may-contain-no-new-evidence">Another opinion may contain no new evidence</h2>
 <p>In <a href="/harness-notes/projects/debate-workbench/">Debate Workbench</a>, a correct answer could appear in the first turn and disappear after discussion. A dedicated checker showed some promise, but could also adopt a peer’s wrong explanation.</p>
 <p><a href="/harness-notes/projects/jev/">Jev’s button-selection experiment</a> ran into a related problem. Choosing a path, finding a button and verifying it did not beat selecting from the full list. The verifier could repeat the original decision maker’s mistake.</p>
-<p>Those results make me want to add something verifiable first: return to the original quantities, inspect the complete path, or check a tool’s preconditions in code. Asking “are you sure?” alone may add little.</p>
+<p>An extra check is easier to justify when it has something concrete to inspect: the original quantities, the complete path, or a tool’s preconditions. Code can enforce exact conditions; another model judgment still needs its own error measurement.</p>
 <h2 id="some-waiting-buys-information">Some waiting buys information</h2>
 <p><a href="/harness-notes/projects/compile-then-act/">Compile, Then Act?</a> tried moving decisions earlier: plan the dependency graph once and avoid repeated scheduling. It did not produce a consistent speedup, and fixed plans frequently remained unfinished on research questions.</p>
 <p>Planning again after a tool result does cost another call. But the system now knows something it did not know at the beginning. That call has a clearer purpose than repeatedly judging the same text.</p>
-<h2 id="where-i-would-draw-the-boundary">Where I would draw the boundary</h2>
+<h2 id="put-the-extra-call-where-it-can-change-the-outcome">Put the extra call where it can change the outcome</h2>
 <p>For an inventory request, code can copy the SKU and quantity from the order. A model can decide what to try after discovering insufficient stock. The tool’s state can confirm whether a reservation actually succeeded.</p>
-<p>That suggests a practical order: compute what can be computed, obtain missing evidence, then ask a model to resolve the remaining semantic choice. I would evaluate extra agents, debate rounds and cheaper controllers against that sequence.</p>
-<p>The next useful test would hold inputs and budgets fixed while changing where the extra judgment happens. It should be easier to tell whether a saved call removed overhead or skipped an observation the task needed.</p></main>
+<p>That suggests a practical order: compute what can be computed, obtain missing evidence, then ask a model to resolve the remaining semantic choice. Extra agents, debate rounds and cheaper controllers can all be evaluated against that sequence.</p>
+<p>The next useful test would hold inputs and budgets fixed while changing where the extra judgment happens. Count rescued errors and newly introduced errors, then include the cost through task completion. That would help distinguish a saved call from a skipped observation the task needed. It remains a proposed comparison, rather than a result of these studies.</p></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>
