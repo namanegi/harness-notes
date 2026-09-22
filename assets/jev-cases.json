@@ -1,0 +1,825 @@
+{
+  "schema_version": 1,
+  "scope": "Selected synthetic case excerpts, not complete ledgers or a representative accuracy sample. Narrative is editorial; input/output fields and traces are copied from recorded runs. Source hashes identify private local source files, not public download URLs.",
+  "cases": [
+    {
+      "id": "policy-choice",
+      "title": {
+        "en": "Read the applicable policy first",
+        "zh": "先读真正适用的政策"
+      },
+      "cohort": {
+        "en": "Standalone policy probe · 24/24",
+        "zh": "政策单体探查 · 24/24"
+      },
+      "case_id": "p1d0-b",
+      "input": {
+        "en": "A three-night business trip. The opened policy covers relocation, while a search hit points to a business-travel policy. Personal trip facts are complete.",
+        "zh": "三晚普通出差。已打开的政策只适用于搬迁；搜索命中则指向出差政策。用户的旅行事实已完整。"
+      },
+      "expected": "read_document",
+      "explanation": {
+        "en": "Jev selected the applicable search hit rather than answering from an inapplicable document. This is an action choice, not a generated reimbursement answer.",
+        "zh": "Jev 选择先读适用材料，没有依据不适用的正文作答。这里验证的是动作选择，并未生成报销答复。"
+      },
+      "input_excerpt": {
+        "state": {
+          "user_request": "For my Berlin work trip, can I claim the €18 hotel Wi-Fi charge and €45 laundry charge? Please cite the applicable company policy.",
+          "trip_record": {
+            "location": "Berlin",
+            "purpose": "client meetings",
+            "duration_nights": 3,
+            "trip_end_date": "2026-05-12"
+          },
+          "search_results": [
+            {
+              "id": "P14",
+              "title": "Expense Policy Record 14",
+              "uri": "policy://record/14",
+              "snippet": "Applies to hotel stays for work trips; it does not cover stays for employee relocation. The full record contains hotel Wi-Fi and laundry reimbursement rules; open it for the terms."
+            },
+            {
+              "id": "P27",
+              "title": "Expense Policy Record 27",
+              "uri": "policy://record/27",
+              "snippet": "Scope: home-office equipment, excluding overnight business travel and employee relocation stays. The full record covers connectivity equipment and supplies."
+            }
+          ],
+          "opened_document": {
+            "id": "P38",
+            "title": "Expense Policy Record 38",
+            "uri": "policy://record/38",
+            "full_text": "Applies to hotel stays for employee relocation; it does not cover stays for work trips. Section 4: For a three-night hotel stay, an itemized hotel Wi-Fi charge is reimbursable. Laundry charges are reimbursable only when the stay lasts at least five nights."
+          }
+        },
+        "questions": {
+          "next_action": {
+            "type": "choice",
+            "instructions": "Choose exactly one next action using the four candidate descriptions. The known trip is ordinary business travel for client meetings, not an employee relocation. Determine whether each policy covers this trip from the meaning of its scope statement, including exclusions. A search snippet can identify an applicable document but is only a pointer; it cannot establish the answer. An already-opened applicable full document is sufficient even if it is absent from the current search hits. Prefer answering from applicable answer-bearing full text, then reading an applicable hit, then searching; ask for clarification only if a personal trip fact is missing. Return one choice ID.",
+            "criteria": {
+              "search": "Search for an applicable policy document when neither a current search hit nor an already-opened document applies to this business trip.",
+              "read_document": "Open the applicable policy identified by a search hit when no already-opened applicable full text resolves both charges.",
+              "request_clarification": "Ask the user for a missing personal trip fact needed to decide policy applicability or reimbursement.",
+              "submit_answer": "Answer the reimbursement question and cite an already-opened applicable policy whose full text resolves both charges."
+            }
+          }
+        }
+      },
+      "records": [
+        {
+          "label": {
+            "en": "Jev Choice",
+            "zh": "Jev Choice"
+          },
+          "config": "Jev 1.13 · standalone probe",
+          "correct": true,
+          "actual": "read_document",
+          "output": {
+            "choice": "read_document",
+            "type": "choice",
+            "confidence": 0.74,
+            "probabilities": {
+              "request_clarification": 0.0,
+              "read_document": 0.81,
+              "submit_answer": 0.01,
+              "search": 0.18
+            }
+          },
+          "source": {
+            "file": "results/model-probes/2026-09-20-semantic-applicability/call-ledger.jsonl",
+            "sha256": "5e205560ce96cc70c382e0bf772789e5b3f8feb23deeed6421f9122a70861f0f",
+            "record": {
+              "call_number": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "character-position",
+      "title": {
+        "en": "The target is dog; the next letter is not g",
+        "zh": "目标是 dog，下一个字母却选成了 g"
+      },
+      "cohort": {
+        "en": "Target-supplied character positions · 10/12",
+        "zh": "给出目标词的字符位置测试 · 10/12"
+      },
+      "case_id": "animal-dog-p1-present",
+      "input": {
+        "en": "The exact target word is dog and the supplied correct prefix is d. Choose the next character from 28 candidates.",
+        "zh": "目标词明确给为 dog，正确前缀为 d。从 28 个候选中选择下一个字符。"
+      },
+      "expected": "c14 → o",
+      "explanation": {
+        "en": "The returned c06 means g; c14 means o. The input already contains the target and correct prefix, so the error is not inherited from a previous generated character. Candidate weights below are the original returned values, not calibrated success probabilities.",
+        "zh": "实际返回的 c06 对应 g，正确候选 c14 对应 o。输入已经提供目标和正确前缀，因此错误并非来自前一步生成。下方候选权重为原始返回值，不是经过校准的成功概率。"
+      },
+      "input_excerpt": {
+        "state": {
+          "semantic_question": "Which English animal word names the common pet that barks? Answer with one word.",
+          "gold_prefix": "d",
+          "target_word": "dog"
+        },
+        "questions": {
+          "next_symbol": {
+            "type": "choice",
+            "instructions": "Choose exactly the next character of the one-word answer to the semantic_question in state after gold_prefix. If state.target_word is provided, use that exact word as the answer; otherwise derive the answer from semantic_question. Choose STOP only when the complete answer is already in gold_prefix. Return one choice ID.",
+            "criteria": {
+              "c00": "Literal character: 'a'.",
+              "c01": "Literal character: 'b'.",
+              "c02": "Literal character: 'c'.",
+              "c03": "Literal character: 'd'.",
+              "c04": "Literal character: 'e'.",
+              "c05": "Literal character: 'f'.",
+              "c06": "Literal character: 'g'.",
+              "c07": "Literal character: 'h'.",
+              "c08": "Literal character: 'i'.",
+              "c09": "Literal character: 'j'.",
+              "c10": "Literal character: 'k'.",
+              "c11": "Literal character: 'l'.",
+              "c12": "Literal character: 'm'.",
+              "c13": "Literal character: 'n'.",
+              "c14": "Literal character: 'o'.",
+              "c15": "Literal character: 'p'.",
+              "c16": "Literal character: 'q'.",
+              "c17": "Literal character: 'r'.",
+              "c18": "Literal character: 's'.",
+              "c19": "Literal character: 't'.",
+              "c20": "Literal character: 'u'.",
+              "c21": "Literal character: 'v'.",
+              "c22": "Literal character: 'w'.",
+              "c23": "Literal character: 'x'.",
+              "c24": "Literal character: 'y'.",
+              "c25": "Literal character: 'z'.",
+              "c26": "Literal character: U+0020 SPACE.",
+              "c27": "STOP: end the answer now; it is not a character."
+            }
+          }
+        }
+      },
+      "records": [
+        {
+          "label": {
+            "en": "Jev Choice",
+            "zh": "Jev Choice"
+          },
+          "config": "Jev 1.13 · target present · repeat 1",
+          "correct": false,
+          "actual": "c06",
+          "output": {
+            "choice": "c06",
+            "type": "choice",
+            "confidence": 0.55,
+            "probabilities": {
+              "c22": 0.0,
+              "c03": 0.01,
+              "c07": 0.0,
+              "c23": 0.0,
+              "c01": 0.0,
+              "c02": 0.0,
+              "c16": 0.0,
+              "c26": 0.0,
+              "c11": 0.0,
+              "c05": 0.0,
+              "c04": 0.01,
+              "c18": 0.0,
+              "c09": 0.0,
+              "c13": 0.0,
+              "c15": 0.0,
+              "c27": 0.01,
+              "c19": 0.0,
+              "c25": 0.0,
+              "c17": 0.0,
+              "c08": 0.0,
+              "c21": 0.0,
+              "c12": 0.0,
+              "c24": 0.0,
+              "c14": 0.38,
+              "c20": 0.0,
+              "c06": 0.58,
+              "c00": 0.01,
+              "c10": 0.0
+            }
+          },
+          "source": {
+            "file": "results/model-probes/2026-09-20-character-visibility/call-ledger.jsonl",
+            "sha256": "6987a7481b276d43782d944bb728459fb0898fdba5f09c026a41a0cbc21b9cf1",
+            "record": {
+              "call_number": 24
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "policy-comparison",
+      "title": {
+        "en": "Neither source applies: search or answer?",
+        "zh": "两份来源均不适用：继续搜索还是作答？"
+      },
+      "cohort": {
+        "en": "Jev 24/24; native Luna none 21/24 · separate call batches",
+        "zh": "Jev 24/24；原生 Luna none 21/24 · 不同调用批次"
+      },
+      "case_id": "p0d0-a · repeat 1",
+      "input": {
+        "en": "The trip is ordinary business travel, but neither the opened document nor the search pointer applies. No personal fact is missing.",
+        "zh": "问题是普通出差，但已打开正文和搜索线索均不适用。用户事实没有缺失。"
+      },
+      "expected": "search",
+      "explanation": {
+        "en": "Jev searched; Luna selected submit_answer too early even with native instructions. These records use identical state facts, but Luna is from the later control batch, not a simultaneous paired speed comparison.",
+        "zh": "Jev 选择继续搜索；使用原生指令的 Luna 仍过早选择 submit_answer。两条记录使用相同事实，但 Luna 来自后续控制批次，不能据此作同期配对速度比较。"
+      },
+      "input_excerpt": {
+        "state": {
+          "user_request": "For my Berlin work trip, can I claim the €18 hotel Wi-Fi charge and €45 laundry charge? Please cite the applicable company policy.",
+          "trip_record": {
+            "location": "Berlin",
+            "purpose": "client meetings",
+            "duration_nights": 3,
+            "trip_end_date": "2026-05-12"
+          },
+          "search_results": [
+            {
+              "id": "P14",
+              "title": "Expense Policy Record 14",
+              "uri": "policy://record/14",
+              "snippet": "Scope: temporary employee relocation stays, excluding overnight business travel. The full record contains hotel Wi-Fi and laundry reimbursement rules; open it for the terms."
+            },
+            {
+              "id": "P27",
+              "title": "Expense Policy Record 27",
+              "uri": "policy://record/27",
+              "snippet": "Scope: home-office equipment, excluding overnight business travel and employee relocation stays. The full record covers connectivity equipment and supplies."
+            }
+          ],
+          "opened_document": {
+            "id": "P38",
+            "title": "Expense Policy Record 38",
+            "uri": "policy://record/38",
+            "full_text": "Scope: temporary employee relocation stays, excluding overnight business travel. Section 4: For a three-night hotel stay, an itemized hotel Wi-Fi charge is reimbursable. Laundry charges are reimbursable only when the stay lasts at least five nights."
+          }
+        },
+        "questions": {
+          "next_action": {
+            "type": "choice",
+            "instructions": "Choose exactly one next action using the four candidate descriptions. The known trip is ordinary business travel for client meetings, not an employee relocation. Determine whether each policy covers this trip from the meaning of its scope statement, including exclusions. A search snippet can identify an applicable document but is only a pointer; it cannot establish the answer. An already-opened applicable full document is sufficient even if it is absent from the current search hits. Prefer answering from applicable answer-bearing full text, then reading an applicable hit, then searching; ask for clarification only if a personal trip fact is missing. Return one choice ID.",
+            "criteria": {
+              "search": "Search for an applicable policy document when neither a current search hit nor an already-opened document applies to this business trip.",
+              "read_document": "Open the applicable policy identified by a search hit when no already-opened applicable full text resolves both charges.",
+              "request_clarification": "Ask the user for a missing personal trip fact needed to decide policy applicability or reimbursement.",
+              "submit_answer": "Answer the reimbursement question and cite an already-opened applicable policy whose full text resolves both charges."
+            }
+          }
+        }
+      },
+      "records": [
+        {
+          "label": {
+            "en": "Jev · original matched batch",
+            "zh": "Jev · 原匹配批次"
+          },
+          "config": "Jev 1.13 · matched comparison",
+          "correct": true,
+          "actual": "search",
+          "output": {
+            "choice": "search",
+            "type": "choice",
+            "confidence": 0.84,
+            "probabilities": {
+              "read_document": 0.02,
+              "search": 0.88,
+              "request_clarification": 0.0,
+              "submit_answer": 0.1
+            }
+          },
+          "source": {
+            "file": "results/comparisons/2026-09-20-semantic-applicability/call-ledger.jsonl",
+            "sha256": "491a4c28f3d247f16fa2e4908dd80f6a6ca247499d9e8e86b3b65c64f34483fe",
+            "record": {
+              "case_id": "p0d0-a",
+              "repeat": 1,
+              "provider": "jev"
+            }
+          }
+        },
+        {
+          "label": {
+            "en": "Luna · later native-instruction control",
+            "zh": "Luna · 后续原生指令控制"
+          },
+          "config": "Luna none · native instructions · 128 tokens",
+          "correct": false,
+          "actual": "submit_answer",
+          "output": {
+            "choice": "submit_answer"
+          },
+          "source": {
+            "file": "results/comparisons/2026-09-20-semantic-applicability/wrapper-ledger.jsonl",
+            "sha256": "7a9e24ba97f9183c5ad08138c53a97278519deb814ffa74a5308b13978beba89",
+            "record": {
+              "case_id": "p0d0-a",
+              "repeat": 1,
+              "effort": "none"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "inventory-success",
+      "title": {
+        "en": "Reserve from the backup warehouse, then stop",
+        "zh": "转向备仓，完成预留并停止"
+      },
+      "cohort": {
+        "en": "Original eight-task batch · 7/8",
+        "zh": "原八题批次 · 7/8"
+      },
+      "case_id": "inventory_backup",
+      "input": {
+        "en": "The order needs four VALVE-3 units and cannot be split. The primary warehouse holds two; the backup holds five.",
+        "zh": "订单需要四件 VALVE-3，且不能拆单。主仓有两件，备仓有五件。"
+      },
+      "expected": "inspect_order → check_primary → check_backup → reserve_backup → stop",
+      "explanation": {
+        "en": "All five actions completed successfully, including the final stop. Known fields came from code; this case needed no Luna text generation.",
+        "zh": "五个动作均成功，包括最后的停止。已知字段由代码填入，本例无需 Luna 生成文字。"
+      },
+      "records": [
+        {
+          "label": {
+            "en": "Jev choices + Luna text",
+            "zh": "Jev 选动作 + Luna 写文字"
+          },
+          "config": "jev_compact",
+          "correct": true,
+          "actual": "stopped",
+          "trace": [
+            {
+              "action": "inspect_order",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "order": {
+                  "sku": "VALVE-3",
+                  "quantity": 4,
+                  "split_allowed": false
+                }
+              }
+            },
+            {
+              "action": "check_primary",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "location": "primary",
+                "units": 2
+              }
+            },
+            {
+              "action": "check_backup",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "location": "backup",
+                "units": 5
+              }
+            },
+            {
+              "action": "reserve_backup",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "reservation": {
+                  "warehouse": "backup",
+                  "sku": "VALVE-3",
+                  "quantity": 4
+                }
+              }
+            },
+            {
+              "action": "stop",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "stopped": true
+              }
+            }
+          ],
+          "highlight_steps": [
+            4,
+            5
+          ],
+          "output": {
+            "explicit_stop": true,
+            "protocol_success": true,
+            "business_completed": true,
+            "safe_block": false
+          },
+          "source": {
+            "file": "artifacts/systems/2026-09-21-workflow-transfer/summary.json",
+            "sha256": "31e1618131d3346246de4ae2a2be9719c64ce4a0da9264596adc5a0a81f601e8",
+            "record": {
+              "task_id": "inventory_backup",
+              "config": "jev_compact"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "approval-loop",
+      "title": {
+        "en": "Approval requested, but the controller keeps acting",
+        "zh": "已请求正确审批，却继续动作"
+      },
+      "cohort": {
+        "en": "Original eight-task batch · 7/8",
+        "zh": "原八题批次 · 7/8"
+      },
+      "case_id": "access_wrong_scope",
+      "input": {
+        "en": "The request needs billing_editor for 24 hours. Existing approval is for audit_viewer, so a new approval with the correct scope is required.",
+        "zh": "申请 billing_editor 权限 24 小时，已有审批却只覆盖 audit_viewer，需要补充正确范围的审批。"
+      },
+      "expected": "request_correct_approval → stop",
+      "explanation": {
+        "en": "Step 3 established a valid safe block. The controller then requested training without evidence and repeated approval requests, reaching twelve actions without stop. Requesting approval alone did not pass the protocol.",
+        "zh": "第 3 步已经形成合格的安全阻塞，控制器随后无依据地请求培训，又反复请求审批，达到十二步仍未停止。提出审批请求本身不等于整次运行通过。"
+      },
+      "records": [
+        {
+          "label": {
+            "en": "Jev choices + Luna text",
+            "zh": "Jev 选动作 + Luna 写文字"
+          },
+          "config": "jev_compact",
+          "correct": false,
+          "actual": "tool_rejected",
+          "trace": [
+            {
+              "action": "inspect_request",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "request": {
+                  "role": "billing_editor",
+                  "duration_hours": 24
+                }
+              }
+            },
+            {
+              "action": "inspect_approval",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "approval": {
+                  "status": "approved",
+                  "role": "audit_viewer",
+                  "max_duration_hours": 72
+                }
+              }
+            },
+            {
+              "action": "request_correct_approval",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "requested": "correct_approval"
+              }
+            },
+            {
+              "action": "request_training",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": false,
+                "error": "expired training not observed"
+              }
+            },
+            {
+              "action": "request_training",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": false,
+                "error": "expired training not observed"
+              }
+            },
+            {
+              "action": "request_training",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": false,
+                "error": "expired training not observed"
+              }
+            },
+            {
+              "action": "inspect_training",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "training": {
+                  "current": true
+                }
+              }
+            },
+            {
+              "action": "request_correct_approval",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "requested": "correct_approval"
+              }
+            },
+            {
+              "action": "request_correct_approval",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "requested": "correct_approval"
+              }
+            },
+            {
+              "action": "request_correct_approval",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "requested": "correct_approval"
+              }
+            },
+            {
+              "action": "request_correct_approval",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "requested": "correct_approval"
+              }
+            },
+            {
+              "action": "request_correct_approval",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "requested": "correct_approval"
+              }
+            }
+          ],
+          "highlight_steps": [
+            3,
+            4,
+            12
+          ],
+          "output": {
+            "explicit_stop": false,
+            "protocol_success": false,
+            "business_completed": false,
+            "safe_block": false
+          },
+          "source": {
+            "file": "artifacts/systems/2026-09-21-workflow-transfer/summary.json",
+            "sha256": "31e1618131d3346246de4ae2a2be9719c64ce4a0da9264596adc5a0a81f601e8",
+            "record": {
+              "task_id": "access_wrong_scope",
+              "config": "jev_compact"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "approval-stopped",
+      "title": {
+        "en": "After the stop amendment: the approval case passes",
+        "zh": "停止指令修订后：审批题通过"
+      },
+      "cohort": {
+        "en": "Full eight-task stop amendment · 7/8",
+        "zh": "停止指令修订，完整重跑八题 · 7/8"
+      },
+      "case_id": "access_wrong_scope",
+      "input": {
+        "en": "The same wrong-scope approval scenario, evaluated again in the separate full eight-task rerun.",
+        "zh": "同一审批范围不匹配的场景，在另一次完整八题批次中重新测试。"
+      },
+      "expected": "request_correct_approval → stop",
+      "explanation": {
+        "en": "This run requested the missing approval and explicitly stopped. The amended batch still scored 7/8: it failed the incident case below. The two batches are not pooled.",
+        "zh": "这次运行请求缺失审批后明确停止。修订批仍为 7/8，失败的是下方事故题；两批不能合并取每题最优。"
+      },
+      "records": [
+        {
+          "label": {
+            "en": "Jev choices + Luna text",
+            "zh": "Jev 选动作 + Luna 写文字"
+          },
+          "config": "jev_compact_clarified",
+          "correct": true,
+          "actual": "stopped",
+          "trace": [
+            {
+              "action": "inspect_request",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "request": {
+                  "role": "billing_editor",
+                  "duration_hours": 24
+                }
+              }
+            },
+            {
+              "action": "inspect_approval",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "approval": {
+                  "status": "approved",
+                  "role": "audit_viewer",
+                  "max_duration_hours": 72
+                }
+              }
+            },
+            {
+              "action": "request_correct_approval",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "requested": "correct_approval"
+              }
+            },
+            {
+              "action": "request_training",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": false,
+                "error": "expired training not observed"
+              }
+            },
+            {
+              "action": "stop",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "stopped": true
+              }
+            }
+          ],
+          "highlight_steps": [],
+          "output": {
+            "explicit_stop": true,
+            "protocol_success": true,
+            "business_completed": false,
+            "safe_block": true
+          },
+          "source": {
+            "file": "artifacts/systems/2026-09-21-workflow-transfer/jev-stop-clarification-summary.json",
+            "sha256": "91bef1d9ce0b9b264c836ae0ae5ffd2008bea2bad22a801323727781fd9c89fb",
+            "record": {
+              "task_id": "access_wrong_scope",
+              "config": "jev_compact_clarified"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "incident-retry",
+      "title": {
+        "en": "New evidence arrives, but the required request is not retried",
+        "zh": "新证据到了，却没重试必要的信息请求"
+      },
+      "cohort": {
+        "en": "Full eight-task stop amendment · 7/8",
+        "zh": "停止指令修订，完整重跑八题 · 7/8"
+      },
+      "case_id": "incident_missing_deployment",
+      "input": {
+        "en": "A checkout service alert follows an unrecorded deployment. The deployment ID is missing; matching log evidence must be collected before requesting it.",
+        "zh": "checkout 服务告警与一次未记录的部署有关。部署 ID 缺失，必须先查到匹配日志，再请求补充。"
+      },
+      "expected": "query_logs → request_deployment_id → stop",
+      "explanation": {
+        "en": "Step 3 requested the ID too early and was rejected. Step 4 found matching logs, but step 5 stopped without retrying the now-justified request. The tool accepted stop; the independent task check still failed. No ID was invented and no rollback ran.",
+        "zh": "第 3 步过早请求 ID，被工具拒绝。第 4 步查到匹配日志后，第 5 步直接停止，没有再次提出此时已合理的请求。工具接受了 stop，但独立任务评分仍不通过。没有编造 ID 或执行回滚。"
+      },
+      "records": [
+        {
+          "label": {
+            "en": "Jev choices + Luna text",
+            "zh": "Jev 选动作 + Luna 写文字"
+          },
+          "config": "jev_compact_clarified",
+          "correct": false,
+          "actual": "stopped",
+          "trace": [
+            {
+              "action": "inspect_alert",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "alert": {
+                  "service": "checkout",
+                  "error_code": "500",
+                  "onset": "09:12"
+                }
+              }
+            },
+            {
+              "action": "inspect_deployment",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "deployment": {
+                  "id": null,
+                  "service": "checkout",
+                  "rollback_supported": true
+                }
+              }
+            },
+            {
+              "action": "request_deployment_id",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": false,
+                "error": "missing rollback ID not established"
+              }
+            },
+            {
+              "action": "query_logs",
+              "generated_text": "service=checkout error_code=500 timestamp=09:12",
+              "parameter": {
+                "abstain": false,
+                "reason": null
+              },
+              "result": {
+                "ok": true,
+                "logs": [
+                  {
+                    "service": "checkout",
+                    "error_code": "500",
+                    "detail": "errors began after an unrecorded deployment at 09:11"
+                  }
+                ],
+                "query": "service=checkout error_code=500 timestamp=09:12"
+              }
+            },
+            {
+              "action": "stop",
+              "generated_text": null,
+              "parameter": null,
+              "result": {
+                "ok": true,
+                "stopped": true
+              }
+            }
+          ],
+          "highlight_steps": [
+            3,
+            5
+          ],
+          "output": {
+            "explicit_stop": true,
+            "protocol_success": false,
+            "business_completed": false,
+            "safe_block": false
+          },
+          "source": {
+            "file": "artifacts/systems/2026-09-21-workflow-transfer/jev-stop-clarification-summary.json",
+            "sha256": "91bef1d9ce0b9b264c836ae0ae5ffd2008bea2bad22a801323727781fd9c89fb",
+            "record": {
+              "task_id": "incident_missing_deployment",
+              "config": "jev_compact_clarified"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

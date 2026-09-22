@@ -1,0 +1,44 @@
+/* Shared by article previews and permanent appendix cards. */
+.case-entry { margin: 12px 0 !important; font-size: 14px; line-height: 1.6; }
+.case-link { display: inline-block; padding: 5px 0; }
+.case-link span { margin-left: 4px; }
+.case-open { overflow: hidden; }
+.case-dialog { width: min(780px, calc(100% - 32px)); max-height: 88vh; max-height: 88dvh; padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); overscroll-behavior: contain; }
+.case-dialog::backdrop { background: rgb(0 0 0 / .65); }
+.case-dialog-bar { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 12px 24px; border-bottom: 1px solid var(--line); background: var(--paper); font-size: 13px; color: var(--muted); }
+.case-close { min-height: 40px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--soft); color: var(--ink); font: inherit; cursor: pointer; }
+.case-close:hover { border-color: var(--accent); }
+.case-close:focus-visible, .case-detail summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.case-dialog-content { padding: 24px; }
+.case-dialog-footer { padding: 16px 24px; border-top: 1px solid var(--line); font-size: 14px; }
+.case-card { margin: 32px 0; padding: 24px; border: 1px solid var(--line); border-radius: 8px; font-size: 15px; line-height: 1.75; scroll-margin-top: 24px; overflow-wrap: anywhere; }
+.case-card:target { border-color: var(--accent); }
+.case-dialog .case-card { margin: 0; padding: 0; border: 0; }
+.case-card h3 { margin: 4px 0 12px; font-size: 24px; line-height: 1.4; }
+.case-card p { margin: 12px 0; }
+.case-card .case-cohort { margin: 0; font-size: 12px; color: var(--accent); }
+.case-identity, .case-config { font-size: 12px; color: var(--muted); }
+.case-facts { margin: 24px 0; }
+.case-facts dt { margin-top: 16px; font-weight: 600; }
+.case-facts dd { margin: 5px 0 0; }
+.case-explanation { border-left: 2px solid var(--accent); padding-left: 16px; }
+.case-card code { overflow-wrap: anywhere; }
+.case-record { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 16px; }
+.case-record h4 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin: 0; font-size: 16px; }
+.case-status { border: 1px solid var(--line); padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: 400; }
+.case-detail { margin: 14px 0; font-size: 13px; }
+.case-detail summary { width: fit-content; cursor: pointer; color: var(--muted); padding: 4px 0; }
+.case-detail summary:hover { color: var(--accent); }
+.case-card pre { margin: 10px 0; padding: 14px; max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--soft); color: var(--ink); }
+.case-card pre code { font-size: 12px; }
+.case-trace { padding-left: 28px; }
+.case-card .case-trace li { margin: 5px 0; padding: 6px 10px; }
+.case-trace span { display: block; font-size: 12px; color: var(--muted); }
+.case-key-step { background: var(--soft); border-left: 2px solid var(--accent); }
+.case-index { font-size: 15px; }
+@media (max-width: 700px) {
+  .case-dialog { width: calc(100% - 16px); max-height: 94vh; max-height: 94dvh; }
+  .case-dialog-bar, .case-dialog-footer { padding: 10px 16px; }
+  .case-dialog-content, .case-card { padding: 16px; }
+  .case-card h3 { font-size: 21px; }
+}

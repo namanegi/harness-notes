@@ -30,7 +30,23 @@ The theme defaults to dark and saves an explicit light/dark choice locally;
 with JavaScript disabled the site remains readable in dark mode.
 
 Licensed under Apache-2.0. This site is an editorial companion to the linked
-studies; it does not redistribute benchmark records or private run transcripts.
+studies. Selected synthetic case excerpts are published, not benchmark records
+or complete private run transcripts.
+
+## Case previews
+
+Reviewed bilingual examples live in `assets/jev-cases.json`. Add
+`<!-- case:case-id -->` beside an article result to insert a preview link;
+`<!-- case-library -->` renders all examples in the appendix. `case_previews.py`
+renders both from the same records and rejects unknown IDs. The build does not
+need access to the private experiment repository.
+
+`assets/cases.js` enhances the normal appendix links with one native dialog per
+article. Escape and Close return focus to the original link; modified clicks
+and browsers without JavaScript keep normal link behavior. `assets/cases.css`
+uses the shared theme variables. Input summaries are editorial, while selected
+input/output fields and tool traces preserve recorded values. Original and
+amended batches must keep separate case IDs and source-record references.
 
 ## Paired writing
 

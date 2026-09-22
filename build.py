@@ -3,6 +3,7 @@ from pathlib import Path
 from html import escape
 import json
 import markdown
+from case_previews import CasePreviews
 
 ROOT = Path(__file__).parent
 BASE = '/harness-notes/'
@@ -21,6 +22,7 @@ PAGES = [
     ('about', 'about/', 'About', 'Harness engineering notes by namanegi.'),
 ]
 ZH = json.loads((ROOT/'content/zh/site.json').read_text(encoding='utf-8'))
+CASES = CasePreviews(ROOT/'assets/jev-cases.json')
 # Both authored versions are required. Never silently fall back to another language.
 for name, *_ in PAGES:
     for folder in ('content', 'content/zh'):
@@ -37,6 +39,10 @@ for language, prefix in [('en', ''), ('zh-CN', 'zh/')]:
     source = ROOT/'content'/prefix/f'{name}.md'
     body = markdown.markdown(source.read_text(encoding='utf-8'), extensions=['tables','fenced_code','toc','md_in_html'])
     body = body.replace('href="@/assets/', f'href="{BASE}assets/').replace('href="@/', f'href="{local_base}')
+    body, has_cases, has_previews = CASES.render(body, language, local_base)
+    case_assets = f'<link rel="stylesheet" href="{BASE}assets/cases.css">' if has_cases else ''
+    if has_previews:
+        case_assets += f'<script src="{BASE}assets/cases.js" defer></script>'
     nav = ''.join(f'<a href="{local_base}{path}/">{label}</a>' for path, label in zip(['projects','writing','methods','about'], labels))
     en_current = ' aria-current="page"' if language == 'en' else ''
     zh_current = ' aria-current="page"' if language == 'zh-CN' else ''
@@ -44,7 +50,7 @@ for language, prefix in [('en', ''), ('zh-CN', 'zh/')]:
 <html lang="{language}" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(title)} · namanegi</title><meta name="description" content="{escape(description)}">
 <meta name="theme-color" content="#12191e"><script src="{BASE}assets/theme.js"></script>
-<link rel="canonical" href="https://namanegi.github.io{local_base}{route}"><link rel="stylesheet" href="{BASE}assets/style.css">
+<link rel="canonical" href="https://namanegi.github.io{local_base}{route}"><link rel="stylesheet" href="{BASE}assets/style.css">{case_assets}
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io{BASE}{route}"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io{BASE}zh/{route}">
 </head>
 <body><a class="skip" href="#main">{skip}</a><header class="site-header"><a class="brand" href="{local_base}">Harness<span>/</span>Notes</a>

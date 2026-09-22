@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Jev vs. Luna: compare the decision, then count the cost · namanegi</title><meta name="description" content="Matched Jev–Luna decisions, caching and the cost of conditional handoff.">
 <meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
-<link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/jev-comparison/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/jev-comparison/"><link rel="stylesheet" href="/harness-notes/assets/style.css"><link rel="stylesheet" href="/harness-notes/assets/cases.css"><script src="/harness-notes/assets/cases.js" defer></script>
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/jev-comparison/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/jev-comparison/">
 </head>
 <body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
@@ -17,9 +17,8 @@
 <p>The unit here is a decision or a conditional handoff on one question. The <a href="/harness-notes/projects/jev/">workflow study</a> measures what happens when those choices also have to operate tools and finish a task.</p>
 <h2 id="start-with-the-same-facts-and-actions">Start with the same facts and actions</h2>
 <p>Both models received the same decision facts, ordered candidates and intended instruction. Jev used Choice. Luna used its Responses API with an output schema that permits only the listed action identifiers. A correct-sounding explanation cannot compensate for selecting the wrong action. Expected answers, also called gold labels, came from predefined rules and never entered either request.</p>
-<p>The Luna settings <code>none</code> and <code>low</code> are reasoning-effort configurations. Output allowances cap how many tokens, the text units counted by the service, a response may use. They matter because changing a configuration can change the result, and an exhausted allowance can leave no valid answer. The tables retain those settings rather than treating every Luna call as the same condition.</p>
-<p>The comparisons reused connections, checked TLS and disabled automatic SDK retries. Calls were adjacent, with provider order alternated or rotated in the matched batches. This reduced some avoidable measurement differences without making the two services identical. Serialization, token accounting, provider infrastructure and network paths still differed.</p>
-<p>The quality measures were simple: response validity and correct selection. The cost measure was less uniform. Jev supplied a cost in its API response; Luna costs were estimated from reported usage, including cache reads and writes. Client wall time included network and local overhead. All figures below describe September 2026 measurements, not permanent model prices.</p>
+<p>The Luna settings <code>none</code> and <code>low</code> specify reasoning effort; the output allowance limits the tokens available for a response. Both can affect results, so the tables retain those configuration differences.</p>
+<p>Quality was measured as response validity and correct selection. Costs are API-reported for Jev and usage-estimated for Luna; times include local and network overhead. <a href="/harness-notes/research/jev-report/#measurement-notes">Appendix notes</a> retain the measurement conditions.</p>
 <h2 id="comparison-1-does-this-document-actually-apply">Comparison 1: does this document actually apply?</h2>
 <p>The first local synthetic scenario asks which step an expense-policy assistant should take for a business-travel question. All facts and documents are supplied by the experiment; no real company service is queried. Document count, titles, dates and candidate actions stay fixed. Only the applicability of a search summary and an opened document changes. A relocation policy could look relevant while failing to apply to ordinary business travel.</p>
 <p>The decision rule was explicit. Use an applicable opened document when it answers the question. Otherwise read an applicable search hit. If neither applies, search again. The user's facts were complete, so requesting clarification was a distractor.</p>
@@ -56,12 +55,14 @@
 </tbody>
 </table>
 <p>The initial gap looked large. But Jev received instructions in its native decision interface while Luna saw them embedded in a Jev-shaped user JSON object. A separately frozen control moved the same instruction text into Luna's native <code>instructions</code> field and removed the protocol wrapper. With no new facts or examples, Luna rose from 13/24 to 21/24.</p>
-<p>This correction changed the interpretation. The original result measured an awkward interface configuration as well as a model. Because the control changed both field placement and wrapper structure, it cannot attribute the improvement to one field alone. The low-effort condition also increased the output allowance from 128 to 1,024 tokens, so that further change is a configuration comparison.</p>
-<p>All remaining native-instruction errors occurred in one wording of the state where neither source applied. Luna answered too early. Jev's 24/24 remained encouraging on this narrow task, but a claim of broad policy-reading superiority would outrun the sample. Timing for the later wrapper controls also belongs to that later session, rather than a new paired speed comparison with the earlier Jev calls.</p>
+<p>This correction changed the interpretation. The original result measured an awkward interface configuration as well as a model. Because the control changed both field placement and wrapper structure, it cannot attribute the improvement to one field alone. The low-effort condition also increased the output allowance, so that further change is a configuration comparison.</p>
+<p>All remaining native-instruction errors occurred in one wording of the state where neither source applied. Luna answered too early. Jev's 24/24 remained encouraging on this narrow task, but a claim of broad policy-reading superiority would outrun the sample. The later controls ran separately and do not provide a paired speed comparison.</p>
+<p class="case-entry"><a class="case-link" data-case-id="policy-comparison" href="/harness-notes/research/jev-report/#case-policy-comparison">View case: Neither source applies: search or answer? <span aria-hidden="true">↗</span></a></p>
+
 <h2 id="comparison-2-does-the-missing-fact-matter">Comparison 2: does the missing fact matter?</h2>
 <p>The next task added an exception whose applicability depended on two facts. If one known fact already ruled the exception out, the other could remain unknown without blocking an answer. In other states, that same unknown was genuinely necessary.</p>
 <p>Four logical states required four different actions: answer, read an appendix, request clarification, or search for the appendix. Each appeared with short and long context, and each variant ran three times. The long version added irrelevant archive entries and moved the relevant evidence later. It was not a pure token-length intervention.</p>
-<p>This comparison used native Luna instructions from the beginning and rotated Jev, Luna none and Luna low through the first, middle and last call positions. All three configurations were correct on 24/24. There was no quality winner in this sample.</p>
+<p>This comparison used native Luna instructions from the beginning. Jev, Luna none and Luna low all scored 24/24, so there was no observed quality winner.</p>
 <table>
 <thead>
 <tr>
@@ -120,10 +121,10 @@
 </tr>
 </tbody>
 </table>
-<p>Luna recorded zero cache reads and writes. At the same observed correctness, Jev cost about 35% as much and took about a third of the median request time. This is the clearest small example here of a cheaper single-step choice on changing states. It is still a synthetic set of short rules with no observed errors, so it cannot establish production reliability or the value of escalation.</p>
+<p>At the same observed correctness, Jev cost about 35% as much and took about a third of the median request time. This is the clearest small example here of a cheaper single-step choice on changing states. It is still a synthetic set of short rules with no observed errors, so it cannot establish production reliability or the value of escalation.</p>
 <h2 id="can-selective-handoff-combine-their-strengths">Can selective handoff combine their strengths?</h2>
 <p>The <a href="/harness-notes/projects/jev-choices/">single-model study</a> also tested BIG-Bench Extra Hard (BBEH), a public reasoning benchmark. In its initial six questions, Jev had to identify the true expression among five Boolean expressions. It answered 2/6 correctly, which suggested a possible use for its candidate weights: on three of Jev's four errors, the correct answer ranked second. Keeping two candidates might give another model less work to do. But an offline rank is only the beginning of a policy. The next model can still choose incorrectly, and every screening call adds cost and serial delay.</p>
-<p>A new batch therefore tested an actual rule: accept Jev when its largest returned candidate weight (<code>pmax</code>) is at least 0.90; otherwise ask Luna to solve the original question. This second call is the fallback. The batch contained six unused questions from BIG-Bench Hard (BBH), covering ordering, object swaps and Boolean expressions, and six unused BBEH questions. These are separate reasoning sets, not the policy tasks above. An independent always-Luna baseline ran alongside it, with call order alternated. Both Luna paths used low reasoning effort and a 4,096-token output allowance. On the original six BBEH questions, the earlier 1,024-token Luna limit had produced only three valid answers and 2/6 correct overall. Raising it to 4,096 for all six restored six valid answers and 4/6 correct; the new comparison used that larger allowance to avoid repeating a known budget bottleneck. No cache reads or writes were recorded.</p>
+<p>A new batch therefore tested an actual rule: accept Jev when its largest returned candidate weight (<code>pmax</code>) is at least 0.90; otherwise ask Luna to solve the original question. This second call is the fallback. The batch contained six unused BIG-Bench Hard (BBH) questions, covering ordering, object swaps and Boolean expressions, and six unused BBEH questions, separate from the policy tasks. An independent always-Luna baseline ran alongside it. Both Luna paths used the same configuration with enough output allowance to avoid the previously observed budget bottleneck.</p>
 <table>
 <thead>
 <tr>
@@ -174,5 +175,100 @@
 <summary>Methods, sample boundaries and data</summary>
 <p>Jev resolved to version 1.13; Luna used the GPT-5.6 Luna alias. Repeated variants are not independent business tasks. Neither comparison executed a real reimbursement workflow or checked a final cited answer. All reported costs are API observations or usage estimates, not invoice reconciliations. Different sessions are kept separate in timing interpretations.</p>
 <p><a href="/harness-notes/research/jev-report/#matched-comparisons">Appendix: matched single-step comparisons</a> · <a href="/harness-notes/assets/jev-evidence.json">Aggregate data</a></p>
-</details></main>
+</details>
+<template id="case-template-policy-comparison"><article class="case-card" aria-labelledby="preview-policy-comparison-title">
+<p class="case-cohort">Jev 24/24; native Luna none 21/24 · separate call batches</p>
+<h3 id="preview-policy-comparison-title">Neither source applies: search or answer?</h3>
+<p class="case-identity">Case <code>p0d0-a · repeat 1</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>The trip is ordinary business travel, but neither the opened document nor the search pointer applies. No personal fact is missing.</dd>
+<dt>Expected</dt><dd><code>search</code></dd></dl>
+<p class="case-explanation">Jev searched; Luna selected submit_answer too early even with native instructions. These records use identical state facts, but Luna is from the later control batch, not a simultaneous paired speed comparison.</p>
+<details class="case-detail"><summary>Original input fields and candidates</summary><pre><code>{
+  &quot;state&quot;: {
+    &quot;user_request&quot;: &quot;For my Berlin work trip, can I claim the €18 hotel Wi-Fi charge and €45 laundry charge? Please cite the applicable company policy.&quot;,
+    &quot;trip_record&quot;: {
+      &quot;location&quot;: &quot;Berlin&quot;,
+      &quot;purpose&quot;: &quot;client meetings&quot;,
+      &quot;duration_nights&quot;: 3,
+      &quot;trip_end_date&quot;: &quot;2026-05-12&quot;
+    },
+    &quot;search_results&quot;: [
+      {
+        &quot;id&quot;: &quot;P14&quot;,
+        &quot;title&quot;: &quot;Expense Policy Record 14&quot;,
+        &quot;uri&quot;: &quot;policy://record/14&quot;,
+        &quot;snippet&quot;: &quot;Scope: temporary employee relocation stays, excluding overnight business travel. The full record contains hotel Wi-Fi and laundry reimbursement rules; open it for the terms.&quot;
+      },
+      {
+        &quot;id&quot;: &quot;P27&quot;,
+        &quot;title&quot;: &quot;Expense Policy Record 27&quot;,
+        &quot;uri&quot;: &quot;policy://record/27&quot;,
+        &quot;snippet&quot;: &quot;Scope: home-office equipment, excluding overnight business travel and employee relocation stays. The full record covers connectivity equipment and supplies.&quot;
+      }
+    ],
+    &quot;opened_document&quot;: {
+      &quot;id&quot;: &quot;P38&quot;,
+      &quot;title&quot;: &quot;Expense Policy Record 38&quot;,
+      &quot;uri&quot;: &quot;policy://record/38&quot;,
+      &quot;full_text&quot;: &quot;Scope: temporary employee relocation stays, excluding overnight business travel. Section 4: For a three-night hotel stay, an itemized hotel Wi-Fi charge is reimbursable. Laundry charges are reimbursable only when the stay lasts at least five nights.&quot;
+    }
+  },
+  &quot;questions&quot;: {
+    &quot;next_action&quot;: {
+      &quot;type&quot;: &quot;choice&quot;,
+      &quot;instructions&quot;: &quot;Choose exactly one next action using the four candidate descriptions. The known trip is ordinary business travel for client meetings, not an employee relocation. Determine whether each policy covers this trip from the meaning of its scope statement, including exclusions. A search snippet can identify an applicable document but is only a pointer; it cannot establish the answer. An already-opened applicable full document is sufficient even if it is absent from the current search hits. Prefer answering from applicable answer-bearing full text, then reading an applicable hit, then searching; ask for clarification only if a personal trip fact is missing. Return one choice ID.&quot;,
+      &quot;criteria&quot;: {
+        &quot;search&quot;: &quot;Search for an applicable policy document when neither a current search hit nor an already-opened document applies to this business trip.&quot;,
+        &quot;read_document&quot;: &quot;Open the applicable policy identified by a search hit when no already-opened applicable full text resolves both charges.&quot;,
+        &quot;request_clarification&quot;: &quot;Ask the user for a missing personal trip fact needed to decide policy applicability or reimbursement.&quot;,
+        &quot;submit_answer&quot;: &quot;Answer the reimbursement question and cite an already-opened applicable policy whose full text resolves both charges.&quot;
+      }
+    }
+  }
+}</code></pre></details>
+<section class="case-record">
+<h4>Jev · original matched batch <span class="case-status">Passed</span></h4>
+<p class="case-config">Jev 1.13 · matched comparison</p>
+<p>Recorded result：<code>search</code></p>
+<details class="case-detail"><summary>Original model output fields</summary><pre><code>{
+  &quot;choice&quot;: &quot;search&quot;,
+  &quot;type&quot;: &quot;choice&quot;,
+  &quot;confidence&quot;: 0.84,
+  &quot;probabilities&quot;: {
+    &quot;read_document&quot;: 0.02,
+    &quot;search&quot;: 0.88,
+    &quot;request_clarification&quot;: 0.0,
+    &quot;submit_answer&quot;: 0.1
+  }
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;results/comparisons/2026-09-20-semantic-applicability/call-ledger.jsonl&quot;,
+  &quot;sha256&quot;: &quot;491a4c28f3d247f16fa2e4908dd80f6a6ca247499d9e8e86b3b65c64f34483fe&quot;,
+  &quot;record&quot;: {
+    &quot;case_id&quot;: &quot;p0d0-a&quot;,
+    &quot;repeat&quot;: 1,
+    &quot;provider&quot;: &quot;jev&quot;
+  }
+}</code></pre></details></section>
+<section class="case-record">
+<h4>Luna · later native-instruction control <span class="case-status">Failed</span></h4>
+<p class="case-config">Luna none · native instructions · 128 tokens</p>
+<p>Recorded result：<code>submit_answer</code></p>
+<details class="case-detail"><summary>Original model output fields</summary><pre><code>{
+  &quot;choice&quot;: &quot;submit_answer&quot;
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;results/comparisons/2026-09-20-semantic-applicability/wrapper-ledger.jsonl&quot;,
+  &quot;sha256&quot;: &quot;7a9e24ba97f9183c5ad08138c53a97278519deb814ffa74a5308b13978beba89&quot;,
+  &quot;record&quot;: {
+    &quot;case_id&quot;: &quot;p0d0-a&quot;,
+    &quot;repeat&quot;: 1,
+    &quot;effort&quot;: &quot;none&quot;
+  }
+}</code></pre></details></section>
+</article></template><dialog class="case-dialog" aria-modal="true" aria-label="Selected case">
+<div class="case-dialog-bar"><span>Selected case</span><button class="case-close" type="button" autofocus>Close <span aria-hidden="true">×</span></button></div>
+<div class="case-dialog-content"></div>
+<div class="case-dialog-footer"><a class="case-permalink" href="/harness-notes/research/jev-report/">Open this case in the appendix</a></div>
+</dialog></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

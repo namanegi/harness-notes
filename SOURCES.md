@@ -10,8 +10,11 @@
   Counts and examples are paraphrased from its published failure-analysis report.
 - **Jev**: measurements dated September 20–21, 2026. The public appendix and
   `assets/jev-evidence.json` contain reviewed findings and aggregates. The JSON
-  includes source-summary hashes. Raw requests, responses and private runners
-  are not distributed, so this is not a complete reproduction package.
+  includes source-summary hashes. `assets/jev-cases.json` additionally contains
+  selected synthetic input/output fields and tool traces with source-file hashes
+  and record selectors. Narratives are editorial summaries; copied fields retain
+  their recorded values. Complete requests, response envelopes, private ledgers
+  and runners are not distributed, so this is not a complete reproduction package.
 
 All three studies are by namanegi. Their denominators and methods remain
 separate. Article interpretations are distinguished from measured results.
@@ -31,7 +34,7 @@ remote font resources are loaded.
 
 The site reports derived findings involving FRAMES, OlympiadBench, GSM8K,
 SVAMP, BBH and BBEH. It does not redistribute benchmark records, model weights,
-provider transcripts or cached pages. Consult the linked research repositories
+complete provider transcripts or cached pages. Consult the linked research repositories
 and their notices for upstream revisions and terms. This site's license does
 not grant rights to those external materials.
 

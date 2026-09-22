@@ -2,7 +2,7 @@
 <html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Jev 与 Luna：先把判断比公平，再算费用 · namanegi</title><meta name="description" content="Jev／Luna 单点匹配、缓存与条件转交的费用。">
 <meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
-<link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/jev-comparison/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/jev-comparison/"><link rel="stylesheet" href="/harness-notes/assets/style.css"><link rel="stylesheet" href="/harness-notes/assets/cases.css"><script src="/harness-notes/assets/cases.js" defer></script>
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/jev-comparison/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/jev-comparison/">
 </head>
 <body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
@@ -17,9 +17,8 @@
 <p>这里的评估单位是一次判断，或同一道题上的条件转交。<a href="/harness-notes/zh/projects/jev/">工作流研究</a>再检查这些选择接上工具后，能不能把完整任务办完。</p>
 <h2 id="_1">先对齐事实和候选动作</h2>
 <p>两个模型收到相同的决策事实、有序候选和判断要求。Jev 使用 Choice；Luna 通过 Responses API 调用，并用输出格式约束，只允许返回列表里的动作标识。解释写得合理，也不能弥补选错动作。预期正确答案也称 gold，由预先写明的规则决定，不进入任何模型请求。</p>
-<p>下文 Luna 的 <code>none</code> 和 <code>low</code> 是推理力度配置。输出额度则限制一次响应最多使用多少 token，即服务统计文本用量的单位。配置变化可能改变结果，额度耗尽也可能让模型无法交出有效答案，因此表格保留这些设置，不把所有 Luna 调用视作同一种条件。</p>
-<p>对照复用连接、启用 TLS 校验并关闭 SDK 自动重试。在匹配批次里，相邻调用两个供应商，交替或轮换先后顺序。这样减少了一些可避免的测量差异，但两个服务仍不相同：序列化、token 统计、供应商基础设施和网络路径都会影响观察。</p>
-<p>质量分别看返回有效性和选择正确性。费用口径则有区别：Jev 取 API 返回的费用，Luna 按用量估算，计入缓存读取与写入。客户端耗时包含本地和网络开销。下文都是 2026 年 9 月的测量结果，不是模型的永久价格表。</p>
+<p>下文 Luna 的 <code>none</code> 和 <code>low</code> 是推理力度配置；输出额度限制一次响应可用的 token 数。它们都会影响结果，因此表格保留配置区别。</p>
+<p>质量分别看返回有效性和选择正确性。费用为 Jev API 报费或 Luna 用量估算，耗时包含本地与网络开销；具体计量条件见<a href="/harness-notes/zh/research/jev-report/#measurement-notes">附录备注</a>。</p>
 <h2 id="_2">第一组：这份文档真的适用吗？</h2>
 <p>第一组本地合成场景要求报销政策助手为一个普通出差问题选下一步。事实和文档都由实验给定，不访问真实企业服务。文档数量、标题、日期和候选动作固定，只改变搜索摘要与已打开正文的适用范围。员工搬迁政策看起来相关，却可能不适用于普通出差。</p>
 <p>判断规则很明确：已有适用且足以回答的正文，就作答；否则有适用搜索命中，就先读；两者都不适用，就继续搜索。用户事实完整，所以请求澄清是干扰项。</p>
@@ -56,12 +55,14 @@
 </tbody>
 </table>
 <p>最初看起来差距很大。但 Jev 通过原生决策接口接收指令，Luna 看到的却是一份把指令包在内部、沿用 Jev 结构的用户 JSON。后来另行冻结一组控制，把相同指令文字移到 Luna 原生 <code>instructions</code> 字段，并移除协议包装。没有增加事实或示例，Luna 就从 13/24 升到了 21/24。</p>
-<p>这改变了结果的含义：原始比较同时测到了一个不合适的接口配置。控制既改了字段位置，也移除了包装，不能把改善全归功于某一个字段。low 条件还把输出额度从 128 提高到 1,024 token，因此进一步的变化同样属于配置组合的比较。</p>
-<p>原生指令条件下剩余的错误，都出现在“两份来源均不适用”的同一种措辞里：Luna 过早作答。Jev 的 24/24 在这道窄任务上仍有价值，但据此宣称普遍的政策阅读优势，就超出了样本。后续封装控制的计时也属于后续会话，不能拿来和之前的 Jev 调用组成新的配对速度比较。</p>
+<p>这改变了结果的含义：原始比较同时测到了一个不合适的接口配置。控制既改了字段位置，也移除了包装，不能把改善全归功于某一个字段。low 条件同时增加了输出额度，因此进一步的变化同样属于配置组合的比较。</p>
+<p>原生指令条件下剩余的错误，都出现在“两份来源均不适用”的同一种措辞里：Luna 过早作答。Jev 的 24/24 在这道窄任务上仍有价值，但据此宣称普遍的政策阅读优势，就超出了样本。后续控制另批运行，不能直接据此比较速度。</p>
+<p class="case-entry"><a class="case-link" data-case-id="policy-comparison" href="/harness-notes/zh/research/jev-report/#case-policy-comparison">查看案例：两份来源均不适用：继续搜索还是作答？ <span aria-hidden="true">↗</span></a></p>
+
 <h2 id="_3">第二组：缺的这个事实，究竟重不重要？</h2>
 <p>下一道题引入了由两个事实共同决定的例外。如果一个已知事实已经排除了例外，另一个事实未知也不妨碍作答；换一种状态，这个未知项却是必须补齐的前提。</p>
 <p>四种逻辑状态分别要求作答、读附录、请求澄清、搜索附录。每种都提供短、长两档上下文，每个变体重复三次。长档增加了无关档案条目，也把有关证据推到更后面，因此不能把它理解为只改变 token 长度的实验。</p>
-<p>这次从一开始就使用 Luna 原生指令，并让 Jev、Luna none、Luna low 轮流占据调用的首、中、尾位置。三配置都是 24/24，没有观察到质量胜者。</p>
+<p>这次从一开始就使用 Luna 原生指令。Jev、Luna none、Luna low 都是 24/24，没有观察到质量胜者。</p>
 <table>
 <thead>
 <tr>
@@ -120,10 +121,10 @@
 </tr>
 </tbody>
 </table>
-<p>Luna 的缓存读取和写入均为零。在观察到同样正确数的前提下，Jev 费用约为 Luna 的 35%，请求耗时中位数约为三分之一。这是这里最清楚的一组小样本：状态在变化，局部选择确实更便宜。不过，它仍是简短规则下的合成题，没有观察到错误，也就无法证明生产可靠性，或评估升级到更强模型的收益。</p>
+<p>在观察到同样正确数的前提下，Jev 费用约为 Luna 的 35%，请求耗时中位数约为三分之一。这是这里最清楚的一组小样本：状态在变化，局部选择确实更便宜。不过，它仍是简短规则下的合成题，没有观察到错误，也就无法证明生产可靠性，或评估升级到更强模型的收益。</p>
 <h2 id="_5">选择性转交能不能结合两者的优势？</h2>
 <p><a href="/harness-notes/zh/projects/jev-choices/">单体研究</a>还测试了公开推理题集 BIG-Bench Extra Hard，简称 BBEH。首批六题要求从五个布尔表达式中选出唯一为真的一个，Jev 答对 2/6。返回的候选权重提供了一个线索：Jev 四次错误中，有三次的正确项排在第二。保留两个候选，也许能让另一个模型少做一些工作。但离线排名只是策略的起点。后续模型仍可能选错，而前置筛选本身也增加费用和串行等待。</p>
-<p>因此，新一批实验实际执行了这条规则：返回的最大候选权重 <code>pmax ≥ 0.90</code> 时接受 Jev，否则让 Luna 重新解原题。这次后续调用就是下文的 fallback。题目是此前没用过的六道 BIG-Bench Hard（BBH，覆盖排序、物件交换和布尔表达式）以及六道 BBEH，属于另外的推理题集，与前面的政策题分开。旁边另跑一个始终使用 Luna 的独立基线，交替调用顺序。两条 Luna 路径都用 low 推理配置和 4,096 token 输出上限。此前在原六道 BBEH 上，1,024 token 上限只产生三个有效答案，总正确数为 2/6；对全部六题提高到 4,096 后，六题都有效，正确数为 4/6。新对照采用较大额度，避免重复一个已经发现的预算瓶颈。本批没有记录到缓存读取或写入。</p>
+<p>因此，新一批实验实际执行了这条规则：返回的最大候选权重 <code>pmax ≥ 0.90</code> 时接受 Jev，否则让 Luna 重新解原题。这次后续调用就是下文的 fallback。题目是此前没用过的六道 BIG-Bench Hard（BBH，覆盖排序、物件交换和布尔表达式）以及六道 BBEH，与前面的政策题分开。另跑一个始终使用 Luna 的独立基线；两条 Luna 路径使用相同配置，并给足输出额度，避免已发现的预算瓶颈。</p>
 <table>
 <thead>
 <tr>
@@ -174,5 +175,100 @@
 <summary>方法、样本边界与数据</summary>
 <p>Jev 解析为 1.13 版本，Luna 使用 GPT-5.6 Luna 别名。重复变体不是独立业务题。这些对照没有实际执行报销流程，也没有检查最终带引用的答案。费用为 API 报告或用量估算，未与账单核销；不同会话的计时解释保持分开。</p>
 <p><a href="/harness-notes/zh/research/jev-report/#matched-comparisons">附录：匹配的单点对照</a> · <a href="/harness-notes/assets/jev-evidence.json">汇总数据</a></p>
-</details></main>
+</details>
+<template id="case-template-policy-comparison"><article class="case-card" aria-labelledby="preview-policy-comparison-title">
+<p class="case-cohort">Jev 24/24；原生 Luna none 21/24 · 不同调用批次</p>
+<h3 id="preview-policy-comparison-title">两份来源均不适用：继续搜索还是作答？</h3>
+<p class="case-identity">案例 <code>p0d0-a · repeat 1</code></p>
+<dl class="case-facts"><dt>输入摘要</dt><dd>问题是普通出差，但已打开正文和搜索线索均不适用。用户事实没有缺失。</dd>
+<dt>预期</dt><dd><code>search</code></dd></dl>
+<p class="case-explanation">Jev 选择继续搜索；使用原生指令的 Luna 仍过早选择 submit_answer。两条记录使用相同事实，但 Luna 来自后续控制批次，不能据此作同期配对速度比较。</p>
+<details class="case-detail"><summary>原始输入字段与候选</summary><pre><code>{
+  &quot;state&quot;: {
+    &quot;user_request&quot;: &quot;For my Berlin work trip, can I claim the €18 hotel Wi-Fi charge and €45 laundry charge? Please cite the applicable company policy.&quot;,
+    &quot;trip_record&quot;: {
+      &quot;location&quot;: &quot;Berlin&quot;,
+      &quot;purpose&quot;: &quot;client meetings&quot;,
+      &quot;duration_nights&quot;: 3,
+      &quot;trip_end_date&quot;: &quot;2026-05-12&quot;
+    },
+    &quot;search_results&quot;: [
+      {
+        &quot;id&quot;: &quot;P14&quot;,
+        &quot;title&quot;: &quot;Expense Policy Record 14&quot;,
+        &quot;uri&quot;: &quot;policy://record/14&quot;,
+        &quot;snippet&quot;: &quot;Scope: temporary employee relocation stays, excluding overnight business travel. The full record contains hotel Wi-Fi and laundry reimbursement rules; open it for the terms.&quot;
+      },
+      {
+        &quot;id&quot;: &quot;P27&quot;,
+        &quot;title&quot;: &quot;Expense Policy Record 27&quot;,
+        &quot;uri&quot;: &quot;policy://record/27&quot;,
+        &quot;snippet&quot;: &quot;Scope: home-office equipment, excluding overnight business travel and employee relocation stays. The full record covers connectivity equipment and supplies.&quot;
+      }
+    ],
+    &quot;opened_document&quot;: {
+      &quot;id&quot;: &quot;P38&quot;,
+      &quot;title&quot;: &quot;Expense Policy Record 38&quot;,
+      &quot;uri&quot;: &quot;policy://record/38&quot;,
+      &quot;full_text&quot;: &quot;Scope: temporary employee relocation stays, excluding overnight business travel. Section 4: For a three-night hotel stay, an itemized hotel Wi-Fi charge is reimbursable. Laundry charges are reimbursable only when the stay lasts at least five nights.&quot;
+    }
+  },
+  &quot;questions&quot;: {
+    &quot;next_action&quot;: {
+      &quot;type&quot;: &quot;choice&quot;,
+      &quot;instructions&quot;: &quot;Choose exactly one next action using the four candidate descriptions. The known trip is ordinary business travel for client meetings, not an employee relocation. Determine whether each policy covers this trip from the meaning of its scope statement, including exclusions. A search snippet can identify an applicable document but is only a pointer; it cannot establish the answer. An already-opened applicable full document is sufficient even if it is absent from the current search hits. Prefer answering from applicable answer-bearing full text, then reading an applicable hit, then searching; ask for clarification only if a personal trip fact is missing. Return one choice ID.&quot;,
+      &quot;criteria&quot;: {
+        &quot;search&quot;: &quot;Search for an applicable policy document when neither a current search hit nor an already-opened document applies to this business trip.&quot;,
+        &quot;read_document&quot;: &quot;Open the applicable policy identified by a search hit when no already-opened applicable full text resolves both charges.&quot;,
+        &quot;request_clarification&quot;: &quot;Ask the user for a missing personal trip fact needed to decide policy applicability or reimbursement.&quot;,
+        &quot;submit_answer&quot;: &quot;Answer the reimbursement question and cite an already-opened applicable policy whose full text resolves both charges.&quot;
+      }
+    }
+  }
+}</code></pre></details>
+<section class="case-record">
+<h4>Jev · 原匹配批次 <span class="case-status">通过</span></h4>
+<p class="case-config">Jev 1.13 · matched comparison</p>
+<p>记录结果：<code>search</code></p>
+<details class="case-detail"><summary>模型输出原始字段</summary><pre><code>{
+  &quot;choice&quot;: &quot;search&quot;,
+  &quot;type&quot;: &quot;choice&quot;,
+  &quot;confidence&quot;: 0.84,
+  &quot;probabilities&quot;: {
+    &quot;read_document&quot;: 0.02,
+    &quot;search&quot;: 0.88,
+    &quot;request_clarification&quot;: 0.0,
+    &quot;submit_answer&quot;: 0.1
+  }
+}</code></pre></details>
+<details class="case-detail case-source"><summary>来源记录</summary><p>来源为本地私有记录，哈希用于标识源文件；公开内容仅包含选取的摘录。</p><pre><code>{
+  &quot;file&quot;: &quot;results/comparisons/2026-09-20-semantic-applicability/call-ledger.jsonl&quot;,
+  &quot;sha256&quot;: &quot;491a4c28f3d247f16fa2e4908dd80f6a6ca247499d9e8e86b3b65c64f34483fe&quot;,
+  &quot;record&quot;: {
+    &quot;case_id&quot;: &quot;p0d0-a&quot;,
+    &quot;repeat&quot;: 1,
+    &quot;provider&quot;: &quot;jev&quot;
+  }
+}</code></pre></details></section>
+<section class="case-record">
+<h4>Luna · 后续原生指令控制 <span class="case-status">未通过</span></h4>
+<p class="case-config">Luna none · native instructions · 128 tokens</p>
+<p>记录结果：<code>submit_answer</code></p>
+<details class="case-detail"><summary>模型输出原始字段</summary><pre><code>{
+  &quot;choice&quot;: &quot;submit_answer&quot;
+}</code></pre></details>
+<details class="case-detail case-source"><summary>来源记录</summary><p>来源为本地私有记录，哈希用于标识源文件；公开内容仅包含选取的摘录。</p><pre><code>{
+  &quot;file&quot;: &quot;results/comparisons/2026-09-20-semantic-applicability/wrapper-ledger.jsonl&quot;,
+  &quot;sha256&quot;: &quot;7a9e24ba97f9183c5ad08138c53a97278519deb814ffa74a5308b13978beba89&quot;,
+  &quot;record&quot;: {
+    &quot;case_id&quot;: &quot;p0d0-a&quot;,
+    &quot;repeat&quot;: 1,
+    &quot;effort&quot;: &quot;none&quot;
+  }
+}</code></pre></details></section>
+</article></template><dialog class="case-dialog" aria-modal="true" aria-label="选取案例">
+<div class="case-dialog-bar"><span>选取案例</span><button class="case-close" type="button" autofocus>关闭 <span aria-hidden="true">×</span></button></div>
+<div class="case-dialog-content"></div>
+<div class="case-dialog-footer"><a class="case-permalink" href="/harness-notes/zh/research/jev-report/">在附录中打开此案例</a></div>
+</dialog></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

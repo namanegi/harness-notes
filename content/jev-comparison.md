@@ -14,11 +14,9 @@ The unit here is a decision or a conditional handoff on one question. The [workf
 
 Both models received the same decision facts, ordered candidates and intended instruction. Jev used Choice. Luna used its Responses API with an output schema that permits only the listed action identifiers. A correct-sounding explanation cannot compensate for selecting the wrong action. Expected answers, also called gold labels, came from predefined rules and never entered either request.
 
-The Luna settings `none` and `low` are reasoning-effort configurations. Output allowances cap how many tokens, the text units counted by the service, a response may use. They matter because changing a configuration can change the result, and an exhausted allowance can leave no valid answer. The tables retain those settings rather than treating every Luna call as the same condition.
+The Luna settings `none` and `low` specify reasoning effort; the output allowance limits the tokens available for a response. Both can affect results, so the tables retain those configuration differences.
 
-The comparisons reused connections, checked TLS and disabled automatic SDK retries. Calls were adjacent, with provider order alternated or rotated in the matched batches. This reduced some avoidable measurement differences without making the two services identical. Serialization, token accounting, provider infrastructure and network paths still differed.
-
-The quality measures were simple: response validity and correct selection. The cost measure was less uniform. Jev supplied a cost in its API response; Luna costs were estimated from reported usage, including cache reads and writes. Client wall time included network and local overhead. All figures below describe September 2026 measurements, not permanent model prices.
+Quality was measured as response validity and correct selection. Costs are API-reported for Jev and usage-estimated for Luna; times include local and network overhead. [Appendix notes](@/research/jev-report/#measurement-notes) retain the measurement conditions.
 
 ## Comparison 1: does this document actually apply?
 
@@ -37,9 +35,11 @@ Two applicability switches produced four states; two equivalent wordings produce
 
 The initial gap looked large. But Jev received instructions in its native decision interface while Luna saw them embedded in a Jev-shaped user JSON object. A separately frozen control moved the same instruction text into Luna's native `instructions` field and removed the protocol wrapper. With no new facts or examples, Luna rose from 13/24 to 21/24.
 
-This correction changed the interpretation. The original result measured an awkward interface configuration as well as a model. Because the control changed both field placement and wrapper structure, it cannot attribute the improvement to one field alone. The low-effort condition also increased the output allowance from 128 to 1,024 tokens, so that further change is a configuration comparison.
+This correction changed the interpretation. The original result measured an awkward interface configuration as well as a model. Because the control changed both field placement and wrapper structure, it cannot attribute the improvement to one field alone. The low-effort condition also increased the output allowance, so that further change is a configuration comparison.
 
-All remaining native-instruction errors occurred in one wording of the state where neither source applied. Luna answered too early. Jev's 24/24 remained encouraging on this narrow task, but a claim of broad policy-reading superiority would outrun the sample. Timing for the later wrapper controls also belongs to that later session, rather than a new paired speed comparison with the earlier Jev calls.
+All remaining native-instruction errors occurred in one wording of the state where neither source applied. Luna answered too early. Jev's 24/24 remained encouraging on this narrow task, but a claim of broad policy-reading superiority would outrun the sample. The later controls ran separately and do not provide a paired speed comparison.
+
+<!-- case:policy-comparison -->
 
 ## Comparison 2: does the missing fact matter?
 
@@ -47,7 +47,7 @@ The next task added an exception whose applicability depended on two facts. If o
 
 Four logical states required four different actions: answer, read an appendix, request clarification, or search for the appendix. Each appeared with short and long context, and each variant ran three times. The long version added irrelevant archive entries and moved the relevant evidence later. It was not a pure token-length intervention.
 
-This comparison used native Luna instructions from the beginning and rotated Jev, Luna none and Luna low through the first, middle and last call positions. All three configurations were correct on 24/24. There was no quality winner in this sample.
+This comparison used native Luna instructions from the beginning. Jev, Luna none and Luna low all scored 24/24, so there was no observed quality winner.
 
 | Same-batch configuration | Correct | Total cost, 24 calls | Median client time |
 |---|---:|---:|---:|
@@ -68,13 +68,13 @@ To examine distinct requests, the next batch used 14 different states. Six came 
 | Jev | 14/14 | $0.000306 | 485 ms |
 | Luna none | 14/14 | $0.000883 | 1,470 ms |
 
-Luna recorded zero cache reads and writes. At the same observed correctness, Jev cost about 35% as much and took about a third of the median request time. This is the clearest small example here of a cheaper single-step choice on changing states. It is still a synthetic set of short rules with no observed errors, so it cannot establish production reliability or the value of escalation.
+At the same observed correctness, Jev cost about 35% as much and took about a third of the median request time. This is the clearest small example here of a cheaper single-step choice on changing states. It is still a synthetic set of short rules with no observed errors, so it cannot establish production reliability or the value of escalation.
 
 ## Can selective handoff combine their strengths?
 
 The [single-model study](@/projects/jev-choices/) also tested BIG-Bench Extra Hard (BBEH), a public reasoning benchmark. In its initial six questions, Jev had to identify the true expression among five Boolean expressions. It answered 2/6 correctly, which suggested a possible use for its candidate weights: on three of Jev's four errors, the correct answer ranked second. Keeping two candidates might give another model less work to do. But an offline rank is only the beginning of a policy. The next model can still choose incorrectly, and every screening call adds cost and serial delay.
 
-A new batch therefore tested an actual rule: accept Jev when its largest returned candidate weight (`pmax`) is at least 0.90; otherwise ask Luna to solve the original question. This second call is the fallback. The batch contained six unused questions from BIG-Bench Hard (BBH), covering ordering, object swaps and Boolean expressions, and six unused BBEH questions. These are separate reasoning sets, not the policy tasks above. An independent always-Luna baseline ran alongside it, with call order alternated. Both Luna paths used low reasoning effort and a 4,096-token output allowance. On the original six BBEH questions, the earlier 1,024-token Luna limit had produced only three valid answers and 2/6 correct overall. Raising it to 4,096 for all six restored six valid answers and 4/6 correct; the new comparison used that larger allowance to avoid repeating a known budget bottleneck. No cache reads or writes were recorded.
+A new batch therefore tested an actual rule: accept Jev when its largest returned candidate weight (`pmax`) is at least 0.90; otherwise ask Luna to solve the original question. This second call is the fallback. The batch contained six unused BIG-Bench Hard (BBH) questions, covering ordering, object swaps and Boolean expressions, and six unused BBEH questions, separate from the policy tasks. An independent always-Luna baseline ran alongside it. Both Luna paths used the same configuration with enough output allowance to avoid the previously observed budget bottleneck.
 
 | New questions | Jev alone | Handoff pipeline | Independent Luna | Pipeline cost | Luna cost |
 |---|---:|---:|---:|---:|---:|

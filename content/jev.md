@@ -22,11 +22,11 @@ The tasks used frozen synthetic tool results, not live business services. A run 
 
 The first cohort had four synthetic tasks. A policy search had to distinguish a relevant travel rule from a relocation rule. An inventory task discovered the ordered quantity before checking a primary warehouse with no stock and a backup with enough. Two package tasks required different paths depending on whether fast verification passed or failed. Tool results were revealed only after the relevant action.
 
-There was an instructive protocol failure before a fair Plan result existed. Its original schema accepted free-form strings, so Luna returned conditional prose such as “if fast fails, run thorough.” The executor accepted only action IDs. Four Plan runs stopped before executing a tool. A separately frozen repair changed the steps to strict legal-action enums without changing the worlds or allowing more replans. The repaired Plan completed 4/4. The initial four calls still count as experiment expense; they are not evidence that Luna could not plan.
+Plan initially failed because its output format did not match the executor. After repairing the action format, a separate rerun passed 4/4; the appendix retains the original failure records.
 
 After that repair, all four systems reached the right terminal state and explicitly stopped: ReAct, bounded Plan, Jev with a full parameter-writing context, and Jev with a smaller *sufficient* context. Both Jev configurations took the same action paths and each made 16 Jev choices plus four Luna text calls across the four tasks. The inventory task needed no Luna text at all; known fields were copied by code.
 
-The full-context Jev system cost $0.001594 across four tasks. The sufficient-context version cost $0.001146, versus $0.004206 for ReAct and $0.002868 for repaired Plan. The smaller Luna prompts kept the goal, selected tool contract and relevant current observations, reducing their input from 2,888 to 1,319 tokens. Both Jev systems finished 4/4, so nothing necessary was lost in these cases. Yet the context comparison is not a clean token-only experiment: generated text can alter later state, Luna cache writes appeared in the full view, and call order differed. The measured wall-clock totals, 13.2 versus 12.2 seconds, are too close to claim a stable speed gain from trimming context.
+The full-context Jev system cost $0.001594 across four tasks. The sufficient-context version cost $0.001146, versus $0.004206 for ReAct and $0.002868 for repaired Plan. The smaller Luna prompts kept the goal, selected tool contract and relevant current observations. Both Jev systems finished 4/4, so nothing necessary was lost in these cases. Cost fell about 28%, but the reduction cannot be attributed entirely to shorter inputs, nor does it establish a stable speed gain. The [appendix](@/research/jev-report/#measurement-notes) retains the measurement details.
 
 ## Transfer to unseen branches
 
@@ -38,13 +38,19 @@ The next cohort froze eight new tasks before calls: two each for policy, invento
 | Luna bounded Plan | 7/8 | 3/4 | 4/4 | $0.007954 | 9.35 s |
 | Jev choices + Luna text | 7/8 | 4/4 | 3/4 | $0.002751 | 3.44 s |
 
+<!-- case:inventory-success -->
+<!-- case:approval-loop -->
+
 The Plan miss took two bad turns in one inventory task. It requested a quantity that was already known, consuming its one replan after the tool rejected the action. Its revised plan then tried to reserve from a warehouse with insufficient stock. A second rejection ended the run before reservation. Other Plan tasks did recover after one rejection; the observation is about this one-replan budget, not planning in general.
 
 Jev's first miss was different. In an access task it correctly requested approval with the required scope. The state was now a valid safe block, yet the controller kept requesting approval or training and never chose stop before the cap. The final business disposition and the protocol outcome therefore disagreed. Looking only at whether an approval request occurred would count a failure as success.
 
 The original Jev instruction said to stop when the “goal is reached,” while the other controllers explicitly allowed stopping after a justified request for a missing prerequisite. A later batch changed only Jev's stopping instruction and reran all eight tasks. It again scored 7/8, with a different miss. The approval case now stopped correctly. In the incident case, Jev requested a deployment ID before collecting matching log evidence; the tool rejected it. After querying the logs, Jev stopped without repeating the now-justified request. It did not invent an ID or roll back anything, but it left the required safe block incomplete. Picking the best cases from the two batches would manufacture an 8/8 result that neither run achieved.
 
-The amendment reduced recorded Jev calls from 51 to 40 and cost from $0.002751 to $0.002246, while the observed median task time fell from 3.44 to 2.74 seconds. Different run times and prompt wording limit a causal speed claim. More importantly, the failure moved from recognizing when to stop to knowing which previously rejected action to retry after new evidence.
+<!-- case:approval-stopped -->
+<!-- case:incident-retry -->
+
+Recorded cost and time fell in the amendment, but different run times and prompt wording prevent attributing the change entirely to the instruction. More importantly, the failure moved from recognizing when to stop to knowing which previously rejected action to retry after new evidence.
 
 ## More decisions are not necessarily safer
 

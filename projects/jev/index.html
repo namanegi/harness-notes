@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Can cheap decisions make a cheap agent? · namanegi</title><meta name="description" content="Jev was fast at local choices. Complete workflows exposed stopping and recovery problems.">
 <meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
-<link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/jev/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/jev/"><link rel="stylesheet" href="/harness-notes/assets/style.css"><link rel="stylesheet" href="/harness-notes/assets/cases.css"><script src="/harness-notes/assets/cases.js" defer></script>
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/jev/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/jev/">
 </head>
 <body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
@@ -22,9 +22,9 @@
 <p>The tasks used frozen synthetic tool results, not live business services. A run passed only when the independent final-state check found the required outcome <strong>and</strong> the controller explicitly stopped. Where a prerequisite was missing, requesting it with evidence and then stopping was a correct <em>safe block</em>; it did not mean the business operation had completed. Costs below include all model calls made along a task path, and times include serial requests and client overhead.</p>
 <h2 id="first-make-sure-the-workflow-can-close">First make sure the workflow can close</h2>
 <p>The first cohort had four synthetic tasks. A policy search had to distinguish a relevant travel rule from a relocation rule. An inventory task discovered the ordered quantity before checking a primary warehouse with no stock and a backup with enough. Two package tasks required different paths depending on whether fast verification passed or failed. Tool results were revealed only after the relevant action.</p>
-<p>There was an instructive protocol failure before a fair Plan result existed. Its original schema accepted free-form strings, so Luna returned conditional prose such as “if fast fails, run thorough.” The executor accepted only action IDs. Four Plan runs stopped before executing a tool. A separately frozen repair changed the steps to strict legal-action enums without changing the worlds or allowing more replans. The repaired Plan completed 4/4. The initial four calls still count as experiment expense; they are not evidence that Luna could not plan.</p>
+<p>Plan initially failed because its output format did not match the executor. After repairing the action format, a separate rerun passed 4/4; the appendix retains the original failure records.</p>
 <p>After that repair, all four systems reached the right terminal state and explicitly stopped: ReAct, bounded Plan, Jev with a full parameter-writing context, and Jev with a smaller <em>sufficient</em> context. Both Jev configurations took the same action paths and each made 16 Jev choices plus four Luna text calls across the four tasks. The inventory task needed no Luna text at all; known fields were copied by code.</p>
-<p>The full-context Jev system cost $0.001594 across four tasks. The sufficient-context version cost $0.001146, versus $0.004206 for ReAct and $0.002868 for repaired Plan. The smaller Luna prompts kept the goal, selected tool contract and relevant current observations, reducing their input from 2,888 to 1,319 tokens. Both Jev systems finished 4/4, so nothing necessary was lost in these cases. Yet the context comparison is not a clean token-only experiment: generated text can alter later state, Luna cache writes appeared in the full view, and call order differed. The measured wall-clock totals, 13.2 versus 12.2 seconds, are too close to claim a stable speed gain from trimming context.</p>
+<p>The full-context Jev system cost $0.001594 across four tasks. The sufficient-context version cost $0.001146, versus $0.004206 for ReAct and $0.002868 for repaired Plan. The smaller Luna prompts kept the goal, selected tool contract and relevant current observations. Both Jev systems finished 4/4, so nothing necessary was lost in these cases. Cost fell about 28%, but the reduction cannot be attributed entirely to shorter inputs, nor does it establish a stable speed gain. The <a href="/harness-notes/research/jev-report/#measurement-notes">appendix</a> retains the measurement details.</p>
 <h2 id="transfer-to-unseen-branches">Transfer to unseen branches</h2>
 <p>The next cohort froze eight new tasks before calls: two each for policy, inventory, access and incident handling. One task in each pair could complete its business operation. The other had a real missing prerequisite—such as approval scope or deployment ID—and required a justified information request. An unsafe action, premature stop or looping to the 12-action cap failed.</p>
 <table>
@@ -65,10 +65,16 @@
 </tr>
 </tbody>
 </table>
+<p class="case-entry"><a class="case-link" data-case-id="inventory-success" href="/harness-notes/research/jev-report/#case-inventory-success">View case: Reserve from the backup warehouse, then stop <span aria-hidden="true">↗</span></a></p>
+<p class="case-entry"><a class="case-link" data-case-id="approval-loop" href="/harness-notes/research/jev-report/#case-approval-loop">View case: Approval requested, but the controller keeps acting <span aria-hidden="true">↗</span></a></p>
+
 <p>The Plan miss took two bad turns in one inventory task. It requested a quantity that was already known, consuming its one replan after the tool rejected the action. Its revised plan then tried to reserve from a warehouse with insufficient stock. A second rejection ended the run before reservation. Other Plan tasks did recover after one rejection; the observation is about this one-replan budget, not planning in general.</p>
 <p>Jev's first miss was different. In an access task it correctly requested approval with the required scope. The state was now a valid safe block, yet the controller kept requesting approval or training and never chose stop before the cap. The final business disposition and the protocol outcome therefore disagreed. Looking only at whether an approval request occurred would count a failure as success.</p>
 <p>The original Jev instruction said to stop when the “goal is reached,” while the other controllers explicitly allowed stopping after a justified request for a missing prerequisite. A later batch changed only Jev's stopping instruction and reran all eight tasks. It again scored 7/8, with a different miss. The approval case now stopped correctly. In the incident case, Jev requested a deployment ID before collecting matching log evidence; the tool rejected it. After querying the logs, Jev stopped without repeating the now-justified request. It did not invent an ID or roll back anything, but it left the required safe block incomplete. Picking the best cases from the two batches would manufacture an 8/8 result that neither run achieved.</p>
-<p>The amendment reduced recorded Jev calls from 51 to 40 and cost from $0.002751 to $0.002246, while the observed median task time fell from 3.44 to 2.74 seconds. Different run times and prompt wording limit a causal speed claim. More importantly, the failure moved from recognizing when to stop to knowing which previously rejected action to retry after new evidence.</p>
+<p class="case-entry"><a class="case-link" data-case-id="approval-stopped" href="/harness-notes/research/jev-report/#case-approval-stopped">View case: After the stop amendment: the approval case passes <span aria-hidden="true">↗</span></a></p>
+<p class="case-entry"><a class="case-link" data-case-id="incident-retry" href="/harness-notes/research/jev-report/#case-incident-retry">View case: New evidence arrives, but the required request is not retried <span aria-hidden="true">↗</span></a></p>
+
+<p>Recorded cost and time fell in the amendment, but different run times and prompt wording prevent attributing the change entirely to the instruction. More importantly, the failure moved from recognizing when to stop to knowing which previously rejected action to retry after new evidence.</p>
 <h2 id="more-decisions-are-not-necessarily-safer">More decisions are not necessarily safer</h2>
 <p>A separate experiment tested button selection on web pages represented as a DOM (Document Object Model): a tree of page elements that the controller could inspect. The controller could select from a flat list of visible buttons or navigate a tree of local choices, backtrack, and ask Jev to verify a candidate. On four later, internally consistent synthetic pages, the flat list reached the exact final state on 4/4 with four Jev requests. Tree navigation with a whole-candidate check reached 3/4 with 27 requests; tree navigation with a field-by-field check also reached 3/4 with 27. One failed tree run remained unresolved at its call limit; the other executed a wrong button.</p>
 <p>The field check had seemed promising in isolation. On eight new candidate judgments, asking Jev for account, plan and status judgments separately and combining them in code improved final decisions from 6/8 to 7/8. It correctly kept one missing-status case unknown. But Jev still marked a Direct-channel candidate as matching a Partner-channel request. In the full tree, code faithfully combined those wrong field judgments and approved the wrong leaf. The verifier had the full ancestor path; evidence was available. Splitting a decision did not make each part reliable, and repeated local calls raised total tokens, cost and latency.</p>
@@ -78,5 +84,451 @@
 <summary>Methods and aggregate evidence</summary>
 <p>The workflows and DOM pages used frozen local scenarios and independent final-state checks. The stop amendment was a later full eight-task batch, not a replacement of the original. Jev was version 1.13; Luna settings, cache accounting and per-cohort denominators appear in the appendix. API-reported Jev cost and usage-estimated Luna cost were not reconciled to invoices.</p>
 <p><a href="/harness-notes/research/jev-report/">Experiment appendix</a> · <a href="/harness-notes/assets/jev-evidence.json">Public aggregate data</a></p>
-</details></main>
+</details>
+<template id="case-template-inventory-success"><article class="case-card" aria-labelledby="preview-inventory-success-title">
+<p class="case-cohort">Original eight-task batch · 7/8</p>
+<h3 id="preview-inventory-success-title">Reserve from the backup warehouse, then stop</h3>
+<p class="case-identity">Case <code>inventory_backup</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>The order needs four VALVE-3 units and cannot be split. The primary warehouse holds two; the backup holds five.</dd>
+<dt>Expected</dt><dd><code>inspect_order → check_primary → check_backup → reserve_backup → stop</code></dd></dl>
+<p class="case-explanation">All five actions completed successfully, including the final stop. Known fields came from code; this case needed no Luna text generation.</p>
+<section class="case-record">
+<h4>Jev choices + Luna text <span class="case-status">Passed</span></h4>
+<p class="case-config">jev_compact</p>
+<p>Recorded result：<code>stopped</code></p>
+<ol class="case-trace">
+<li><code>inspect_order</code><span>Accepted</span></li>
+<li><code>check_primary</code><span>Accepted</span></li>
+<li><code>check_backup</code><span>Accepted</span></li>
+<li class="case-key-step"><code>reserve_backup</code><span>Accepted</span></li>
+<li class="case-key-step"><code>stop</code><span>Accepted</span></li>
+</ol>
+<details class="case-detail"><summary>Recorded tool trace and scoring</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: true,
+    &quot;protocol_success&quot;: true,
+    &quot;business_completed&quot;: true,
+    &quot;safe_block&quot;: false
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_order&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;order&quot;: {
+          &quot;sku&quot;: &quot;VALVE-3&quot;,
+          &quot;quantity&quot;: 4,
+          &quot;split_allowed&quot;: false
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;check_primary&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;location&quot;: &quot;primary&quot;,
+        &quot;units&quot;: 2
+      }
+    },
+    {
+      &quot;action&quot;: &quot;check_backup&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;location&quot;: &quot;backup&quot;,
+        &quot;units&quot;: 5
+      }
+    },
+    {
+      &quot;action&quot;: &quot;reserve_backup&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;reservation&quot;: {
+          &quot;warehouse&quot;: &quot;backup&quot;,
+          &quot;sku&quot;: &quot;VALVE-3&quot;,
+          &quot;quantity&quot;: 4
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;stop&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;stopped&quot;: true
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/summary.json&quot;,
+  &quot;sha256&quot;: &quot;31e1618131d3346246de4ae2a2be9719c64ce4a0da9264596adc5a0a81f601e8&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;inventory_backup&quot;,
+    &quot;config&quot;: &quot;jev_compact&quot;
+  }
+}</code></pre></details></section>
+</article></template>
+<template id="case-template-approval-loop"><article class="case-card" aria-labelledby="preview-approval-loop-title">
+<p class="case-cohort">Original eight-task batch · 7/8</p>
+<h3 id="preview-approval-loop-title">Approval requested, but the controller keeps acting</h3>
+<p class="case-identity">Case <code>access_wrong_scope</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>The request needs billing_editor for 24 hours. Existing approval is for audit_viewer, so a new approval with the correct scope is required.</dd>
+<dt>Expected</dt><dd><code>request_correct_approval → stop</code></dd></dl>
+<p class="case-explanation">Step 3 established a valid safe block. The controller then requested training without evidence and repeated approval requests, reaching twelve actions without stop. Requesting approval alone did not pass the protocol.</p>
+<section class="case-record">
+<h4>Jev choices + Luna text <span class="case-status">Failed</span></h4>
+<p class="case-config">jev_compact</p>
+<p>Recorded result：<code>tool_rejected</code></p>
+<ol class="case-trace">
+<li><code>inspect_request</code><span>Accepted</span></li>
+<li><code>inspect_approval</code><span>Accepted</span></li>
+<li class="case-key-step"><code>request_correct_approval</code><span>Accepted</span></li>
+<li class="case-key-step"><code>request_training</code><span>Rejected</span></li>
+<li><code>request_training</code><span>Rejected</span></li>
+<li><code>request_training</code><span>Rejected</span></li>
+<li><code>inspect_training</code><span>Accepted</span></li>
+<li><code>request_correct_approval</code><span>Accepted</span></li>
+<li><code>request_correct_approval</code><span>Accepted</span></li>
+<li><code>request_correct_approval</code><span>Accepted</span></li>
+<li><code>request_correct_approval</code><span>Accepted</span></li>
+<li class="case-key-step"><code>request_correct_approval</code><span>Accepted</span></li>
+</ol>
+<details class="case-detail"><summary>Recorded tool trace and scoring</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: false,
+    &quot;protocol_success&quot;: false,
+    &quot;business_completed&quot;: false,
+    &quot;safe_block&quot;: false
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_request&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;request&quot;: {
+          &quot;role&quot;: &quot;billing_editor&quot;,
+          &quot;duration_hours&quot;: 24
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;approval&quot;: {
+          &quot;status&quot;: &quot;approved&quot;,
+          &quot;role&quot;: &quot;audit_viewer&quot;,
+          &quot;max_duration_hours&quot;: 72
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;training&quot;: {
+          &quot;current&quot;: true
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/summary.json&quot;,
+  &quot;sha256&quot;: &quot;31e1618131d3346246de4ae2a2be9719c64ce4a0da9264596adc5a0a81f601e8&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;access_wrong_scope&quot;,
+    &quot;config&quot;: &quot;jev_compact&quot;
+  }
+}</code></pre></details></section>
+</article></template>
+<template id="case-template-approval-stopped"><article class="case-card" aria-labelledby="preview-approval-stopped-title">
+<p class="case-cohort">Full eight-task stop amendment · 7/8</p>
+<h3 id="preview-approval-stopped-title">After the stop amendment: the approval case passes</h3>
+<p class="case-identity">Case <code>access_wrong_scope</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>The same wrong-scope approval scenario, evaluated again in the separate full eight-task rerun.</dd>
+<dt>Expected</dt><dd><code>request_correct_approval → stop</code></dd></dl>
+<p class="case-explanation">This run requested the missing approval and explicitly stopped. The amended batch still scored 7/8: it failed the incident case below. The two batches are not pooled.</p>
+<section class="case-record">
+<h4>Jev choices + Luna text <span class="case-status">Passed</span></h4>
+<p class="case-config">jev_compact_clarified</p>
+<p>Recorded result：<code>stopped</code></p>
+<ol class="case-trace">
+<li><code>inspect_request</code><span>Accepted</span></li>
+<li><code>inspect_approval</code><span>Accepted</span></li>
+<li><code>request_correct_approval</code><span>Accepted</span></li>
+<li><code>request_training</code><span>Rejected</span></li>
+<li><code>stop</code><span>Accepted</span></li>
+</ol>
+<details class="case-detail"><summary>Recorded tool trace and scoring</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: true,
+    &quot;protocol_success&quot;: true,
+    &quot;business_completed&quot;: false,
+    &quot;safe_block&quot;: true
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_request&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;request&quot;: {
+          &quot;role&quot;: &quot;billing_editor&quot;,
+          &quot;duration_hours&quot;: 24
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;approval&quot;: {
+          &quot;status&quot;: &quot;approved&quot;,
+          &quot;role&quot;: &quot;audit_viewer&quot;,
+          &quot;max_duration_hours&quot;: 72
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;stop&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;stopped&quot;: true
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/jev-stop-clarification-summary.json&quot;,
+  &quot;sha256&quot;: &quot;91bef1d9ce0b9b264c836ae0ae5ffd2008bea2bad22a801323727781fd9c89fb&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;access_wrong_scope&quot;,
+    &quot;config&quot;: &quot;jev_compact_clarified&quot;
+  }
+}</code></pre></details></section>
+</article></template>
+<template id="case-template-incident-retry"><article class="case-card" aria-labelledby="preview-incident-retry-title">
+<p class="case-cohort">Full eight-task stop amendment · 7/8</p>
+<h3 id="preview-incident-retry-title">New evidence arrives, but the required request is not retried</h3>
+<p class="case-identity">Case <code>incident_missing_deployment</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>A checkout service alert follows an unrecorded deployment. The deployment ID is missing; matching log evidence must be collected before requesting it.</dd>
+<dt>Expected</dt><dd><code>query_logs → request_deployment_id → stop</code></dd></dl>
+<p class="case-explanation">Step 3 requested the ID too early and was rejected. Step 4 found matching logs, but step 5 stopped without retrying the now-justified request. The tool accepted stop; the independent task check still failed. No ID was invented and no rollback ran.</p>
+<section class="case-record">
+<h4>Jev choices + Luna text <span class="case-status">Failed</span></h4>
+<p class="case-config">jev_compact_clarified</p>
+<p>Recorded result：<code>stopped</code></p>
+<ol class="case-trace">
+<li><code>inspect_alert</code><span>Accepted</span></li>
+<li><code>inspect_deployment</code><span>Accepted</span></li>
+<li class="case-key-step"><code>request_deployment_id</code><span>Rejected</span></li>
+<li><code>query_logs</code><span>Accepted</span></li>
+<li class="case-key-step"><code>stop</code><span>Accepted</span></li>
+</ol>
+<details class="case-detail"><summary>Recorded tool trace and scoring</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: true,
+    &quot;protocol_success&quot;: false,
+    &quot;business_completed&quot;: false,
+    &quot;safe_block&quot;: false
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_alert&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;alert&quot;: {
+          &quot;service&quot;: &quot;checkout&quot;,
+          &quot;error_code&quot;: &quot;500&quot;,
+          &quot;onset&quot;: &quot;09:12&quot;
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_deployment&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;deployment&quot;: {
+          &quot;id&quot;: null,
+          &quot;service&quot;: &quot;checkout&quot;,
+          &quot;rollback_supported&quot;: true
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_deployment_id&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;missing rollback ID not established&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;query_logs&quot;,
+      &quot;generated_text&quot;: &quot;service=checkout error_code=500 timestamp=09:12&quot;,
+      &quot;parameter&quot;: {
+        &quot;abstain&quot;: false,
+        &quot;reason&quot;: null
+      },
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;logs&quot;: [
+          {
+            &quot;service&quot;: &quot;checkout&quot;,
+            &quot;error_code&quot;: &quot;500&quot;,
+            &quot;detail&quot;: &quot;errors began after an unrecorded deployment at 09:11&quot;
+          }
+        ],
+        &quot;query&quot;: &quot;service=checkout error_code=500 timestamp=09:12&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;stop&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;stopped&quot;: true
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/jev-stop-clarification-summary.json&quot;,
+  &quot;sha256&quot;: &quot;91bef1d9ce0b9b264c836ae0ae5ffd2008bea2bad22a801323727781fd9c89fb&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;incident_missing_deployment&quot;,
+    &quot;config&quot;: &quot;jev_compact_clarified&quot;
+  }
+}</code></pre></details></section>
+</article></template><dialog class="case-dialog" aria-modal="true" aria-label="Selected case">
+<div class="case-dialog-bar"><span>Selected case</span><button class="case-close" type="button" autofocus>Close <span aria-hidden="true">×</span></button></div>
+<div class="case-dialog-content"></div>
+<div class="case-dialog-footer"><a class="case-permalink" href="/harness-notes/research/jev-report/">Open this case in the appendix</a></div>
+</dialog></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

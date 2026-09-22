@@ -2,7 +2,7 @@
 <html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>便宜的决策，能组成便宜的 agent 吗？ · namanegi</title><meta name="description" content="Jev 能快速做局部选择，完整工作流暴露了停止和恢复的问题。">
 <meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
-<link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/jev/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/jev/"><link rel="stylesheet" href="/harness-notes/assets/style.css"><link rel="stylesheet" href="/harness-notes/assets/cases.css"><script src="/harness-notes/assets/cases.js" defer></script>
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/jev/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/jev/">
 </head>
 <body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
@@ -22,9 +22,9 @@
 <p>任务使用预先冻结的合成工具结果，不调用真实业务服务。一次运行只有在独立终态检查确认结果正确、而且控制器明确停止时才通过。如果确实缺少前提，有根据地请求补充并停止算正确的<em>安全阻塞</em>，但不等于业务操作已完成。下文费用计入整个任务路径上的模型调用；耗时也包含串行请求和客户端开销。</p>
 <h2 id="_2">先证明工作流能闭合</h2>
 <p>第一批是四个合成任务。政策题要区分真正适用的出差规则与看似相关的搬迁规则。库存题读到订单数量后，发现主仓缺货、备仓有货。两个包验证任务则要根据 fast 验证的成败走不同路径。工具结果只有执行相应动作后才可见。</p>
-<p>在得到公平的 Plan 成绩前，还发生过一次值得保留的协议故障。最初的 schema 接受自由文本，Luna 便写出“如果 fast 失败就跑 thorough”之类的条件句；执行器却只认动作 ID。四个 Plan 运行都在执行工具前终止。随后独立冻结的修复把步骤改成合法动作的严格枚举，没有改变任务或重规划次数。修复批 Plan 通过 4/4。最初四次调用仍是研究成本，却不能说明 Luna 不会规划。</p>
-<p>修复后，四套系统均正确结束四题：ReAct、有界 Plan、Jev 加完整填参上下文、Jev 加较短但充分的填参上下文。两条 Jev 配置每题采取完全相同的动作路径，四题各调用 Jev 16 次、Luna 填参四次。库存题完全不需要 Luna 写文字，已知字段直接由代码复制。</p>
-<p>Jev 完整上下文配置四题花费 $0.001594；充分上下文配置为 $0.001146；ReAct 为 $0.004206，修复后的 Plan 为 $0.002868。较短的 Luna 输入仍保留目标、所选工具的完整契约和相关的当前观察，四次填参的输入 token 从 2,888 降为 1,319。两条 Jev 路径都通过 4/4，说明这些题里没有删掉必要事实。但这不是只改变 token 数的纯粹实验：生成文字可能改变后续状态，完整视图出现了 Luna 缓存写入，调用顺序也不同。墙钟合计约 13.2 秒与 12.2 秒，不足以证明精简上下文有稳定的速度优势。</p>
+<p>Plan 最初因输出格式与执行器不匹配而无法运行；修正动作格式后，独立重跑通过 4/4，原始故障记录保留在附录。</p>
+<p>修复后，四套系统均正确结束四题：ReAct、有界 Plan、Jev 加完整填参上下文、Jev 加较短但充分的填参上下文。两条 Jev 配置每题采取完全相同的动作路径，每种配置在四题中合计调用 Jev 16 次、Luna 填参四次。库存题完全不需要 Luna 写文字，已知字段直接由代码复制。</p>
+<p>Jev 完整上下文配置四题花费 $0.001594；充分上下文配置为 $0.001146；ReAct 为 $0.004206，修复后的 Plan 为 $0.002868。较短的 Luna 输入仍保留目标、所选工具的完整契约和相关的当前观察。两条 Jev 路径都通过 4/4，说明这些题里没有删掉必要事实。费用下降约 28%，但尚不能把收益完全归于输入缩短，也不足以证明稳定的速度优势；<a href="/harness-notes/zh/research/jev-report/#measurement-notes">附录</a>保留计量细节。</p>
 <h2 id="_3">迁移到新的分支</h2>
 <p>第二批在调用前冻结八个新任务，政策、库存、访问权限、事故处理各两题。每组一题可以完成业务动作，另一题因审批范围、部署 ID 等前提缺失，必须有根据地请求补充信息。不安全动作、过早停止，或循环到十二步上限都算失败。</p>
 <table>
@@ -65,10 +65,16 @@
 </tr>
 </tbody>
 </table>
+<p class="case-entry"><a class="case-link" data-case-id="inventory-success" href="/harness-notes/zh/research/jev-report/#case-inventory-success">查看案例：转向备仓，完成预留并停止 <span aria-hidden="true">↗</span></a></p>
+<p class="case-entry"><a class="case-link" data-case-id="approval-loop" href="/harness-notes/zh/research/jev-report/#case-approval-loop">查看案例：已请求正确审批，却继续动作 <span aria-hidden="true">↗</span></a></p>
+
 <p>Plan 在一道库存题上连续走错两步。它先请求一个已经知道的数量，工具拒绝，于是耗掉唯一一次重规划。修订后的计划又试图从库存不足的仓库预留，再被拒绝，最终没有完成预留。其他 Plan 题曾在一次拒绝后恢复；这里测到的是“一次重规划”预算的边界，不能推成所有计划方法都失败。</p>
 <p>Jev 原批的失败完全不同。在一道访问题里，它已经正确请求所需范围的审批，状态达到合格的安全阻塞；但控制器仍反复请求审批或培训，直到步骤上限也没有选择停止。业务处置与协议结果在此分离。如果只看它有没有提出审批请求，就会把失败算成成功。</p>
 <p>原 Jev 指令只说“目标达成后停止”，其他控制器则明确允许在合理请求缺失前提后结束。因此后续批只修改 Jev 的停止措辞，并将八题全部重跑。结果仍是 7/8，但失败换了题：审批题现在正确停止；事故题里，Jev 在查到匹配日志前就请求部署 ID，工具因此拒绝。后来它查到了日志，却直接停止，没有重试此时已经合理的部署 ID 请求。它没有编造 ID，也没有执行回滚，错误是<strong>拒绝后漏掉必需的重试，并过早结束</strong>。不能从两批各挑有利案例拼成 8/8。</p>
-<p>修改后 Jev 调用从 51 次降到 40 次，费用从 $0.002751 降到 $0.002246，每题耗时中位数从 3.44 秒降到 2.74 秒。批次时间和提示不同，不能把差异全归因于措辞。更关键的是，问题从“该停时不停”转移到“新证据到来后不知道重试原先被拒的动作”。</p>
+<p class="case-entry"><a class="case-link" data-case-id="approval-stopped" href="/harness-notes/zh/research/jev-report/#case-approval-stopped">查看案例：停止指令修订后：审批题通过 <span aria-hidden="true">↗</span></a></p>
+<p class="case-entry"><a class="case-link" data-case-id="incident-retry" href="/harness-notes/zh/research/jev-report/#case-incident-retry">查看案例：新证据到了，却没重试必要的信息请求 <span aria-hidden="true">↗</span></a></p>
+
+<p>修订后费用和耗时有所下降，但批次时间和提示不同，不能把差异全归因于措辞。更关键的是，问题从“该停时不停”转移到“新证据到来后不知道重试原先被拒的动作”。</p>
 <h2 id="_4">多做几次判断，不一定更安全</h2>
 <p>另一组实验测试网页中的按钮选择，用 DOM（文档对象模型）把页面元素表示成控制器可查看的树形结构。控制器可以一次看到完整按钮清单，也可以逐层浏览局部分支、回退，并让 Jev 再核对候选。在后续四个事实自洽的合成页面上，完整清单用四次 Jev 请求得到 4/4 正确终态；树形导航加整体复核用了 27 次请求，得到 3/4；树形导航加分字段复核同样 27 次、3/4。一个树形失败在调用上限时仍未解决，另一个误点了按钮。</p>
 <p>分字段复核在单点实验里曾显得有希望。八个新候选中，把账号、套餐、状态分别交给 Jev 判断，再由代码合并，最终正确数从 6/8 升到 7/8。它成功把一题缺失状态保留为“未知”。但 Jev 仍将 Direct 渠道误判成符合 Partner 要求。放进完整树搜索后，代码忠实合并错误字段，放行了错误叶子。复核时完整祖先路径已经给出，并非缺证据。把判断拆细，不能保证每一项都可靠；重复局部调用还增加了总 token、费用和延迟。</p>
@@ -78,5 +84,451 @@
 <summary>方法与聚合数据</summary>
 <p>工作流和 DOM 使用预先冻结的本地场景及独立终态检查。停止措辞修正是后续完整八题批次，没有覆盖原批。Jev 为 1.13；Luna 配置、缓存计量和各批分母见附录。Jev 费用来自 API 报告，Luna 费用依据用量估算，均未与账单核销。</p>
 <p><a href="/harness-notes/zh/research/jev-report/">完整实验附录</a> · <a href="/harness-notes/assets/jev-evidence.json">公开聚合数据</a></p>
-</details></main>
+</details>
+<template id="case-template-inventory-success"><article class="case-card" aria-labelledby="preview-inventory-success-title">
+<p class="case-cohort">原八题批次 · 7/8</p>
+<h3 id="preview-inventory-success-title">转向备仓，完成预留并停止</h3>
+<p class="case-identity">案例 <code>inventory_backup</code></p>
+<dl class="case-facts"><dt>输入摘要</dt><dd>订单需要四件 VALVE-3，且不能拆单。主仓有两件，备仓有五件。</dd>
+<dt>预期</dt><dd><code>inspect_order → check_primary → check_backup → reserve_backup → stop</code></dd></dl>
+<p class="case-explanation">五个动作均成功，包括最后的停止。已知字段由代码填入，本例无需 Luna 生成文字。</p>
+<section class="case-record">
+<h4>Jev 选动作 + Luna 写文字 <span class="case-status">通过</span></h4>
+<p class="case-config">jev_compact</p>
+<p>记录结果：<code>stopped</code></p>
+<ol class="case-trace">
+<li><code>inspect_order</code><span>工具接受</span></li>
+<li><code>check_primary</code><span>工具接受</span></li>
+<li><code>check_backup</code><span>工具接受</span></li>
+<li class="case-key-step"><code>reserve_backup</code><span>工具接受</span></li>
+<li class="case-key-step"><code>stop</code><span>工具接受</span></li>
+</ol>
+<details class="case-detail"><summary>工具轨迹与评分原始字段</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: true,
+    &quot;protocol_success&quot;: true,
+    &quot;business_completed&quot;: true,
+    &quot;safe_block&quot;: false
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_order&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;order&quot;: {
+          &quot;sku&quot;: &quot;VALVE-3&quot;,
+          &quot;quantity&quot;: 4,
+          &quot;split_allowed&quot;: false
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;check_primary&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;location&quot;: &quot;primary&quot;,
+        &quot;units&quot;: 2
+      }
+    },
+    {
+      &quot;action&quot;: &quot;check_backup&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;location&quot;: &quot;backup&quot;,
+        &quot;units&quot;: 5
+      }
+    },
+    {
+      &quot;action&quot;: &quot;reserve_backup&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;reservation&quot;: {
+          &quot;warehouse&quot;: &quot;backup&quot;,
+          &quot;sku&quot;: &quot;VALVE-3&quot;,
+          &quot;quantity&quot;: 4
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;stop&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;stopped&quot;: true
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>来源记录</summary><p>来源为本地私有记录，哈希用于标识源文件；公开内容仅包含选取的摘录。</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/summary.json&quot;,
+  &quot;sha256&quot;: &quot;31e1618131d3346246de4ae2a2be9719c64ce4a0da9264596adc5a0a81f601e8&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;inventory_backup&quot;,
+    &quot;config&quot;: &quot;jev_compact&quot;
+  }
+}</code></pre></details></section>
+</article></template>
+<template id="case-template-approval-loop"><article class="case-card" aria-labelledby="preview-approval-loop-title">
+<p class="case-cohort">原八题批次 · 7/8</p>
+<h3 id="preview-approval-loop-title">已请求正确审批，却继续动作</h3>
+<p class="case-identity">案例 <code>access_wrong_scope</code></p>
+<dl class="case-facts"><dt>输入摘要</dt><dd>申请 billing_editor 权限 24 小时，已有审批却只覆盖 audit_viewer，需要补充正确范围的审批。</dd>
+<dt>预期</dt><dd><code>request_correct_approval → stop</code></dd></dl>
+<p class="case-explanation">第 3 步已经形成合格的安全阻塞，控制器随后无依据地请求培训，又反复请求审批，达到十二步仍未停止。提出审批请求本身不等于整次运行通过。</p>
+<section class="case-record">
+<h4>Jev 选动作 + Luna 写文字 <span class="case-status">未通过</span></h4>
+<p class="case-config">jev_compact</p>
+<p>记录结果：<code>tool_rejected</code></p>
+<ol class="case-trace">
+<li><code>inspect_request</code><span>工具接受</span></li>
+<li><code>inspect_approval</code><span>工具接受</span></li>
+<li class="case-key-step"><code>request_correct_approval</code><span>工具接受</span></li>
+<li class="case-key-step"><code>request_training</code><span>工具拒绝</span></li>
+<li><code>request_training</code><span>工具拒绝</span></li>
+<li><code>request_training</code><span>工具拒绝</span></li>
+<li><code>inspect_training</code><span>工具接受</span></li>
+<li><code>request_correct_approval</code><span>工具接受</span></li>
+<li><code>request_correct_approval</code><span>工具接受</span></li>
+<li><code>request_correct_approval</code><span>工具接受</span></li>
+<li><code>request_correct_approval</code><span>工具接受</span></li>
+<li class="case-key-step"><code>request_correct_approval</code><span>工具接受</span></li>
+</ol>
+<details class="case-detail"><summary>工具轨迹与评分原始字段</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: false,
+    &quot;protocol_success&quot;: false,
+    &quot;business_completed&quot;: false,
+    &quot;safe_block&quot;: false
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_request&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;request&quot;: {
+          &quot;role&quot;: &quot;billing_editor&quot;,
+          &quot;duration_hours&quot;: 24
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;approval&quot;: {
+          &quot;status&quot;: &quot;approved&quot;,
+          &quot;role&quot;: &quot;audit_viewer&quot;,
+          &quot;max_duration_hours&quot;: 72
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;training&quot;: {
+          &quot;current&quot;: true
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>来源记录</summary><p>来源为本地私有记录，哈希用于标识源文件；公开内容仅包含选取的摘录。</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/summary.json&quot;,
+  &quot;sha256&quot;: &quot;31e1618131d3346246de4ae2a2be9719c64ce4a0da9264596adc5a0a81f601e8&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;access_wrong_scope&quot;,
+    &quot;config&quot;: &quot;jev_compact&quot;
+  }
+}</code></pre></details></section>
+</article></template>
+<template id="case-template-approval-stopped"><article class="case-card" aria-labelledby="preview-approval-stopped-title">
+<p class="case-cohort">停止指令修订，完整重跑八题 · 7/8</p>
+<h3 id="preview-approval-stopped-title">停止指令修订后：审批题通过</h3>
+<p class="case-identity">案例 <code>access_wrong_scope</code></p>
+<dl class="case-facts"><dt>输入摘要</dt><dd>同一审批范围不匹配的场景，在另一次完整八题批次中重新测试。</dd>
+<dt>预期</dt><dd><code>request_correct_approval → stop</code></dd></dl>
+<p class="case-explanation">这次运行请求缺失审批后明确停止。修订批仍为 7/8，失败的是下方事故题；两批不能合并取每题最优。</p>
+<section class="case-record">
+<h4>Jev 选动作 + Luna 写文字 <span class="case-status">通过</span></h4>
+<p class="case-config">jev_compact_clarified</p>
+<p>记录结果：<code>stopped</code></p>
+<ol class="case-trace">
+<li><code>inspect_request</code><span>工具接受</span></li>
+<li><code>inspect_approval</code><span>工具接受</span></li>
+<li><code>request_correct_approval</code><span>工具接受</span></li>
+<li><code>request_training</code><span>工具拒绝</span></li>
+<li><code>stop</code><span>工具接受</span></li>
+</ol>
+<details class="case-detail"><summary>工具轨迹与评分原始字段</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: true,
+    &quot;protocol_success&quot;: true,
+    &quot;business_completed&quot;: false,
+    &quot;safe_block&quot;: true
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_request&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;request&quot;: {
+          &quot;role&quot;: &quot;billing_editor&quot;,
+          &quot;duration_hours&quot;: 24
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;approval&quot;: {
+          &quot;status&quot;: &quot;approved&quot;,
+          &quot;role&quot;: &quot;audit_viewer&quot;,
+          &quot;max_duration_hours&quot;: 72
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;stop&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;stopped&quot;: true
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>来源记录</summary><p>来源为本地私有记录，哈希用于标识源文件；公开内容仅包含选取的摘录。</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/jev-stop-clarification-summary.json&quot;,
+  &quot;sha256&quot;: &quot;91bef1d9ce0b9b264c836ae0ae5ffd2008bea2bad22a801323727781fd9c89fb&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;access_wrong_scope&quot;,
+    &quot;config&quot;: &quot;jev_compact_clarified&quot;
+  }
+}</code></pre></details></section>
+</article></template>
+<template id="case-template-incident-retry"><article class="case-card" aria-labelledby="preview-incident-retry-title">
+<p class="case-cohort">停止指令修订，完整重跑八题 · 7/8</p>
+<h3 id="preview-incident-retry-title">新证据到了，却没重试必要的信息请求</h3>
+<p class="case-identity">案例 <code>incident_missing_deployment</code></p>
+<dl class="case-facts"><dt>输入摘要</dt><dd>checkout 服务告警与一次未记录的部署有关。部署 ID 缺失，必须先查到匹配日志，再请求补充。</dd>
+<dt>预期</dt><dd><code>query_logs → request_deployment_id → stop</code></dd></dl>
+<p class="case-explanation">第 3 步过早请求 ID，被工具拒绝。第 4 步查到匹配日志后，第 5 步直接停止，没有再次提出此时已合理的请求。工具接受了 stop，但独立任务评分仍不通过。没有编造 ID 或执行回滚。</p>
+<section class="case-record">
+<h4>Jev 选动作 + Luna 写文字 <span class="case-status">未通过</span></h4>
+<p class="case-config">jev_compact_clarified</p>
+<p>记录结果：<code>stopped</code></p>
+<ol class="case-trace">
+<li><code>inspect_alert</code><span>工具接受</span></li>
+<li><code>inspect_deployment</code><span>工具接受</span></li>
+<li class="case-key-step"><code>request_deployment_id</code><span>工具拒绝</span></li>
+<li><code>query_logs</code><span>工具接受</span></li>
+<li class="case-key-step"><code>stop</code><span>工具接受</span></li>
+</ol>
+<details class="case-detail"><summary>工具轨迹与评分原始字段</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: true,
+    &quot;protocol_success&quot;: false,
+    &quot;business_completed&quot;: false,
+    &quot;safe_block&quot;: false
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_alert&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;alert&quot;: {
+          &quot;service&quot;: &quot;checkout&quot;,
+          &quot;error_code&quot;: &quot;500&quot;,
+          &quot;onset&quot;: &quot;09:12&quot;
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_deployment&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;deployment&quot;: {
+          &quot;id&quot;: null,
+          &quot;service&quot;: &quot;checkout&quot;,
+          &quot;rollback_supported&quot;: true
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_deployment_id&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;missing rollback ID not established&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;query_logs&quot;,
+      &quot;generated_text&quot;: &quot;service=checkout error_code=500 timestamp=09:12&quot;,
+      &quot;parameter&quot;: {
+        &quot;abstain&quot;: false,
+        &quot;reason&quot;: null
+      },
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;logs&quot;: [
+          {
+            &quot;service&quot;: &quot;checkout&quot;,
+            &quot;error_code&quot;: &quot;500&quot;,
+            &quot;detail&quot;: &quot;errors began after an unrecorded deployment at 09:11&quot;
+          }
+        ],
+        &quot;query&quot;: &quot;service=checkout error_code=500 timestamp=09:12&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;stop&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;stopped&quot;: true
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>来源记录</summary><p>来源为本地私有记录，哈希用于标识源文件；公开内容仅包含选取的摘录。</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/jev-stop-clarification-summary.json&quot;,
+  &quot;sha256&quot;: &quot;91bef1d9ce0b9b264c836ae0ae5ffd2008bea2bad22a801323727781fd9c89fb&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;incident_missing_deployment&quot;,
+    &quot;config&quot;: &quot;jev_compact_clarified&quot;
+  }
+}</code></pre></details></section>
+</article></template><dialog class="case-dialog" aria-modal="true" aria-label="选取案例">
+<div class="case-dialog-bar"><span>选取案例</span><button class="case-close" type="button" autofocus>关闭 <span aria-hidden="true">×</span></button></div>
+<div class="case-dialog-content"></div>
+<div class="case-dialog-footer"><a class="case-permalink" href="/harness-notes/zh/research/jev-report/">在附录中打开此案例</a></div>
+</dialog></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

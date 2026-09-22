@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Jev experiment appendix · namanegi</title><meta name="description" content="Methods and results for each separate experimental cohort.">
 <meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
-<link rel="canonical" href="https://namanegi.github.io/harness-notes/research/jev-report/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/research/jev-report/"><link rel="stylesheet" href="/harness-notes/assets/style.css"><link rel="stylesheet" href="/harness-notes/assets/cases.css">
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/research/jev-report/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/research/jev-report/">
 </head>
 <body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
@@ -279,5 +279,721 @@
 <p>Across the three comparisons, wrapper choice and cache state materially change the economic and quality interpretation. Repeated calls are not independent tasks, and the measured client times include different providers' network and protocol paths. <a href="/harness-notes/projects/jev-comparison/">The matched-comparison article</a> develops the engineering implications.</p>
 <h2 id="interpretation">Interpretation</h2>
 <p>The measured workflow savings came with an observed quality gap. Cheap local selection remains useful to investigate, particularly where code can check exact predicates and terminal state. These cohorts do not establish long-workflow reliability, probability calibration or a general hierarchy advantage.</p>
-<p>Interface references: <a href="https://docs.typesafe.ai/primitives/choice">TypeSafe Choice</a> and <a href="https://openrouter.ai/typesafe/jev-1.13">OpenRouter Jev</a>. The study reports the dated measurements above, not permanent provider prices or performance claims.</p></main>
+<p>Interface references: <a href="https://docs.typesafe.ai/primitives/choice">TypeSafe Choice</a> and <a href="https://openrouter.ai/typesafe/jev-1.13">OpenRouter Jev</a>. The study reports the dated measurements above, not permanent provider prices or performance claims.</p>
+<p><a id="measurement-notes"></a></p>
+<h2 id="run-and-measurement-notes">Run and measurement notes</h2>
+<ul>
+<li><strong>Choice fields.</strong> <code>state</code> supplies the facts, <code>instructions</code> the rule, and <code>criteria</code> the candidates and their meanings. The analysis uses <code>pmax</code> for the largest returned candidate weight, distinct from the API's separate <code>confidence</code> field. Neither was validated as calibrated against correctness.</li>
+<li><strong>Matched calls.</strong> SDK batches reused connections, verified TLS and disabled automatic retries. Provider calls were adjacent with order alternated or rotated; the three exception configurations rotated through first, second and third positions. Serialization, token accounting, providers and network paths still differed.</li>
+<li><strong>Cache.</strong> Luna recorded zero cache reads and writes in the 14 changing states and the twelve-question handoff batch. Warm-cache costs for repeated long exception inputs appear in section 7. These records describe their respective batches, not deployment hit rates.</li>
+<li><strong>Handoff allowance.</strong> On the original six BBEH questions, Luna low / 1,024 tokens produced three valid answers and 2/6 correct. Raising the allowance to 4,096 for all six restored six valid answers and 4/6 correct. Both Luna paths in the new handoff comparison used low / 4,096, with call order alternated.</li>
+<li><strong>Four-task context comparison.</strong> Each Jev configuration made 16 action choices and four Luna parameter calls in total. Parameter inputs fell from 2,888 to 1,319 tokens; the full view also recorded 1,057 cache-write tokens, and call order differed. Total wall times of about 13.2 and 12.2 seconds cannot be attributed solely to context length.</li>
+<li><strong>Stop amendment.</strong> The original eight-task batch used 51 Jev calls and the full rerun used 40. Total cost fell from about $0.002751 to $0.002246 and median task time from 3.44 to 2.74 seconds. Both scored 7/8, failing on different tasks; these are separate-run observations.</li>
+</ul>
+<h2 id="selected-cases">Selected cases</h2>
+<p>These cases illustrate correct choices and concrete failures; they are not another accuracy sample. Descriptions are editorial summaries. Expand the excerpts to inspect original synthetic input fields, model outputs or tool traces. Each case identifies its batch and source records; original and follow-up batches remain separate. No models were rerun, and no complete private ledgers or benchmark questions are published.</p>
+<p><a href="/harness-notes/assets/jev-cases.json">Download the case excerpts</a></p>
+<ul class="case-index"><li><a href="#case-policy-choice">Read the applicable policy first</a></li><li><a href="#case-character-position">The target is dog; the next letter is not g</a></li><li><a href="#case-policy-comparison">Neither source applies: search or answer?</a></li><li><a href="#case-inventory-success">Reserve from the backup warehouse, then stop</a></li><li><a href="#case-approval-loop">Approval requested, but the controller keeps acting</a></li><li><a href="#case-approval-stopped">After the stop amendment: the approval case passes</a></li><li><a href="#case-incident-retry">New evidence arrives, but the required request is not retried</a></li></ul><article class="case-card" id="case-policy-choice" aria-labelledby="case-policy-choice-title">
+<p class="case-cohort">Standalone policy probe · 24/24</p>
+<h3 id="case-policy-choice-title">Read the applicable policy first</h3>
+<p class="case-identity">Case <code>p1d0-b</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>A three-night business trip. The opened policy covers relocation, while a search hit points to a business-travel policy. Personal trip facts are complete.</dd>
+<dt>Expected</dt><dd><code>read_document</code></dd></dl>
+<p class="case-explanation">Jev selected the applicable search hit rather than answering from an inapplicable document. This is an action choice, not a generated reimbursement answer.</p>
+<details class="case-detail"><summary>Original input fields and candidates</summary><pre><code>{
+  &quot;state&quot;: {
+    &quot;user_request&quot;: &quot;For my Berlin work trip, can I claim the €18 hotel Wi-Fi charge and €45 laundry charge? Please cite the applicable company policy.&quot;,
+    &quot;trip_record&quot;: {
+      &quot;location&quot;: &quot;Berlin&quot;,
+      &quot;purpose&quot;: &quot;client meetings&quot;,
+      &quot;duration_nights&quot;: 3,
+      &quot;trip_end_date&quot;: &quot;2026-05-12&quot;
+    },
+    &quot;search_results&quot;: [
+      {
+        &quot;id&quot;: &quot;P14&quot;,
+        &quot;title&quot;: &quot;Expense Policy Record 14&quot;,
+        &quot;uri&quot;: &quot;policy://record/14&quot;,
+        &quot;snippet&quot;: &quot;Applies to hotel stays for work trips; it does not cover stays for employee relocation. The full record contains hotel Wi-Fi and laundry reimbursement rules; open it for the terms.&quot;
+      },
+      {
+        &quot;id&quot;: &quot;P27&quot;,
+        &quot;title&quot;: &quot;Expense Policy Record 27&quot;,
+        &quot;uri&quot;: &quot;policy://record/27&quot;,
+        &quot;snippet&quot;: &quot;Scope: home-office equipment, excluding overnight business travel and employee relocation stays. The full record covers connectivity equipment and supplies.&quot;
+      }
+    ],
+    &quot;opened_document&quot;: {
+      &quot;id&quot;: &quot;P38&quot;,
+      &quot;title&quot;: &quot;Expense Policy Record 38&quot;,
+      &quot;uri&quot;: &quot;policy://record/38&quot;,
+      &quot;full_text&quot;: &quot;Applies to hotel stays for employee relocation; it does not cover stays for work trips. Section 4: For a three-night hotel stay, an itemized hotel Wi-Fi charge is reimbursable. Laundry charges are reimbursable only when the stay lasts at least five nights.&quot;
+    }
+  },
+  &quot;questions&quot;: {
+    &quot;next_action&quot;: {
+      &quot;type&quot;: &quot;choice&quot;,
+      &quot;instructions&quot;: &quot;Choose exactly one next action using the four candidate descriptions. The known trip is ordinary business travel for client meetings, not an employee relocation. Determine whether each policy covers this trip from the meaning of its scope statement, including exclusions. A search snippet can identify an applicable document but is only a pointer; it cannot establish the answer. An already-opened applicable full document is sufficient even if it is absent from the current search hits. Prefer answering from applicable answer-bearing full text, then reading an applicable hit, then searching; ask for clarification only if a personal trip fact is missing. Return one choice ID.&quot;,
+      &quot;criteria&quot;: {
+        &quot;search&quot;: &quot;Search for an applicable policy document when neither a current search hit nor an already-opened document applies to this business trip.&quot;,
+        &quot;read_document&quot;: &quot;Open the applicable policy identified by a search hit when no already-opened applicable full text resolves both charges.&quot;,
+        &quot;request_clarification&quot;: &quot;Ask the user for a missing personal trip fact needed to decide policy applicability or reimbursement.&quot;,
+        &quot;submit_answer&quot;: &quot;Answer the reimbursement question and cite an already-opened applicable policy whose full text resolves both charges.&quot;
+      }
+    }
+  }
+}</code></pre></details>
+<section class="case-record">
+<h4>Jev Choice <span class="case-status">Passed</span></h4>
+<p class="case-config">Jev 1.13 · standalone probe</p>
+<p>Recorded result：<code>read_document</code></p>
+<details class="case-detail"><summary>Original model output fields</summary><pre><code>{
+  &quot;choice&quot;: &quot;read_document&quot;,
+  &quot;type&quot;: &quot;choice&quot;,
+  &quot;confidence&quot;: 0.74,
+  &quot;probabilities&quot;: {
+    &quot;request_clarification&quot;: 0.0,
+    &quot;read_document&quot;: 0.81,
+    &quot;submit_answer&quot;: 0.01,
+    &quot;search&quot;: 0.18
+  }
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;results/model-probes/2026-09-20-semantic-applicability/call-ledger.jsonl&quot;,
+  &quot;sha256&quot;: &quot;5e205560ce96cc70c382e0bf772789e5b3f8feb23deeed6421f9122a70861f0f&quot;,
+  &quot;record&quot;: {
+    &quot;call_number&quot;: 1
+  }
+}</code></pre></details></section>
+</article>
+<article class="case-card" id="case-character-position" aria-labelledby="case-character-position-title">
+<p class="case-cohort">Target-supplied character positions · 10/12</p>
+<h3 id="case-character-position-title">The target is dog; the next letter is not g</h3>
+<p class="case-identity">Case <code>animal-dog-p1-present</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>The exact target word is dog and the supplied correct prefix is d. Choose the next character from 28 candidates.</dd>
+<dt>Expected</dt><dd><code>c14 → o</code></dd></dl>
+<p class="case-explanation">The returned c06 means g; c14 means o. The input already contains the target and correct prefix, so the error is not inherited from a previous generated character. Candidate weights below are the original returned values, not calibrated success probabilities.</p>
+<details class="case-detail"><summary>Original input fields and candidates</summary><pre><code>{
+  &quot;state&quot;: {
+    &quot;semantic_question&quot;: &quot;Which English animal word names the common pet that barks? Answer with one word.&quot;,
+    &quot;gold_prefix&quot;: &quot;d&quot;,
+    &quot;target_word&quot;: &quot;dog&quot;
+  },
+  &quot;questions&quot;: {
+    &quot;next_symbol&quot;: {
+      &quot;type&quot;: &quot;choice&quot;,
+      &quot;instructions&quot;: &quot;Choose exactly the next character of the one-word answer to the semantic_question in state after gold_prefix. If state.target_word is provided, use that exact word as the answer; otherwise derive the answer from semantic_question. Choose STOP only when the complete answer is already in gold_prefix. Return one choice ID.&quot;,
+      &quot;criteria&quot;: {
+        &quot;c00&quot;: &quot;Literal character: &#x27;a&#x27;.&quot;,
+        &quot;c01&quot;: &quot;Literal character: &#x27;b&#x27;.&quot;,
+        &quot;c02&quot;: &quot;Literal character: &#x27;c&#x27;.&quot;,
+        &quot;c03&quot;: &quot;Literal character: &#x27;d&#x27;.&quot;,
+        &quot;c04&quot;: &quot;Literal character: &#x27;e&#x27;.&quot;,
+        &quot;c05&quot;: &quot;Literal character: &#x27;f&#x27;.&quot;,
+        &quot;c06&quot;: &quot;Literal character: &#x27;g&#x27;.&quot;,
+        &quot;c07&quot;: &quot;Literal character: &#x27;h&#x27;.&quot;,
+        &quot;c08&quot;: &quot;Literal character: &#x27;i&#x27;.&quot;,
+        &quot;c09&quot;: &quot;Literal character: &#x27;j&#x27;.&quot;,
+        &quot;c10&quot;: &quot;Literal character: &#x27;k&#x27;.&quot;,
+        &quot;c11&quot;: &quot;Literal character: &#x27;l&#x27;.&quot;,
+        &quot;c12&quot;: &quot;Literal character: &#x27;m&#x27;.&quot;,
+        &quot;c13&quot;: &quot;Literal character: &#x27;n&#x27;.&quot;,
+        &quot;c14&quot;: &quot;Literal character: &#x27;o&#x27;.&quot;,
+        &quot;c15&quot;: &quot;Literal character: &#x27;p&#x27;.&quot;,
+        &quot;c16&quot;: &quot;Literal character: &#x27;q&#x27;.&quot;,
+        &quot;c17&quot;: &quot;Literal character: &#x27;r&#x27;.&quot;,
+        &quot;c18&quot;: &quot;Literal character: &#x27;s&#x27;.&quot;,
+        &quot;c19&quot;: &quot;Literal character: &#x27;t&#x27;.&quot;,
+        &quot;c20&quot;: &quot;Literal character: &#x27;u&#x27;.&quot;,
+        &quot;c21&quot;: &quot;Literal character: &#x27;v&#x27;.&quot;,
+        &quot;c22&quot;: &quot;Literal character: &#x27;w&#x27;.&quot;,
+        &quot;c23&quot;: &quot;Literal character: &#x27;x&#x27;.&quot;,
+        &quot;c24&quot;: &quot;Literal character: &#x27;y&#x27;.&quot;,
+        &quot;c25&quot;: &quot;Literal character: &#x27;z&#x27;.&quot;,
+        &quot;c26&quot;: &quot;Literal character: U+0020 SPACE.&quot;,
+        &quot;c27&quot;: &quot;STOP: end the answer now; it is not a character.&quot;
+      }
+    }
+  }
+}</code></pre></details>
+<section class="case-record">
+<h4>Jev Choice <span class="case-status">Failed</span></h4>
+<p class="case-config">Jev 1.13 · target present · repeat 1</p>
+<p>Recorded result：<code>c06</code></p>
+<details class="case-detail"><summary>Original model output fields</summary><pre><code>{
+  &quot;choice&quot;: &quot;c06&quot;,
+  &quot;type&quot;: &quot;choice&quot;,
+  &quot;confidence&quot;: 0.55,
+  &quot;probabilities&quot;: {
+    &quot;c22&quot;: 0.0,
+    &quot;c03&quot;: 0.01,
+    &quot;c07&quot;: 0.0,
+    &quot;c23&quot;: 0.0,
+    &quot;c01&quot;: 0.0,
+    &quot;c02&quot;: 0.0,
+    &quot;c16&quot;: 0.0,
+    &quot;c26&quot;: 0.0,
+    &quot;c11&quot;: 0.0,
+    &quot;c05&quot;: 0.0,
+    &quot;c04&quot;: 0.01,
+    &quot;c18&quot;: 0.0,
+    &quot;c09&quot;: 0.0,
+    &quot;c13&quot;: 0.0,
+    &quot;c15&quot;: 0.0,
+    &quot;c27&quot;: 0.01,
+    &quot;c19&quot;: 0.0,
+    &quot;c25&quot;: 0.0,
+    &quot;c17&quot;: 0.0,
+    &quot;c08&quot;: 0.0,
+    &quot;c21&quot;: 0.0,
+    &quot;c12&quot;: 0.0,
+    &quot;c24&quot;: 0.0,
+    &quot;c14&quot;: 0.38,
+    &quot;c20&quot;: 0.0,
+    &quot;c06&quot;: 0.58,
+    &quot;c00&quot;: 0.01,
+    &quot;c10&quot;: 0.0
+  }
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;results/model-probes/2026-09-20-character-visibility/call-ledger.jsonl&quot;,
+  &quot;sha256&quot;: &quot;6987a7481b276d43782d944bb728459fb0898fdba5f09c026a41a0cbc21b9cf1&quot;,
+  &quot;record&quot;: {
+    &quot;call_number&quot;: 24
+  }
+}</code></pre></details></section>
+</article>
+<article class="case-card" id="case-policy-comparison" aria-labelledby="case-policy-comparison-title">
+<p class="case-cohort">Jev 24/24; native Luna none 21/24 · separate call batches</p>
+<h3 id="case-policy-comparison-title">Neither source applies: search or answer?</h3>
+<p class="case-identity">Case <code>p0d0-a · repeat 1</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>The trip is ordinary business travel, but neither the opened document nor the search pointer applies. No personal fact is missing.</dd>
+<dt>Expected</dt><dd><code>search</code></dd></dl>
+<p class="case-explanation">Jev searched; Luna selected submit_answer too early even with native instructions. These records use identical state facts, but Luna is from the later control batch, not a simultaneous paired speed comparison.</p>
+<details class="case-detail"><summary>Original input fields and candidates</summary><pre><code>{
+  &quot;state&quot;: {
+    &quot;user_request&quot;: &quot;For my Berlin work trip, can I claim the €18 hotel Wi-Fi charge and €45 laundry charge? Please cite the applicable company policy.&quot;,
+    &quot;trip_record&quot;: {
+      &quot;location&quot;: &quot;Berlin&quot;,
+      &quot;purpose&quot;: &quot;client meetings&quot;,
+      &quot;duration_nights&quot;: 3,
+      &quot;trip_end_date&quot;: &quot;2026-05-12&quot;
+    },
+    &quot;search_results&quot;: [
+      {
+        &quot;id&quot;: &quot;P14&quot;,
+        &quot;title&quot;: &quot;Expense Policy Record 14&quot;,
+        &quot;uri&quot;: &quot;policy://record/14&quot;,
+        &quot;snippet&quot;: &quot;Scope: temporary employee relocation stays, excluding overnight business travel. The full record contains hotel Wi-Fi and laundry reimbursement rules; open it for the terms.&quot;
+      },
+      {
+        &quot;id&quot;: &quot;P27&quot;,
+        &quot;title&quot;: &quot;Expense Policy Record 27&quot;,
+        &quot;uri&quot;: &quot;policy://record/27&quot;,
+        &quot;snippet&quot;: &quot;Scope: home-office equipment, excluding overnight business travel and employee relocation stays. The full record covers connectivity equipment and supplies.&quot;
+      }
+    ],
+    &quot;opened_document&quot;: {
+      &quot;id&quot;: &quot;P38&quot;,
+      &quot;title&quot;: &quot;Expense Policy Record 38&quot;,
+      &quot;uri&quot;: &quot;policy://record/38&quot;,
+      &quot;full_text&quot;: &quot;Scope: temporary employee relocation stays, excluding overnight business travel. Section 4: For a three-night hotel stay, an itemized hotel Wi-Fi charge is reimbursable. Laundry charges are reimbursable only when the stay lasts at least five nights.&quot;
+    }
+  },
+  &quot;questions&quot;: {
+    &quot;next_action&quot;: {
+      &quot;type&quot;: &quot;choice&quot;,
+      &quot;instructions&quot;: &quot;Choose exactly one next action using the four candidate descriptions. The known trip is ordinary business travel for client meetings, not an employee relocation. Determine whether each policy covers this trip from the meaning of its scope statement, including exclusions. A search snippet can identify an applicable document but is only a pointer; it cannot establish the answer. An already-opened applicable full document is sufficient even if it is absent from the current search hits. Prefer answering from applicable answer-bearing full text, then reading an applicable hit, then searching; ask for clarification only if a personal trip fact is missing. Return one choice ID.&quot;,
+      &quot;criteria&quot;: {
+        &quot;search&quot;: &quot;Search for an applicable policy document when neither a current search hit nor an already-opened document applies to this business trip.&quot;,
+        &quot;read_document&quot;: &quot;Open the applicable policy identified by a search hit when no already-opened applicable full text resolves both charges.&quot;,
+        &quot;request_clarification&quot;: &quot;Ask the user for a missing personal trip fact needed to decide policy applicability or reimbursement.&quot;,
+        &quot;submit_answer&quot;: &quot;Answer the reimbursement question and cite an already-opened applicable policy whose full text resolves both charges.&quot;
+      }
+    }
+  }
+}</code></pre></details>
+<section class="case-record">
+<h4>Jev · original matched batch <span class="case-status">Passed</span></h4>
+<p class="case-config">Jev 1.13 · matched comparison</p>
+<p>Recorded result：<code>search</code></p>
+<details class="case-detail"><summary>Original model output fields</summary><pre><code>{
+  &quot;choice&quot;: &quot;search&quot;,
+  &quot;type&quot;: &quot;choice&quot;,
+  &quot;confidence&quot;: 0.84,
+  &quot;probabilities&quot;: {
+    &quot;read_document&quot;: 0.02,
+    &quot;search&quot;: 0.88,
+    &quot;request_clarification&quot;: 0.0,
+    &quot;submit_answer&quot;: 0.1
+  }
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;results/comparisons/2026-09-20-semantic-applicability/call-ledger.jsonl&quot;,
+  &quot;sha256&quot;: &quot;491a4c28f3d247f16fa2e4908dd80f6a6ca247499d9e8e86b3b65c64f34483fe&quot;,
+  &quot;record&quot;: {
+    &quot;case_id&quot;: &quot;p0d0-a&quot;,
+    &quot;repeat&quot;: 1,
+    &quot;provider&quot;: &quot;jev&quot;
+  }
+}</code></pre></details></section>
+<section class="case-record">
+<h4>Luna · later native-instruction control <span class="case-status">Failed</span></h4>
+<p class="case-config">Luna none · native instructions · 128 tokens</p>
+<p>Recorded result：<code>submit_answer</code></p>
+<details class="case-detail"><summary>Original model output fields</summary><pre><code>{
+  &quot;choice&quot;: &quot;submit_answer&quot;
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;results/comparisons/2026-09-20-semantic-applicability/wrapper-ledger.jsonl&quot;,
+  &quot;sha256&quot;: &quot;7a9e24ba97f9183c5ad08138c53a97278519deb814ffa74a5308b13978beba89&quot;,
+  &quot;record&quot;: {
+    &quot;case_id&quot;: &quot;p0d0-a&quot;,
+    &quot;repeat&quot;: 1,
+    &quot;effort&quot;: &quot;none&quot;
+  }
+}</code></pre></details></section>
+</article>
+<article class="case-card" id="case-inventory-success" aria-labelledby="case-inventory-success-title">
+<p class="case-cohort">Original eight-task batch · 7/8</p>
+<h3 id="case-inventory-success-title">Reserve from the backup warehouse, then stop</h3>
+<p class="case-identity">Case <code>inventory_backup</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>The order needs four VALVE-3 units and cannot be split. The primary warehouse holds two; the backup holds five.</dd>
+<dt>Expected</dt><dd><code>inspect_order → check_primary → check_backup → reserve_backup → stop</code></dd></dl>
+<p class="case-explanation">All five actions completed successfully, including the final stop. Known fields came from code; this case needed no Luna text generation.</p>
+<section class="case-record">
+<h4>Jev choices + Luna text <span class="case-status">Passed</span></h4>
+<p class="case-config">jev_compact</p>
+<p>Recorded result：<code>stopped</code></p>
+<ol class="case-trace">
+<li><code>inspect_order</code><span>Accepted</span></li>
+<li><code>check_primary</code><span>Accepted</span></li>
+<li><code>check_backup</code><span>Accepted</span></li>
+<li class="case-key-step"><code>reserve_backup</code><span>Accepted</span></li>
+<li class="case-key-step"><code>stop</code><span>Accepted</span></li>
+</ol>
+<details class="case-detail"><summary>Recorded tool trace and scoring</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: true,
+    &quot;protocol_success&quot;: true,
+    &quot;business_completed&quot;: true,
+    &quot;safe_block&quot;: false
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_order&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;order&quot;: {
+          &quot;sku&quot;: &quot;VALVE-3&quot;,
+          &quot;quantity&quot;: 4,
+          &quot;split_allowed&quot;: false
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;check_primary&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;location&quot;: &quot;primary&quot;,
+        &quot;units&quot;: 2
+      }
+    },
+    {
+      &quot;action&quot;: &quot;check_backup&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;location&quot;: &quot;backup&quot;,
+        &quot;units&quot;: 5
+      }
+    },
+    {
+      &quot;action&quot;: &quot;reserve_backup&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;reservation&quot;: {
+          &quot;warehouse&quot;: &quot;backup&quot;,
+          &quot;sku&quot;: &quot;VALVE-3&quot;,
+          &quot;quantity&quot;: 4
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;stop&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;stopped&quot;: true
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/summary.json&quot;,
+  &quot;sha256&quot;: &quot;31e1618131d3346246de4ae2a2be9719c64ce4a0da9264596adc5a0a81f601e8&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;inventory_backup&quot;,
+    &quot;config&quot;: &quot;jev_compact&quot;
+  }
+}</code></pre></details></section>
+</article>
+<article class="case-card" id="case-approval-loop" aria-labelledby="case-approval-loop-title">
+<p class="case-cohort">Original eight-task batch · 7/8</p>
+<h3 id="case-approval-loop-title">Approval requested, but the controller keeps acting</h3>
+<p class="case-identity">Case <code>access_wrong_scope</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>The request needs billing_editor for 24 hours. Existing approval is for audit_viewer, so a new approval with the correct scope is required.</dd>
+<dt>Expected</dt><dd><code>request_correct_approval → stop</code></dd></dl>
+<p class="case-explanation">Step 3 established a valid safe block. The controller then requested training without evidence and repeated approval requests, reaching twelve actions without stop. Requesting approval alone did not pass the protocol.</p>
+<section class="case-record">
+<h4>Jev choices + Luna text <span class="case-status">Failed</span></h4>
+<p class="case-config">jev_compact</p>
+<p>Recorded result：<code>tool_rejected</code></p>
+<ol class="case-trace">
+<li><code>inspect_request</code><span>Accepted</span></li>
+<li><code>inspect_approval</code><span>Accepted</span></li>
+<li class="case-key-step"><code>request_correct_approval</code><span>Accepted</span></li>
+<li class="case-key-step"><code>request_training</code><span>Rejected</span></li>
+<li><code>request_training</code><span>Rejected</span></li>
+<li><code>request_training</code><span>Rejected</span></li>
+<li><code>inspect_training</code><span>Accepted</span></li>
+<li><code>request_correct_approval</code><span>Accepted</span></li>
+<li><code>request_correct_approval</code><span>Accepted</span></li>
+<li><code>request_correct_approval</code><span>Accepted</span></li>
+<li><code>request_correct_approval</code><span>Accepted</span></li>
+<li class="case-key-step"><code>request_correct_approval</code><span>Accepted</span></li>
+</ol>
+<details class="case-detail"><summary>Recorded tool trace and scoring</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: false,
+    &quot;protocol_success&quot;: false,
+    &quot;business_completed&quot;: false,
+    &quot;safe_block&quot;: false
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_request&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;request&quot;: {
+          &quot;role&quot;: &quot;billing_editor&quot;,
+          &quot;duration_hours&quot;: 24
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;approval&quot;: {
+          &quot;status&quot;: &quot;approved&quot;,
+          &quot;role&quot;: &quot;audit_viewer&quot;,
+          &quot;max_duration_hours&quot;: 72
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;training&quot;: {
+          &quot;current&quot;: true
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/summary.json&quot;,
+  &quot;sha256&quot;: &quot;31e1618131d3346246de4ae2a2be9719c64ce4a0da9264596adc5a0a81f601e8&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;access_wrong_scope&quot;,
+    &quot;config&quot;: &quot;jev_compact&quot;
+  }
+}</code></pre></details></section>
+</article>
+<article class="case-card" id="case-approval-stopped" aria-labelledby="case-approval-stopped-title">
+<p class="case-cohort">Full eight-task stop amendment · 7/8</p>
+<h3 id="case-approval-stopped-title">After the stop amendment: the approval case passes</h3>
+<p class="case-identity">Case <code>access_wrong_scope</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>The same wrong-scope approval scenario, evaluated again in the separate full eight-task rerun.</dd>
+<dt>Expected</dt><dd><code>request_correct_approval → stop</code></dd></dl>
+<p class="case-explanation">This run requested the missing approval and explicitly stopped. The amended batch still scored 7/8: it failed the incident case below. The two batches are not pooled.</p>
+<section class="case-record">
+<h4>Jev choices + Luna text <span class="case-status">Passed</span></h4>
+<p class="case-config">jev_compact_clarified</p>
+<p>Recorded result：<code>stopped</code></p>
+<ol class="case-trace">
+<li><code>inspect_request</code><span>Accepted</span></li>
+<li><code>inspect_approval</code><span>Accepted</span></li>
+<li><code>request_correct_approval</code><span>Accepted</span></li>
+<li><code>request_training</code><span>Rejected</span></li>
+<li><code>stop</code><span>Accepted</span></li>
+</ol>
+<details class="case-detail"><summary>Recorded tool trace and scoring</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: true,
+    &quot;protocol_success&quot;: true,
+    &quot;business_completed&quot;: false,
+    &quot;safe_block&quot;: true
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_request&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;request&quot;: {
+          &quot;role&quot;: &quot;billing_editor&quot;,
+          &quot;duration_hours&quot;: 24
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;approval&quot;: {
+          &quot;status&quot;: &quot;approved&quot;,
+          &quot;role&quot;: &quot;audit_viewer&quot;,
+          &quot;max_duration_hours&quot;: 72
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_correct_approval&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;requested&quot;: &quot;correct_approval&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_training&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;expired training not observed&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;stop&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;stopped&quot;: true
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/jev-stop-clarification-summary.json&quot;,
+  &quot;sha256&quot;: &quot;91bef1d9ce0b9b264c836ae0ae5ffd2008bea2bad22a801323727781fd9c89fb&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;access_wrong_scope&quot;,
+    &quot;config&quot;: &quot;jev_compact_clarified&quot;
+  }
+}</code></pre></details></section>
+</article>
+<article class="case-card" id="case-incident-retry" aria-labelledby="case-incident-retry-title">
+<p class="case-cohort">Full eight-task stop amendment · 7/8</p>
+<h3 id="case-incident-retry-title">New evidence arrives, but the required request is not retried</h3>
+<p class="case-identity">Case <code>incident_missing_deployment</code></p>
+<dl class="case-facts"><dt>Input summary</dt><dd>A checkout service alert follows an unrecorded deployment. The deployment ID is missing; matching log evidence must be collected before requesting it.</dd>
+<dt>Expected</dt><dd><code>query_logs → request_deployment_id → stop</code></dd></dl>
+<p class="case-explanation">Step 3 requested the ID too early and was rejected. Step 4 found matching logs, but step 5 stopped without retrying the now-justified request. The tool accepted stop; the independent task check still failed. No ID was invented and no rollback ran.</p>
+<section class="case-record">
+<h4>Jev choices + Luna text <span class="case-status">Failed</span></h4>
+<p class="case-config">jev_compact_clarified</p>
+<p>Recorded result：<code>stopped</code></p>
+<ol class="case-trace">
+<li><code>inspect_alert</code><span>Accepted</span></li>
+<li><code>inspect_deployment</code><span>Accepted</span></li>
+<li class="case-key-step"><code>request_deployment_id</code><span>Rejected</span></li>
+<li><code>query_logs</code><span>Accepted</span></li>
+<li class="case-key-step"><code>stop</code><span>Accepted</span></li>
+</ol>
+<details class="case-detail"><summary>Recorded tool trace and scoring</summary><pre><code>{
+  &quot;scoring&quot;: {
+    &quot;explicit_stop&quot;: true,
+    &quot;protocol_success&quot;: false,
+    &quot;business_completed&quot;: false,
+    &quot;safe_block&quot;: false
+  },
+  &quot;trace&quot;: [
+    {
+      &quot;action&quot;: &quot;inspect_alert&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;alert&quot;: {
+          &quot;service&quot;: &quot;checkout&quot;,
+          &quot;error_code&quot;: &quot;500&quot;,
+          &quot;onset&quot;: &quot;09:12&quot;
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;inspect_deployment&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;deployment&quot;: {
+          &quot;id&quot;: null,
+          &quot;service&quot;: &quot;checkout&quot;,
+          &quot;rollback_supported&quot;: true
+        }
+      }
+    },
+    {
+      &quot;action&quot;: &quot;request_deployment_id&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: false,
+        &quot;error&quot;: &quot;missing rollback ID not established&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;query_logs&quot;,
+      &quot;generated_text&quot;: &quot;service=checkout error_code=500 timestamp=09:12&quot;,
+      &quot;parameter&quot;: {
+        &quot;abstain&quot;: false,
+        &quot;reason&quot;: null
+      },
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;logs&quot;: [
+          {
+            &quot;service&quot;: &quot;checkout&quot;,
+            &quot;error_code&quot;: &quot;500&quot;,
+            &quot;detail&quot;: &quot;errors began after an unrecorded deployment at 09:11&quot;
+          }
+        ],
+        &quot;query&quot;: &quot;service=checkout error_code=500 timestamp=09:12&quot;
+      }
+    },
+    {
+      &quot;action&quot;: &quot;stop&quot;,
+      &quot;generated_text&quot;: null,
+      &quot;parameter&quot;: null,
+      &quot;result&quot;: {
+        &quot;ok&quot;: true,
+        &quot;stopped&quot;: true
+      }
+    }
+  ]
+}</code></pre></details>
+<details class="case-detail case-source"><summary>Source record</summary><p>Private local source; hash identifies the source file. Only the selected excerpt is published.</p><pre><code>{
+  &quot;file&quot;: &quot;artifacts/systems/2026-09-21-workflow-transfer/jev-stop-clarification-summary.json&quot;,
+  &quot;sha256&quot;: &quot;91bef1d9ce0b9b264c836ae0ae5ffd2008bea2bad22a801323727781fd9c89fb&quot;,
+  &quot;record&quot;: {
+    &quot;task_id&quot;: &quot;incident_missing_deployment&quot;,
+    &quot;config&quot;: &quot;jev_compact_clarified&quot;
+  }
+}</code></pre></details></section>
+</article></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

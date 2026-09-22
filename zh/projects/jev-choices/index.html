@@ -2,7 +2,7 @@
 <html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>决策模型，究竟能替 agent 做哪些判断？ · namanegi</title><meta name="description" content="从 ReAct 的决策需求出发，检查 Jev 的规则判断、推理与候选分数。">
 <meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
-<link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/jev-choices/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/jev-choices/"><link rel="stylesheet" href="/harness-notes/assets/style.css"><link rel="stylesheet" href="/harness-notes/assets/cases.css"><script src="/harness-notes/assets/cases.js" defer></script>
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/jev-choices/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/jev-choices/">
 </head>
 <body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
@@ -17,7 +17,7 @@
 <p>本文研究的正是这个前提：<strong>Jev 单独面对哪些问题时能选对，在哪些问题上会失败，返回的候选分数又能提供什么信息？</strong> 实验先用可核验的合成规则与动作，再加入公开推理题和字符位置任务。结果显示，Jev 在所测短规则与证据适用性任务上表现良好；复杂布尔推理和逐字符选择则出现了明确错误。候选分数提供了一些排序线索，但还不能当作可靠的正确概率。</p>
 <p>这里先不让另一个模型补救 Jev 的错误，也不把它接进完整工作流。只有把单体的成功条件和失败案例分清，才能判断哪些地方值得做 <a href="/harness-notes/zh/projects/jev-comparison/">Jev / Luna 对照</a>，再进一步测试<a href="/harness-notes/zh/projects/jev/">完整 agent</a>。</p>
 <h2 id="_1">怎样把“下一步做什么”变成可测的问题</h2>
-<p>本研究使用 Jev 的 <strong>Choice</strong> 问题类型。可以把它理解为一次带上下文的单选判断：开发者提供事实、判断要求和候选，模型返回选择。Choice 是这里使用的输入输出方式，不是一个会自己搜索、操作工具或完成任务的 agent。<a href="https://docs.typesafe.ai/primitives/choice">官方接口说明</a>列出了其选择、候选分布和 confidence 输出。</p>
+<p>本研究使用 Jev 的 <strong>Choice</strong> 问题类型。可以把它理解为一次带上下文的单选判断：开发者提供事实、判断要求和候选，模型返回选择。Choice 是这里使用的输入输出方式，不是一个会自己搜索、操作工具或完成任务的 agent。<a href="https://docs.typesafe.ai/primitives/choice">官方接口说明</a>介绍了这种输入输出方式。</p>
 <p>在实验里，一次判断由下面几部分组成：</p>
 <table>
 <thead>
@@ -29,17 +29,17 @@
 </thead>
 <tbody>
 <tr>
-<td>当前状态 <code>state</code></td>
+<td>当前状态</td>
 <td>本次能看到的事实与证据</td>
 <td>用户问题、旅行事实、搜索摘要和已打开正文</td>
 </tr>
 <tr>
-<td>判断要求 <code>instructions</code></td>
+<td>判断要求</td>
 <td>应按什么规则选择</td>
 <td>有适用正文则作答；只有适用摘要则先读；否则继续找</td>
 </tr>
 <tr>
-<td>候选 <code>criteria</code></td>
+<td>候选动作</td>
 <td>合法选项及各自含义</td>
 <td>搜索、读文档、询问缺失事实、作答</td>
 </tr>
@@ -50,7 +50,7 @@
 </tr>
 </tbody>
 </table>
-<p>前面提到的报销助手，在这里被做成了一个<strong>本地合成测试场景</strong>。模型看到的资料由实验预先给定，不访问真实企业系统。比如，“读文档”的候选 ID 是 <code>read_document</code>，“作答”是 <code>submit_answer</code>。选中后者仅表示模型认为已经可以回答；实验并没有因此生成或验证一份报销答复。</p>
+<p>前面提到的报销助手，在这里被做成了一个<strong>本地合成测试场景</strong>。模型看到的资料由实验预先给定，不访问真实企业系统。选择“作答”仅表示模型认为已经可以回答；实验并没有因此生成或验证一份报销答复。</p>
 <p>这种拆法把“判断”从搜索质量、参数生成和执行结果中分离出来。预期正确选项先依据题目规则确定，再调用 Jev；判断结果既要通过接口校验，也要和预期答案一致。返回了合法 ID 却选错，与调用根本没有得到有效响应，是两类不同问题。</p>
 <h2 id="_2">研究手法：逐步增加判断里需要完成的工作</h2>
 <p>实验没有把所有选择题混成一个总分，而是分别检查几类能力。</p>
@@ -125,6 +125,8 @@
 </tbody>
 </table>
 <p>这里的搜索摘要只提供文档入口，不能替代正文。用户事实已经完整，所以“询问用户”是一个合法但不正确的候选。四种适用性组合、两种等义措辞、每种三次调用，Jev 为 24/24。仅按“正文非空就回答”的字段规则，在这组题上只能命中 12/24。</p>
+<p class="case-entry"><a class="case-link" data-case-id="policy-choice" href="/harness-notes/zh/research/jev-report/#case-policy-choice">查看案例：先读真正适用的政策 <span aria-hidden="true">↗</span></a></p>
+
 <p>这支持了一个具体能力：在明确路由规则下，依据短文本的适用范围选下一步。它还没有覆盖真实检索噪音、多份政策互相冲突、版本效力或引用生成。针对这些固定句型写一个专用解析器，也可能完成测试。因此，这里找到的是值得继续比较的任务类型，而不是已经证明模型优于代码。</p>
 <h2 id="_4">当选择之前还需要复杂计算</h2>
 <p>规则题的成功留下了一个问题：Jev 是否只能识别已经很接近答案的动作，还是也能完成更复杂的计算？为此，下一批改用公开推理题集 <strong>BIG-Bench Hard（BBH）</strong>。实验在调用前，从逻辑排序、物件交换追踪、布尔表达式三个任务族各抽六题，没有依据模型表现挑题。</p>
@@ -132,13 +134,15 @@
 <p>更难的 <strong>BIG-Bench Extra Hard（BBEH）</strong> 测试使用六道五选一布尔题，每个选项本身都是一个完整表达式，只有一个为真。Jev 六次都返回了有效选项，却只答对 2/6。五个候选并不多，真正的难度在于选标签之前必须完成的逻辑计算。</p>
 <p>字符实验从另一个角度检查同一问题：如果把生成字符串改成逐次选择字符，能否沿用决策模型？测试使用两个三字母英文词，每次都提供正确前缀，让 Jev 从包含字母及结束项的 28 个候选中选下一步。这样，前面一个字符出错不会污染后面的测试。</p>
 <p>只计字符位置时，隐藏目标词为 8/12，给出目标词为 10/12。即使输入已经包含目标 <code>dog</code> 和正确前缀 <code>d</code>，Jev 仍两次把下一个字符选成 <code>g</code>，而不是 <code>o</code>。这不是工具执行问题，也不是此前生成错误累积的结果。</p>
+<p class="case-entry"><a class="case-link" data-case-id="character-position" href="/harness-notes/zh/research/jev-report/#case-character-position">查看案例：目标是 dog，下一个字母却选成了 g <span aria-hidden="true">↗</span></a></p>
+
 <p>词尾结束另计，两种条件均为 4/4。两个短词和重复位置不足以证明普遍的字符能力边界，更不能反推模型架构；它们确实提供了反例：把任务写成选择题，并不会自动让其内部计算变简单。</p>
 <h2 id="_5">候选分数还告诉了什么？</h2>
 <p>除选项外，Choice 还返回候选分布。为了分析它，将最大候选权重记为 <code>pmax</code>，再检查正确项的排名。这里要检验的是：这些数字能否帮助识别不可靠的选择，或保留一个值得复核的替代答案。</p>
 <p>BBH 的唯一错误返回了 0.50 / 0.50 的分布，看起来确实犹豫。但另一个答对的交换追踪题，最大权重也只有 0.48。低分可能伴随错误，也可能拒绝本来正确的答案。</p>
 <p>首批 BBEH 上，两道正确题的最大权重是 0.50 和 0.37；四道错误题则在 0.41 到 0.53 之间。两组明显重叠。若把 0.90 设成自动接受门槛，这六题会全部被拒绝，既拦住错误，也留下不了任何自动处理的题。</p>
 <p>排名提供了另一条线索：四道 BBEH 错题中，正确项有三次排在第二，一次排在第四。保留前两项可能保住部分答案，但它只说明候选还在，不能说明后续一定选得对。在只有两个候选的 BBH 布尔题里，“正确项进入前二”更是必然成立，不能算额外收益。</p>
-<p>API 另有名为 <code>confidence</code> 的字段。本研究没有把它与 <code>pmax</code> 混为一谈，也没有证明其中任一数值经过任务正确率校准——也就是分数为 0.90 的判断，是否真能在新任务中约有九成正确。候选权重适合先当作待验证的控制信号；实际转交之后能否省钱、纠错，会在<a href="/harness-notes/zh/projects/jev-comparison/">单点对照与转交实验</a>里继续检验。</p>
+<p>本研究没有证明候选权重经过正确率校准——也就是分数为 0.90 的判断，是否真能在新任务中约有九成正确。它适合先当作待验证的控制信号；实际转交之后能否省钱、纠错，会在<a href="/harness-notes/zh/projects/jev-comparison/">单点对照与转交实验</a>里继续检验。</p>
 <h2 id="agent_1">这些结果怎样改变 agent 的设计选择？</h2>
 <p>回到开头的报销助手：已有事实和规则较短、动作范围明确时，Jev 有理由成为下一步选择器的候选。这类任务值得继续比较同质量下的成本和耗时。精确的日期运算、字段复制与可直接计算的条件，则可以交给代码。</p>
 <p>遇到复杂推理，或想靠逐字符选择生成文本，当前实验已出现具体失败；不能因为返回格式总是合法，就把这些工作一并迁给 Jev。返回分数也尚不能保证自动执行可靠。</p>
@@ -147,5 +151,179 @@
 <summary>方法与证据</summary>
 <p>测量使用 Jev 1.13，日期为 2026-09-20 至 21。每批保留自己的样本与分母；合成变体、重复调用和公开题不合并估计总体准确率。未评估训练数据重叠。部分任务允许代码直接求解，本篇没有设立有竞争力的代码基线。</p>
 <p><a href="/harness-notes/zh/research/jev-report/">实验附录</a> · <a href="/harness-notes/assets/jev-evidence.json">汇总数据</a> · <a href="/harness-notes/zh/projects/jev-comparison/">下一篇：Jev / Luna 单点对照</a></p>
-</details></main>
+</details>
+<template id="case-template-policy-choice"><article class="case-card" aria-labelledby="preview-policy-choice-title">
+<p class="case-cohort">政策单体探查 · 24/24</p>
+<h3 id="preview-policy-choice-title">先读真正适用的政策</h3>
+<p class="case-identity">案例 <code>p1d0-b</code></p>
+<dl class="case-facts"><dt>输入摘要</dt><dd>三晚普通出差。已打开的政策只适用于搬迁；搜索命中则指向出差政策。用户的旅行事实已完整。</dd>
+<dt>预期</dt><dd><code>read_document</code></dd></dl>
+<p class="case-explanation">Jev 选择先读适用材料，没有依据不适用的正文作答。这里验证的是动作选择，并未生成报销答复。</p>
+<details class="case-detail"><summary>原始输入字段与候选</summary><pre><code>{
+  &quot;state&quot;: {
+    &quot;user_request&quot;: &quot;For my Berlin work trip, can I claim the €18 hotel Wi-Fi charge and €45 laundry charge? Please cite the applicable company policy.&quot;,
+    &quot;trip_record&quot;: {
+      &quot;location&quot;: &quot;Berlin&quot;,
+      &quot;purpose&quot;: &quot;client meetings&quot;,
+      &quot;duration_nights&quot;: 3,
+      &quot;trip_end_date&quot;: &quot;2026-05-12&quot;
+    },
+    &quot;search_results&quot;: [
+      {
+        &quot;id&quot;: &quot;P14&quot;,
+        &quot;title&quot;: &quot;Expense Policy Record 14&quot;,
+        &quot;uri&quot;: &quot;policy://record/14&quot;,
+        &quot;snippet&quot;: &quot;Applies to hotel stays for work trips; it does not cover stays for employee relocation. The full record contains hotel Wi-Fi and laundry reimbursement rules; open it for the terms.&quot;
+      },
+      {
+        &quot;id&quot;: &quot;P27&quot;,
+        &quot;title&quot;: &quot;Expense Policy Record 27&quot;,
+        &quot;uri&quot;: &quot;policy://record/27&quot;,
+        &quot;snippet&quot;: &quot;Scope: home-office equipment, excluding overnight business travel and employee relocation stays. The full record covers connectivity equipment and supplies.&quot;
+      }
+    ],
+    &quot;opened_document&quot;: {
+      &quot;id&quot;: &quot;P38&quot;,
+      &quot;title&quot;: &quot;Expense Policy Record 38&quot;,
+      &quot;uri&quot;: &quot;policy://record/38&quot;,
+      &quot;full_text&quot;: &quot;Applies to hotel stays for employee relocation; it does not cover stays for work trips. Section 4: For a three-night hotel stay, an itemized hotel Wi-Fi charge is reimbursable. Laundry charges are reimbursable only when the stay lasts at least five nights.&quot;
+    }
+  },
+  &quot;questions&quot;: {
+    &quot;next_action&quot;: {
+      &quot;type&quot;: &quot;choice&quot;,
+      &quot;instructions&quot;: &quot;Choose exactly one next action using the four candidate descriptions. The known trip is ordinary business travel for client meetings, not an employee relocation. Determine whether each policy covers this trip from the meaning of its scope statement, including exclusions. A search snippet can identify an applicable document but is only a pointer; it cannot establish the answer. An already-opened applicable full document is sufficient even if it is absent from the current search hits. Prefer answering from applicable answer-bearing full text, then reading an applicable hit, then searching; ask for clarification only if a personal trip fact is missing. Return one choice ID.&quot;,
+      &quot;criteria&quot;: {
+        &quot;search&quot;: &quot;Search for an applicable policy document when neither a current search hit nor an already-opened document applies to this business trip.&quot;,
+        &quot;read_document&quot;: &quot;Open the applicable policy identified by a search hit when no already-opened applicable full text resolves both charges.&quot;,
+        &quot;request_clarification&quot;: &quot;Ask the user for a missing personal trip fact needed to decide policy applicability or reimbursement.&quot;,
+        &quot;submit_answer&quot;: &quot;Answer the reimbursement question and cite an already-opened applicable policy whose full text resolves both charges.&quot;
+      }
+    }
+  }
+}</code></pre></details>
+<section class="case-record">
+<h4>Jev Choice <span class="case-status">通过</span></h4>
+<p class="case-config">Jev 1.13 · standalone probe</p>
+<p>记录结果：<code>read_document</code></p>
+<details class="case-detail"><summary>模型输出原始字段</summary><pre><code>{
+  &quot;choice&quot;: &quot;read_document&quot;,
+  &quot;type&quot;: &quot;choice&quot;,
+  &quot;confidence&quot;: 0.74,
+  &quot;probabilities&quot;: {
+    &quot;request_clarification&quot;: 0.0,
+    &quot;read_document&quot;: 0.81,
+    &quot;submit_answer&quot;: 0.01,
+    &quot;search&quot;: 0.18
+  }
+}</code></pre></details>
+<details class="case-detail case-source"><summary>来源记录</summary><p>来源为本地私有记录，哈希用于标识源文件；公开内容仅包含选取的摘录。</p><pre><code>{
+  &quot;file&quot;: &quot;results/model-probes/2026-09-20-semantic-applicability/call-ledger.jsonl&quot;,
+  &quot;sha256&quot;: &quot;5e205560ce96cc70c382e0bf772789e5b3f8feb23deeed6421f9122a70861f0f&quot;,
+  &quot;record&quot;: {
+    &quot;call_number&quot;: 1
+  }
+}</code></pre></details></section>
+</article></template>
+<template id="case-template-character-position"><article class="case-card" aria-labelledby="preview-character-position-title">
+<p class="case-cohort">给出目标词的字符位置测试 · 10/12</p>
+<h3 id="preview-character-position-title">目标是 dog，下一个字母却选成了 g</h3>
+<p class="case-identity">案例 <code>animal-dog-p1-present</code></p>
+<dl class="case-facts"><dt>输入摘要</dt><dd>目标词明确给为 dog，正确前缀为 d。从 28 个候选中选择下一个字符。</dd>
+<dt>预期</dt><dd><code>c14 → o</code></dd></dl>
+<p class="case-explanation">实际返回的 c06 对应 g，正确候选 c14 对应 o。输入已经提供目标和正确前缀，因此错误并非来自前一步生成。下方候选权重为原始返回值，不是经过校准的成功概率。</p>
+<details class="case-detail"><summary>原始输入字段与候选</summary><pre><code>{
+  &quot;state&quot;: {
+    &quot;semantic_question&quot;: &quot;Which English animal word names the common pet that barks? Answer with one word.&quot;,
+    &quot;gold_prefix&quot;: &quot;d&quot;,
+    &quot;target_word&quot;: &quot;dog&quot;
+  },
+  &quot;questions&quot;: {
+    &quot;next_symbol&quot;: {
+      &quot;type&quot;: &quot;choice&quot;,
+      &quot;instructions&quot;: &quot;Choose exactly the next character of the one-word answer to the semantic_question in state after gold_prefix. If state.target_word is provided, use that exact word as the answer; otherwise derive the answer from semantic_question. Choose STOP only when the complete answer is already in gold_prefix. Return one choice ID.&quot;,
+      &quot;criteria&quot;: {
+        &quot;c00&quot;: &quot;Literal character: &#x27;a&#x27;.&quot;,
+        &quot;c01&quot;: &quot;Literal character: &#x27;b&#x27;.&quot;,
+        &quot;c02&quot;: &quot;Literal character: &#x27;c&#x27;.&quot;,
+        &quot;c03&quot;: &quot;Literal character: &#x27;d&#x27;.&quot;,
+        &quot;c04&quot;: &quot;Literal character: &#x27;e&#x27;.&quot;,
+        &quot;c05&quot;: &quot;Literal character: &#x27;f&#x27;.&quot;,
+        &quot;c06&quot;: &quot;Literal character: &#x27;g&#x27;.&quot;,
+        &quot;c07&quot;: &quot;Literal character: &#x27;h&#x27;.&quot;,
+        &quot;c08&quot;: &quot;Literal character: &#x27;i&#x27;.&quot;,
+        &quot;c09&quot;: &quot;Literal character: &#x27;j&#x27;.&quot;,
+        &quot;c10&quot;: &quot;Literal character: &#x27;k&#x27;.&quot;,
+        &quot;c11&quot;: &quot;Literal character: &#x27;l&#x27;.&quot;,
+        &quot;c12&quot;: &quot;Literal character: &#x27;m&#x27;.&quot;,
+        &quot;c13&quot;: &quot;Literal character: &#x27;n&#x27;.&quot;,
+        &quot;c14&quot;: &quot;Literal character: &#x27;o&#x27;.&quot;,
+        &quot;c15&quot;: &quot;Literal character: &#x27;p&#x27;.&quot;,
+        &quot;c16&quot;: &quot;Literal character: &#x27;q&#x27;.&quot;,
+        &quot;c17&quot;: &quot;Literal character: &#x27;r&#x27;.&quot;,
+        &quot;c18&quot;: &quot;Literal character: &#x27;s&#x27;.&quot;,
+        &quot;c19&quot;: &quot;Literal character: &#x27;t&#x27;.&quot;,
+        &quot;c20&quot;: &quot;Literal character: &#x27;u&#x27;.&quot;,
+        &quot;c21&quot;: &quot;Literal character: &#x27;v&#x27;.&quot;,
+        &quot;c22&quot;: &quot;Literal character: &#x27;w&#x27;.&quot;,
+        &quot;c23&quot;: &quot;Literal character: &#x27;x&#x27;.&quot;,
+        &quot;c24&quot;: &quot;Literal character: &#x27;y&#x27;.&quot;,
+        &quot;c25&quot;: &quot;Literal character: &#x27;z&#x27;.&quot;,
+        &quot;c26&quot;: &quot;Literal character: U+0020 SPACE.&quot;,
+        &quot;c27&quot;: &quot;STOP: end the answer now; it is not a character.&quot;
+      }
+    }
+  }
+}</code></pre></details>
+<section class="case-record">
+<h4>Jev Choice <span class="case-status">未通过</span></h4>
+<p class="case-config">Jev 1.13 · target present · repeat 1</p>
+<p>记录结果：<code>c06</code></p>
+<details class="case-detail"><summary>模型输出原始字段</summary><pre><code>{
+  &quot;choice&quot;: &quot;c06&quot;,
+  &quot;type&quot;: &quot;choice&quot;,
+  &quot;confidence&quot;: 0.55,
+  &quot;probabilities&quot;: {
+    &quot;c22&quot;: 0.0,
+    &quot;c03&quot;: 0.01,
+    &quot;c07&quot;: 0.0,
+    &quot;c23&quot;: 0.0,
+    &quot;c01&quot;: 0.0,
+    &quot;c02&quot;: 0.0,
+    &quot;c16&quot;: 0.0,
+    &quot;c26&quot;: 0.0,
+    &quot;c11&quot;: 0.0,
+    &quot;c05&quot;: 0.0,
+    &quot;c04&quot;: 0.01,
+    &quot;c18&quot;: 0.0,
+    &quot;c09&quot;: 0.0,
+    &quot;c13&quot;: 0.0,
+    &quot;c15&quot;: 0.0,
+    &quot;c27&quot;: 0.01,
+    &quot;c19&quot;: 0.0,
+    &quot;c25&quot;: 0.0,
+    &quot;c17&quot;: 0.0,
+    &quot;c08&quot;: 0.0,
+    &quot;c21&quot;: 0.0,
+    &quot;c12&quot;: 0.0,
+    &quot;c24&quot;: 0.0,
+    &quot;c14&quot;: 0.38,
+    &quot;c20&quot;: 0.0,
+    &quot;c06&quot;: 0.58,
+    &quot;c00&quot;: 0.01,
+    &quot;c10&quot;: 0.0
+  }
+}</code></pre></details>
+<details class="case-detail case-source"><summary>来源记录</summary><p>来源为本地私有记录，哈希用于标识源文件；公开内容仅包含选取的摘录。</p><pre><code>{
+  &quot;file&quot;: &quot;results/model-probes/2026-09-20-character-visibility/call-ledger.jsonl&quot;,
+  &quot;sha256&quot;: &quot;6987a7481b276d43782d944bb728459fb0898fdba5f09c026a41a0cbc21b9cf1&quot;,
+  &quot;record&quot;: {
+    &quot;call_number&quot;: 24
+  }
+}</code></pre></details></section>
+</article></template><dialog class="case-dialog" aria-modal="true" aria-label="选取案例">
+<div class="case-dialog-bar"><span>选取案例</span><button class="case-close" type="button" autofocus>关闭 <span aria-hidden="true">×</span></button></div>
+<div class="case-dialog-content"></div>
+<div class="case-dialog-footer"><a class="case-permalink" href="/harness-notes/zh/research/jev-report/">在附录中打开此案例</a></div>
+</dialog></main>
 <footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

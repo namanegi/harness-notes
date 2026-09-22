@@ -14,18 +14,18 @@ At this stage, another model does not repair Jev's answers, and tools do not tur
 
 ## Turning the next action into a measurable question
 
-The experiments use Jev's **Choice** question type: a single selection with context. The developer supplies facts, a decision instruction and candidates; the model returns a selection. Choice is the input/output arrangement used here, not an agent that searches or operates tools by itself. The [interface documentation](https://docs.typesafe.ai/primitives/choice) describes its selection, candidate distribution and confidence outputs.
+The experiments use Jev's **Choice** question type: a single selection with context. The developer supplies facts, a decision instruction and candidates; the model returns a selection. Choice is the input/output arrangement used here, not an agent that searches or operates tools by itself. The [interface documentation](https://docs.typesafe.ai/primitives/choice) describes this input/output arrangement.
 
 A judgment in this study has the following parts:
 
 | Part | Meaning | Role in the expense-search scenario |
 |---|---|---|
-| Current state, `state` | Facts and evidence visible for this decision | User question, travel facts, search summaries and opened text |
-| Instruction, `instructions` | The rule for choosing | Answer from applicable text; otherwise read an applicable hit or keep searching |
-| Candidates, `criteria` | Legal options and their meanings | Search, read, ask for a missing fact, or answer |
+| Current state | Facts and evidence visible for this decision | User question, travel facts, search summaries and opened text |
+| Instruction | The rule for choosing | Answer from applicable text; otherwise read an applicable hit or keep searching |
+| Candidate actions | Legal options and their meanings | Search, read, ask for a missing fact, or answer |
 | Returned result | The selection and candidate weights | A program could dispatch the action; this study scores the choice itself |
 
-The expense assistant introduced above becomes a **local synthetic test scenario**. Its materials are supplied in advance, without accessing a real company system. For example, `read_document` is the identifier for opening a document and `submit_answer` means the model judges the evidence sufficient to answer. Selecting the latter does not generate or validate an expense-policy response.
+The expense assistant introduced above becomes a **local synthetic test scenario**. Its materials are supplied in advance, without accessing a real company system. Selecting “answer” means the model judges the evidence sufficient; it does not generate or validate an expense-policy response.
 
 This isolates the decision from search quality, argument generation and execution. The expected answer is determined from the rules before Jev is called. A response must pass interface validation and select that answer. Returning a legal but wrong option is different from failing to obtain a valid response at all.
 
@@ -64,6 +64,8 @@ The policy probe asks a more specific question: is Jev checking what the evidenc
 
 A search summary is only a pointer; it does not replace the document. The user's facts are complete, so asking for clarification is a legal but incorrect candidate. Across four applicability combinations, two equivalent wordings and three calls each, Jev scored 24/24. A field-only rule that answers whenever opened text is nonempty would get only 12/24.
 
+<!-- case:policy-choice -->
+
 This supports a concrete capability: following an explicit routing rule while judging the scope of short text. It does not cover noisy retrieval, conflicting policies, version authority or citation generation. A parser written for these fixed sentence forms could also solve the task. The result identifies a useful type of decision to compare next; it does not establish an advantage over code.
 
 ## When choosing first requires harder computation
@@ -78,6 +80,8 @@ The character experiment examines the same issue from another direction. Could t
 
 Counting character positions only, the hidden-target condition scored 8/12 and the visible-target condition 10/12. Even when given both the target `dog` and the correct prefix `d`, Jev twice selected `g` rather than `o`. This is neither a tool-execution error nor an accumulation of previous wrong characters.
 
+<!-- case:character-position -->
+
 End-of-word decisions were counted separately and scored 4/4 in both conditions. Two short words and repeated positions cannot establish a general character-processing limit or identify the architecture. They do provide a counterexample to assuming that expressing a task as a choice removes its underlying computational difficulty.
 
 ## What else do the candidate scores tell us?
@@ -90,7 +94,7 @@ In the initial BBEH sample, the two correct answers had maximum weights of 0.50 
 
 Ranking offers another clue. On three of the four BBEH errors, the correct answer ranked second; on the other it ranked fourth. Keeping two candidates could preserve some answers, but retention does not establish that a later decision will select correctly. In BBH Boolean questions with only two options, retaining the correct answer in the top two is inevitable and supplies no extra benefit.
 
-The API also returns a field named `confidence`. This study keeps it separate from `pmax` and does not establish either as calibrated against task correctness: whether decisions assigned 0.90 really turn out right about nine times in ten on new tasks. Candidate weights are a control signal to test. The [matched comparison and handoff study](@/projects/jev-comparison/) measures whether acting on them actually repairs errors or saves money.
+This study does not establish candidate weights as calibrated against task correctness: whether decisions assigned 0.90 really turn out right about nine times in ten on new tasks. They are a control signal to test. The [matched comparison and handoff study](@/projects/jev-comparison/) measures whether acting on them actually repairs errors or saves money.
 
 ## What does this change about agent design?
 

@@ -136,3 +136,22 @@ Across the three comparisons, wrapper choice and cache state materially change t
 The measured workflow savings came with an observed quality gap. Cheap local selection remains useful to investigate, particularly where code can check exact predicates and terminal state. These cohorts do not establish long-workflow reliability, probability calibration or a general hierarchy advantage.
 
 Interface references: [TypeSafe Choice](https://docs.typesafe.ai/primitives/choice) and [OpenRouter Jev](https://openrouter.ai/typesafe/jev-1.13). The study reports the dated measurements above, not permanent provider prices or performance claims.
+
+<a id="measurement-notes"></a>
+
+## Run and measurement notes
+
+- **Choice fields.** `state` supplies the facts, `instructions` the rule, and `criteria` the candidates and their meanings. The analysis uses `pmax` for the largest returned candidate weight, distinct from the API's separate `confidence` field. Neither was validated as calibrated against correctness.
+- **Matched calls.** SDK batches reused connections, verified TLS and disabled automatic retries. Provider calls were adjacent with order alternated or rotated; the three exception configurations rotated through first, second and third positions. Serialization, token accounting, providers and network paths still differed.
+- **Cache.** Luna recorded zero cache reads and writes in the 14 changing states and the twelve-question handoff batch. Warm-cache costs for repeated long exception inputs appear in section 7. These records describe their respective batches, not deployment hit rates.
+- **Handoff allowance.** On the original six BBEH questions, Luna low / 1,024 tokens produced three valid answers and 2/6 correct. Raising the allowance to 4,096 for all six restored six valid answers and 4/6 correct. Both Luna paths in the new handoff comparison used low / 4,096, with call order alternated.
+- **Four-task context comparison.** Each Jev configuration made 16 action choices and four Luna parameter calls in total. Parameter inputs fell from 2,888 to 1,319 tokens; the full view also recorded 1,057 cache-write tokens, and call order differed. Total wall times of about 13.2 and 12.2 seconds cannot be attributed solely to context length.
+- **Stop amendment.** The original eight-task batch used 51 Jev calls and the full rerun used 40. Total cost fell from about $0.002751 to $0.002246 and median task time from 3.44 to 2.74 seconds. Both scored 7/8, failing on different tasks; these are separate-run observations.
+
+## Selected cases
+
+These cases illustrate correct choices and concrete failures; they are not another accuracy sample. Descriptions are editorial summaries. Expand the excerpts to inspect original synthetic input fields, model outputs or tool traces. Each case identifies its batch and source records; original and follow-up batches remain separate. No models were rerun, and no complete private ledgers or benchmark questions are published.
+
+[Download the case excerpts](@/assets/jev-cases.json)
+
+<!-- case-library -->
