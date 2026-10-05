@@ -1,3 +1,6 @@
 __pycache__/
 .venv/
 .env
+
+# Local cross-repository architecture notes; never publish with the blog.
+/.local-architecture/
