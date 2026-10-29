@@ -125,7 +125,6 @@ Ranking quality on the same 80 test queries per dataset. Retrieve 50 → return 
 
 <p>Luna's nDCG advantage is just 0.0034, with a paired 95% interval of [−0.0382, +0.0533]; this does not establish a quality winner. Both choose the same first document on 18/20 queries. The reference judgments are <strong>section-level silver labels</strong>, not independent chunk-by-chunk adjudication. Costs and concrete disagreements are more informative than tiny ranking differences.</p>
 <p>Latency measures client pipelines: Jev uses four batched requests per query and up to four concurrent queries; Luna uses fifty requests, eight concurrent document calls, and one query at a time. These are not isolated inference speeds. Two resumed Luna queries are excluded from timing distributions but retained in quality and cost totals.</p>
-<p>Small-pool retrieval and the Jev–Luna comparison cost $0.5932; large embeddings cost $0.4927, large-pool reranking $0.3949, and the language control $0.0071. <strong>Cumulative cost is $1.4879</strong>, below the $3 budget. Offline calibration adds no API charge; all 3,313 requests have reconciled usage costs and no unresolved charge reservations.</p>
 <details class="source-note">
 <summary>Methods, search boundaries and inspectable evidence</summary>
 <table>
