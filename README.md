@@ -28,7 +28,9 @@ The Jev series has three paired articles: capability and choice weights,
 matched Jev/Luna decisions, and complete workflows. The existing `/projects/jev/`
 route remains the workflow article. The homepage cards are native links.
 The separate `/projects/jev-rerank/` article reports the October 2026 RAG
-reranking experiment, with its own aggregate file and bilingual measured plots.
+reranking experiment, with versioned aggregates and bilingual interactive SVG explorers.
+The explorers read local JSON, support keyboard/touch and exact tables, and keep
+authored fallback content when JavaScript or data loading is unavailable.
 The theme defaults to dark and saves an explicit light/dark choice locally;
 with JavaScript disabled the site remains readable in dark mode.
 

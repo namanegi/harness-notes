@@ -10,7 +10,7 @@ BASE = '/harness-notes/'
 PAGES = [
     ('home', '', 'Harness Notes', 'Small experiments with planning, decisions and model collaboration.'),
     ('projects', 'projects/', 'Experiments', 'Research on decisions, planning and model collaboration.'),
-    ('jev-rerank', 'projects/jev-rerank/', 'Jev for RAG reranking: better order, and the cost of filtering', 'Japanese and English retrieval benchmarks, Noul filtering failures, and a real-document comparison with GPT-6 Luna.'),
+    ('jev-rerank', 'projects/jev-rerank/', 'Jev for RAG: retrieval, ranking and calibrated filtering', 'Stronger multilingual retrieval controls, confidence-aware Noul calibration, and an interactive Jev–Luna comparison.'),
     ('jev', 'projects/jev/', 'Can cheap decisions make a cheap agent?', 'Jev was fast at local choices. Complete workflows exposed stopping and recovery problems.'),
     ('jev-choices', 'projects/jev-choices/', 'What can a decision model actually decide?', 'Where Jev can take over an agent decision: rules, reasoning and candidate scores.'),
     ('jev-comparison', 'projects/jev-comparison/', 'Jev vs. Luna: compare the decision, then count the cost', 'Matched Jev–Luna decisions, caching and the cost of conditional handoff.'),
@@ -44,6 +44,8 @@ for language, prefix in [('en', ''), ('zh-CN', 'zh/')]:
     case_assets = f'<link rel="stylesheet" href="{BASE}assets/cases.css">' if has_cases else ''
     if has_previews:
         case_assets += f'<script src="{BASE}assets/cases.js" defer></script>'
+    if name == 'jev-rerank':
+        case_assets += f'<link rel="stylesheet" href="{BASE}assets/rerank-explorer.css"><script src="{BASE}assets/rerank-explorer.js" defer></script>'
     nav = ''.join(f'<a href="{local_base}{path}/">{label}</a>' for path, label in zip(['projects','writing','methods','about'], labels))
     en_current = ' aria-current="page"' if language == 'en' else ''
     zh_current = ' aria-current="page"' if language == 'zh-CN' else ''

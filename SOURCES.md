@@ -9,8 +9,14 @@
   SHA-256. Protocol commit `085fe4d` preceded benchmark judgments. The study
   used Jev 1.14 and GPT-6 Luna, with public JQaRA/SciFact labels and a separate
   Python tutorial cohort with authored, coarse section labels. Complete source
-  texts, API envelopes and credentials are not published. The two bilingual
-  reranking figures are generated from measured aggregates with Matplotlib.
+  texts, API envelopes and credentials are not published. The review adds
+  `baseline-v2.json` (large embeddings and fresh-pool reranking),
+  `prompt-probe-v2.json` (matched development language control),
+  `calibration-v2.json` (original-pool exploratory confidence-aware calibration),
+  and `rerank-review-accounting.json` (version-separated usage costs).
+  Native HTML/SVG explorers render these local measured aggregates without
+  third-party client libraries. Original Matplotlib figures and first-version
+  article downloads remain archival evidence, not the current interactive UI.
 
 - **Compile, Then Act?**: published source at commit
   [01c48be](https://github.com/namanegi/compile-then-act/tree/01c48be05391f6739fc59c88312a2c794cdf60b9).
