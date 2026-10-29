@@ -4,7 +4,7 @@ Research on decisions, planning and model collaboration, from single calls to co
 
 ## Jev for RAG reranking
 
-Score and Noul improve a shared vector shortlist on Japanese and English benchmarks. A second filtering pass also removes useful evidence. A real-document comparison with GPT-6 Luna separates ranking quality, label limitations and observed pipeline cost.
+Stronger embedding controls separate retrieval from reranking. Confidence-aware threshold calibration removes noise on one corpus and fails retention checks on another. Interactive charts expose those tradeoffs alongside a real-document Jev–Luna comparison.
 
 [Read the reranking experiment →](@/projects/jev-rerank/)
 
