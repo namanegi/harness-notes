@@ -2,6 +2,16 @@
 
 ## Study sources
 
+- **Jev RAG reranking**: measurements dated October 29, 2026, independent of the
+  September Jev studies. `assets/jev-rerank-evidence.json` contains aggregate and
+  anonymous per-query metrics, development threshold trials, filter counts,
+  upstream dataset revisions, token accounting and the private source-summary
+  SHA-256. Protocol commit `085fe4d` preceded benchmark judgments. The study
+  used Jev 1.14 and GPT-6 Luna, with public JQaRA/SciFact labels and a separate
+  Python tutorial cohort with authored, coarse section labels. Complete source
+  texts, API envelopes and credentials are not published. The two bilingual
+  reranking figures are generated from measured aggregates with Matplotlib.
+
 - **Compile, Then Act?**: published source at commit
   [01c48be](https://github.com/namanegi/compile-then-act/tree/01c48be05391f6739fc59c88312a2c794cdf60b9).
   The article uses the frozen primary report, not the later reporting-adjusted table.
@@ -33,7 +43,10 @@ remote font resources are loaded.
 ## External datasets and models
 
 The site reports derived findings involving FRAMES, OlympiadBench, GSM8K,
-SVAMP, BBH and BBEH. It does not redistribute benchmark records, model weights,
+SVAMP, BBH, BBEH, JQaRA and BEIR SciFact, plus authored questions over Python
+documentation. JQaRA's upstream Wikipedia/JAQKET conditions, SciFact's stated
+CC BY-SA 4.0 terms and the PSF documentation license remain applicable. It does
+not redistribute benchmark records, model weights,
 complete provider transcripts or cached pages. Consult the linked research repositories
 and their notices for upstream revisions and terms. This site's license does
 not grant rights to those external materials.

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>用 Jev 做 RAG 重排：排序的收益与过滤的代价 · namanegi</title><meta name="description" content="日语与英语检索对照、Noul 过滤的召回损失，以及真实文档上的 GPT-6 Luna 比较。">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/jev-rerank/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/jev-rerank/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/jev-rerank/">
+</head>
+<body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/jev-rerank/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/jev-rerank/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
+<main id="main" class="prose"><h1 id="jev-rag">用 Jev 做 RAG 重排：排序的收益与过滤的代价</h1>
+<div class="meta">Jev / 检索 · 2026 年 10 月 29 日 · 约 9 分钟</div>
+
+<p>这个思路很自然：先多检索一些 chunk，用 Jev 判断每一块有多相关，再问一次它究竟有没有用。Score 负责排序，Noul 排除噪声。如果第二道判断足够可靠，就有机会在扩大召回的同时，让交给生成模型的上下文保持干净。</p>
+<p>我实现了这个两轮流程，并与纯向量排序、单独 Score、单独 Noul 排序做了对照。<strong>两个抽样标准测试集上的重排都有效，但额外过滤既删掉了噪声，也删掉了正确证据。</strong> 在另一组真实文档上，Jev 与 GPT-6 Luna 的排序结果接近，实测费用和延迟不同。包含 embedding 的整组实验约花费 <strong>0.593 美元</strong>。</p>
+<p>这是对这个思路的独立实现，并未逐项复刻另一位作者的代码。本次只评估检索与重排，不生成最终回答，也不把检索指标直接当作 RAG 回答正确率。</p>
+<h2 id="_1">排序与过滤，承担的是两种判断</h2>
+<p><a href="https://docs.typesafe.ai/primitives/score">Jev Score</a> 按有序描述给文档评分。我用了四档：无关、只有外围主题重合、有部分实质证据、能够直接回答问题。返回的小数是各档位的概率加权期望，并非“相关程度的百分比”。<a href="https://docs.typesafe.ai/primitives/noul">Noul</a> 则返回一个是非判断为真的概率；本次问的是“这个 chunk 是否包含对问题有用的证据”。对于科学断言，支持和反驳它的证据都算相关。</p>
+<p>实现先对所有召回候选跑 Score，再对同一批候选跑 Noul。低于阈值的候选被删除，其余按 Score 降序排列；同分沿用检索次序，被删的文档不会补回来。每次请求打包 25 道独立文档判断，共享 state 只有问题，每道 question 放入自己的文档。标准答案和相关性标签都不发送给模型。</p>
+<p>主要的组合策略在开发集选择 Noul 阈值：在保留至少 95% 已召回相关文档的前提下，最大化 nDCG@10。候选阈值从 0.0 到 0.9，步长 0.1；同分取更小阈值。<strong>三个开发集最后都选了 0.0，也就是不删除任何候选。</strong> 为了直接观察过滤效果，我另外报告固定 0.5 阈值的诊断结果，不把它包装成测试集上调出来的最优策略。</p>
+<h2 id="_2">两个标准集，先说清楚检索范围</h2>
+<p>所有组都使用 <code>text-embedding-3-small</code>、1,536 维向量和本地精确余弦检索。10、30、50 个候选来自同一份缓存排名的前缀。不同深度复用保存的逐文档判断；较小候选数的延迟没有单独测量。</p>
+<table>
+<thead>
+<tr>
+<th>数据组</th>
+<th style="text-align: right;">开发 / 测试问题数</th>
+<th>检索范围与标签</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JQaRA，日语</td>
+<td style="text-align: right;">16 / 80</td>
+<td>每题官方候选池；能否提供答案证据的 passage 标签</td>
+</tr>
+<tr>
+<td>BEIR SciFact，英语</td>
+<td style="text-align: right;">16 / 80</td>
+<td>全部 5,183 篇摘要；官方断言—证据相关性标注</td>
+</tr>
+<tr>
+<td>Python 文档，英语</td>
+<td style="text-align: right;">4 / 20</td>
+<td>六篇真实教程切成 109 个 chunk；自编问题与目标章节参考标签</td>
+</tr>
+</tbody>
+</table>
+<p>问题按固定随机种子在模型打分前抽样。JQaRA 分别取官方开发集和测试集；SciFact 从训练问题中取开发样本，从官方测试集取评测样本。<a href="https://huggingface.co/datasets/hotchpotch/JQaRA">JQaRA</a> 本身是候选排序任务，因此这里的 recall <strong>不是整个日语维基百科上的召回率</strong>。<a href="https://huggingface.co/datasets/BeIR/scifact">SciFact</a> 的标准答案是科学断言对应的证据文档，而不是普通问答字符串；未被标注为相关的文档按不相关计分。真实文档组的标签更粗，后面单独说明。</p>
+<h2 id="_3">固定候选池，仍能看到排序收益</h2>
+<p>下表让重排器查看 50 个候选，最多返回 10 个。Top-1 是第一条结果相关的问题比例。P@10 的分母始终为十，即使过滤后不足十条也不缩小分母。Recall 和理想 DCG 都包含未被检索到的已知相关文档。</p>
+<table>
+<thead>
+<tr>
+<th>数据集 / 方法</th>
+<th style="text-align: right;">nDCG@10</th>
+<th style="text-align: right;">Top-1</th>
+<th style="text-align: right;">P@10</th>
+<th style="text-align: right;">Recall@10</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JQaRA · 向量排序</td>
+<td style="text-align: right;">0.3726</td>
+<td style="text-align: right;">46.25%</td>
+<td style="text-align: right;">0.2638</td>
+<td style="text-align: right;">0.3098</td>
+</tr>
+<tr>
+<td>JQaRA · Score</td>
+<td style="text-align: right;">0.7881</td>
+<td style="text-align: right;">86.25%</td>
+<td style="text-align: right;">0.5650</td>
+<td style="text-align: right;">0.6465</td>
+</tr>
+<tr>
+<td>JQaRA · Noul 排序</td>
+<td style="text-align: right;">0.7969</td>
+<td style="text-align: right;">88.75%</td>
+<td style="text-align: right;">0.5687</td>
+<td style="text-align: right;">0.6495</td>
+</tr>
+<tr>
+<td>JQaRA · Score + Noul ≥ 0.5</td>
+<td style="text-align: right;">0.7184</td>
+<td style="text-align: right;">86.25%</td>
+<td style="text-align: right;">0.4988</td>
+<td style="text-align: right;">0.5528</td>
+</tr>
+<tr>
+<td>SciFact · 向量排序</td>
+<td style="text-align: right;">0.6836</td>
+<td style="text-align: right;">57.50%</td>
+<td style="text-align: right;">0.0975</td>
+<td style="text-align: right;">0.7975</td>
+</tr>
+<tr>
+<td>SciFact · Score</td>
+<td style="text-align: right;">0.7755</td>
+<td style="text-align: right;">67.50%</td>
+<td style="text-align: right;">0.1050</td>
+<td style="text-align: right;">0.8725</td>
+</tr>
+<tr>
+<td>SciFact · Noul 排序</td>
+<td style="text-align: right;">0.7750</td>
+<td style="text-align: right;">66.25%</td>
+<td style="text-align: right;">0.1050</td>
+<td style="text-align: right;">0.8725</td>
+</tr>
+<tr>
+<td>SciFact · Score + Noul ≥ 0.5</td>
+<td style="text-align: right;">0.5873</td>
+<td style="text-align: right;">56.25%</td>
+<td style="text-align: right;">0.0750</td>
+<td style="text-align: right;">0.6100</td>
+</tr>
+</tbody>
+</table>
+<p>开发集选出的组合策略因为阈值为零，质量与 Score 行完全相同。但实际实现仍执行了两轮，费用也照实计算，没有假装第二轮免费。</p>
+<p>Score 相比向量排序的配对 nDCG 提升，在 JQaRA 上是 <strong>+0.4155</strong>，按问题 bootstrap 的 95% 区间为 <strong>[+0.3610, +0.4707]</strong>；SciFact 是 <strong>+0.0919 [+0.0358, +0.1483]</strong>。每个区间来自对 80 个测试问题的 5,000 次重采样。它描述当前问题样本的不确定性，不涵盖更换模型、提示词或重复运行的波动。</p>
+<p>扩大检索范围有作用，但收益不全来自多搜。只重排向量检索最前面的十条，Score 就把 JQaRA 的 nDCG 从 0.3726 提高到 0.4576，把 SciFact 从 0.6836 提高到 0.7449。相同十条文档只换次序，Recall@10 不可能改变。候选扩大到五十条后，重排器才有新的正确证据可以往前提：JQaRA 候选召回率从 0.3098 增至 0.7492，SciFact 从 0.7975 增至 0.9000。</p>
+<figure><img src="/harness-notes/assets/jev-rerank-zh.svg" alt="JQaRA 与 SciFact 在检索 10、30、50 个候选时的 nDCG。Score 与 Noul 排序有提升；固定 0.5 阈值过滤损失了质量，SciFact 尤其明显。"><figcaption>输出深度固定为十。纯向量排序的曲线不变，因为多取候选并不会改变它最前面的十条。开发集选出的组合策略与 Score 重合，图中未重复绘制。</figcaption></figure>
+
+<p>Score 和 Noul 排序之间的小差异不足以说明哪一种普遍更强。本次也没有加入专用 cross-encoder reranker；可以确认的是，它们改善了这一个 embedding 基线的结果。</p>
+<h2 id="_4">返回结果更干净，可能掩盖召回损失</h2>
+<p>在五十候选条件下，固定 0.5 阈值删掉了 JQaRA 已召回相关片段中的 <strong>132／576</strong>，以及 SciFact 相关文档中的 <strong>26／87</strong>。与此同时，它分别删掉了 3,424 个标注负例中的 3,307 个，以及 3,913 个标注负例中的 3,821 个。它确实很会去噪，只是也移除了不能忽略的正确证据。</p>
+<p>这时必须区分两种 precision 分母。JQaRA 按“实际返回的前十条以内文档”计算、再对问题取平均的 precision，从 Score 的 0.5650 增至过滤后的 0.8376；但平均返回量从十条降为 6.05 条。SciFact 的对应 precision 从 0.1050 增至 0.4801，平均却只返回 1.66 条。日语有 1／80 题返回空结果，英语有 22／80 题。计算上述返回集合 precision 时，空结果计零。</p>
+<p>这些更干净的列表，与固定分母 P@10 和 recall 下降并不矛盾：它们衡量的是不同目标。SciFact 即使把候选从十条扩大到五十条，过滤后的 nDCG 也只从 0.5872 变成 0.5873。扩大检索想找回的证据，很大一部分又被过滤掉了。</p>
+<p>因此，这批结果支持扩大候选池后重排，但没有支持“未经校准的 Noul 阈值可以为多搜一点兜底”。</p>
+<h2 id="_5">真实文档：比较判断，也检查标签</h2>
+<p>第二组从六篇 <a href="https://docs.python.org/3.12/tutorial/">Python 3.12 官方教程</a> 取真实内容，在章节内部按最多 1,800 字符切成不重叠片段。二十个测试问题涉及异常、参数传递、容器和虚拟环境等具体行为，另有四个开发问题。</p>
+<p>GPT-6 Luna 看到相同的问题与文档文本，使用相同的四档标准，关闭 reasoning，输出严格 JSON 的分数和相关性布尔值。每篇文档独立调用，同时运行八个请求。Jev 执行两轮批量判断。双方都看不到另一模型的答案。</p>
+<table>
+<thead>
+<tr>
+<th>方法，50 个候选</th>
+<th style="text-align: right;">章节标签 nDCG@10</th>
+<th style="text-align: right;">Top-1</th>
+<th style="text-align: right;">Recall@10</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>向量排序</td>
+<td style="text-align: right;">0.8236</td>
+<td style="text-align: right;">14/20</td>
+<td style="text-align: right;">0.9500</td>
+</tr>
+<tr>
+<td>Jev Score</td>
+<td style="text-align: right;">0.9330</td>
+<td style="text-align: right;">18/20</td>
+<td style="text-align: right;">1.0000</td>
+</tr>
+<tr>
+<td>Jev Noul 排序</td>
+<td style="text-align: right;">0.9242</td>
+<td style="text-align: right;">18/20</td>
+<td style="text-align: right;">0.9750</td>
+</tr>
+<tr>
+<td>GPT-6 Luna 分数</td>
+<td style="text-align: right;">0.9364</td>
+<td style="text-align: right;">18/20</td>
+<td style="text-align: right;">0.9750</td>
+</tr>
+</tbody>
+</table>
+<p>Jev Score 与 Luna 在 18／20 个问题上选中了同一篇首位文档。测试集的 1,000 个问题—片段对上，Jev 的 Noul ≥ 0.5 与 Luna 布尔相关性判断有 97.8% 一致。分数的 Pearson 相关系数为 0.8342，处理同分后的 Spearman 相关系数只有 0.4892：大体相关性接近，不代表细粒度次序相同。候选中大部分是负例，所以 97.8% 一致率不能当成平衡准确率。</p>
+<p>Luna 比 Jev Score 的 nDCG 只高 <strong>0.0034</strong>，配对 bootstrap 95% 区间为 <strong>[−0.0382, +0.0533]</strong>，这组小样本不足以排出质量高下。更根本的限制是：参考标签指定了一个目标章节，并把它的各个 chunk 视作相关，并非穷尽所有片段、经独立人工复核的金标准。</p>
+<p>两个例子可以解释这个边界：</p>
+<ul>
+<li>问题是“调用函数时，位置参数能否放在关键字参数之后”。一块<a href="https://docs.python.org/3.12/tutorial/controlflow.html#function-examples">函数示例</a>得到 Jev Score <strong>2.23</strong>、Noul <strong>0.70</strong>，而 Luna 给出 <strong>0／false</strong>。它介绍调用形式，却没有直接说明所问的次序规则。这体现了“主题接近”和“直接证据”之间的分歧。</li>
+<li>问题是 <code>try</code> 的 <code>else</code> 何时执行。<a href="https://docs.python.org/3.12/tutorial/errors.html#handling-exceptions">异常处理章节</a>的前两块内容，因为属于目标章节而带正标签，但相关解释出现在后面的块。Jev 给前两块 <strong>0.95／0.87</strong> 分、Noul <strong>0.11／0.06</strong>；Luna 都判为 <strong>0／false</strong>。此时把删除这些片段全算成模型失误，就混入了章节标签过粗的问题。</li>
+</ul>
+<p>我保留了原标签，并公开说明这个缺陷，没有在看完模型结果后修改答案。主要质量结论依赖标准测试集；真实文档组更适合观察具体分歧和运行成本。</p>
+<h2 id="_6">实测费用与延迟</h2>
+<table>
+<thead>
+<tr>
+<th>真实文档流程，全部 24 题</th>
+<th style="text-align: right;">重排费用</th>
+<th style="text-align: right;">查询中位耗时</th>
+<th style="text-align: right;">p95 查询耗时</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jev Score 后再 Noul</td>
+<td style="text-align: right;">$0.048921</td>
+<td style="text-align: right;">1.59 秒</td>
+<td style="text-align: right;">1.74 秒</td>
+</tr>
+<tr>
+<td>GPT-6 Luna 分数与布尔值</td>
+<td style="text-align: right;">$0.072281</td>
+<td style="text-align: right;">7.48 秒</td>
+<td style="text-align: right;">9.12 秒</td>
+</tr>
+</tbody>
+</table>
+<p>两行每题都处理五十个候选。Jev 每题四次 HTTP 请求，最多四题并发；Luna 每题五十次请求，八个文档调用并发，一次处理一题。双方都复用连接并验证 TLS。这些是不同供应商、不同批处理安排下的客户端流程耗时，<strong>不是隔离测量的模型推理速度</strong>。单独 Score／Noul 的质量消融复用了两轮流程里的判断，没有单独测它们的完整运行延迟。</p>
+<p>完整账本包含 225 次 embedding、866 次 Jev（含两次接口检查）和 1,200 次 Luna 请求。费用分别为 <strong>$0.076430、$0.444532、$0.072281</strong>，合计 <strong>$0.593242</strong>，没有尚未解决的费用预留。Jev 使用 API 返回的费用；OpenAI 根据 token 用量与实验当天核对的 <a href="https://developers.openai.com/api/docs/models/text-embedding-3-small">embedding</a>、<a href="https://developers.openai.com/api/docs/models/gpt-6-luna">Luna</a> 官方单价估算，并非账单核销。</p>
+<p>Luna 客户端在运行中修正了两处解析问题：正确处理成功响应里的 <code>error: null</code>，以及把最终回答与 commentary 分开。原始响应从缓存恢复，没有重复付费。两道受恢复影响的问题保留在质量和费用统计中，从 Luna 延迟分布中排除，因此其计时样本为 22 题；Jev 文档组计时为全部 24 题。响应记录中的实际模型为 <code>typesafe/jev-1.14-20261014</code> 和 <code>gpt-6-luna</code>。</p>
+<h2 id="_7">这次实验会怎样影响我的实现</h2>
+<p>在这些实验里，Jev 作为 reranker 有明确价值。Score 与 Noul 排序都改善了同一个向量候选池，扩大召回也提供了更多可提到前面的证据。但在本次开发集目标下，第二轮 Noul 硬过滤没有证明自己的额外成本值得：三个被选中的阈值都关闭了过滤。</p>
+<p>换到新的文档集合，我会先测排序，再根据能容忍多少正确证据损失、多少空结果，单独校准拒绝策略。更紧的上下文预算，或者不同的 precision–recall 目标，可能让过滤变得合理。本实验没有证明那个目标，而“概率超过 0.5”本身也不能替应用做这个决定。</p>
+<details class="source-note">
+<summary>证据、复现范围与限制</summary>
+<p><a href="/harness-notes/assets/jev-rerank-evidence.json">下载汇总与匿名逐题指标</a>。其中包含三个候选深度、MRR、hit@5、固定与实际返回集合 precision、bootstrap 区间、阈值试验、过滤数量、数据集修订版本和费用。私有项目在标准集模型判断开始前，以提交 <code>085fe4d</code> 固定协议。公开导出包含源汇总的哈希，不发布原始数据记录、完整 API 响应或凭据。</p>
+<p>每个输入只运行一次，仅使用一个 embedding 基线、较小开发集、一个日语和一个英语标准集，也没有生成回答评估，都会限制结论的外推。文档开发集只有四题，尤其小。更换提示词、模型或生产文档后需要重新校准。此前的 <a href="/harness-notes/zh/projects/jev-comparison/">Jev 决策对照</a>使用了不同模型版本与任务，本次没有把其延迟混入统计。</p>
+</details></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

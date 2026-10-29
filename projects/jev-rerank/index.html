@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jev for RAG reranking: better order, and the cost of filtering · namanegi</title><meta name="description" content="Japanese and English retrieval benchmarks, Noul filtering failures, and a real-document comparison with GPT-6 Luna.">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/jev-rerank/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/jev-rerank/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/jev-rerank/">
+</head>
+<body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/jev-rerank/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/jev-rerank/" lang="zh-CN" hreflang="zh-CN">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
+<main id="main" class="prose"><h1 id="jev-for-rag-reranking-better-order-and-the-cost-of-filtering">Jev for RAG reranking: better order, and the cost of filtering</h1>
+<div class="meta">Jev / Retrieval · October 29, 2026 · 9 min read</div>
+
+<p>The idea is appealing: retrieve a wider set of chunks, ask Jev how relevant each one is, then ask whether it belongs at all. Score supplies the ordering; Noul removes noise. If that second judgment is reliable, a larger shortlist might improve recall without filling the answer context with irrelevant material.</p>
+<p>I implemented that two-round pipeline and compared it with vector search, Score alone and Noul alone. <strong>Reranking helped both sampled benchmarks. The extra filter removed useful evidence as well as noise.</strong> On a separate set of real documentation, Jev and GPT-6 Luna produced similar rankings, with different observed cost and latency. The complete experiment, including embeddings, cost about <strong>$0.593</strong>.</p>
+<p>This is an independent implementation of the idea, not an exact replication of another author's code. It evaluates retrieval and reranking; it does not generate answers or measure final RAG answer correctness.</p>
+<h2 id="a-score-and-a-filter-make-different-promises">A score and a filter make different promises</h2>
+<p><a href="https://docs.typesafe.ai/primitives/score">Jev Score</a> evaluates a document against ordered descriptions. I used four levels: irrelevant, peripheral topic overlap, partially useful evidence, and directly useful evidence. Its fractional result is the expectation over those levels, not a percentage of relevance. <a href="https://docs.typesafe.ai/primitives/noul">Noul</a> answers a yes/no question with a probability. Here the question was whether the chunk contains useful evidence for the query. For scientific claims, both supporting and refuting evidence count as relevant.</p>
+<p>The implementation runs Score over every retrieved candidate, then runs Noul over the same candidates. It sorts survivors by Score, preserves retrieval order for ties, and never backfills rejected chunks. One request batches 25 independent document questions; only the query is shared state. Each question contains its own document. Neither reference answers nor relevance labels are sent to either model.</p>
+<p>The primary combined policy chooses its Noul threshold on development data. It maximizes nDCG@10 while retaining at least 95% of the retrieved relevant development documents. The candidate thresholds are 0.0 through 0.9 in steps of 0.1, with ties favoring the smaller threshold. <strong>All three development sets selected 0.0: keep everything.</strong> A fixed 0.5 filter is reported separately so its effect remains visible. That is a diagnostic, not a threshold selected after inspecting test results.</p>
+<h2 id="two-benchmarks-with-explicit-search-boundaries">Two benchmarks, with explicit search boundaries</h2>
+<p>All groups use <code>text-embedding-3-small</code>, 1,536 dimensions, and local exact cosine search. The 10-, 30- and 50-candidate conditions are prefixes of the same cached ranking. The same saved pointwise judgments are reused across depths; smaller-depth latency was not measured separately.</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th style="text-align: right;">Development / test queries</th>
+<th>Search space and labels</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JQaRA, Japanese</td>
+<td style="text-align: right;">16 / 80</td>
+<td>Each query's official candidate pool; answer-bearing passage labels</td>
+</tr>
+<tr>
+<td>BEIR SciFact, English</td>
+<td style="text-align: right;">16 / 80</td>
+<td>All 5,183 abstracts; official claim–evidence relevance judgments</td>
+</tr>
+<tr>
+<td>Python documentation, English</td>
+<td style="text-align: right;">4 / 20</td>
+<td>109 chunks from six real tutorial pages; authored section-reference labels</td>
+</tr>
+</tbody>
+</table>
+<p>Queries were sampled with a fixed seed before model judgments. JQaRA uses its official development and test splits; SciFact uses training queries for development and official test queries for evaluation. <a href="https://huggingface.co/datasets/hotchpotch/JQaRA">JQaRA</a> is a difficult candidate-ranking benchmark, so its result is <strong>not</strong> whole-Wikipedia retrieval recall. <a href="https://huggingface.co/datasets/BeIR/scifact">SciFact</a> supplies scientific evidence labels rather than ordinary question/answer strings; unjudged documents are treated as nonrelevant. The documentation group has weaker, deliberately disclosed labels and is discussed separately below.</p>
+<h2 id="the-ranking-benefit-survives-a-matched-shortlist">The ranking benefit survives a matched shortlist</h2>
+<p>These are test results when rerankers can inspect 50 candidates and return at most 10. Top-1 is the fraction of queries whose first result is labeled relevant. P@10 keeps a denominator of ten even when the filter returns fewer documents. Recall and ideal DCG include known relevant documents outside the retrieved pool.</p>
+<table>
+<thead>
+<tr>
+<th>Dataset / method</th>
+<th style="text-align: right;">nDCG@10</th>
+<th style="text-align: right;">Top-1</th>
+<th style="text-align: right;">P@10</th>
+<th style="text-align: right;">Recall@10</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JQaRA · vector</td>
+<td style="text-align: right;">0.3726</td>
+<td style="text-align: right;">46.25%</td>
+<td style="text-align: right;">0.2638</td>
+<td style="text-align: right;">0.3098</td>
+</tr>
+<tr>
+<td>JQaRA · Score</td>
+<td style="text-align: right;">0.7881</td>
+<td style="text-align: right;">86.25%</td>
+<td style="text-align: right;">0.5650</td>
+<td style="text-align: right;">0.6465</td>
+</tr>
+<tr>
+<td>JQaRA · Noul ordering</td>
+<td style="text-align: right;">0.7969</td>
+<td style="text-align: right;">88.75%</td>
+<td style="text-align: right;">0.5687</td>
+<td style="text-align: right;">0.6495</td>
+</tr>
+<tr>
+<td>JQaRA · Score + Noul ≥ 0.5</td>
+<td style="text-align: right;">0.7184</td>
+<td style="text-align: right;">86.25%</td>
+<td style="text-align: right;">0.4988</td>
+<td style="text-align: right;">0.5528</td>
+</tr>
+<tr>
+<td>SciFact · vector</td>
+<td style="text-align: right;">0.6836</td>
+<td style="text-align: right;">57.50%</td>
+<td style="text-align: right;">0.0975</td>
+<td style="text-align: right;">0.7975</td>
+</tr>
+<tr>
+<td>SciFact · Score</td>
+<td style="text-align: right;">0.7755</td>
+<td style="text-align: right;">67.50%</td>
+<td style="text-align: right;">0.1050</td>
+<td style="text-align: right;">0.8725</td>
+</tr>
+<tr>
+<td>SciFact · Noul ordering</td>
+<td style="text-align: right;">0.7750</td>
+<td style="text-align: right;">66.25%</td>
+<td style="text-align: right;">0.1050</td>
+<td style="text-align: right;">0.8725</td>
+</tr>
+<tr>
+<td>SciFact · Score + Noul ≥ 0.5</td>
+<td style="text-align: right;">0.5873</td>
+<td style="text-align: right;">56.25%</td>
+<td style="text-align: right;">0.0750</td>
+<td style="text-align: right;">0.6100</td>
+</tr>
+</tbody>
+</table>
+<p>The development-selected combined policy equals the Score row because its threshold is zero. Its actual implementation still paid for both rounds; these measurements do not pretend the second call was free.</p>
+<p>Score's paired nDCG improvement over vector ranking was <strong>+0.4155</strong> on JQaRA, with a 95% query-bootstrap interval of <strong>[+0.3610, +0.4707]</strong>. On SciFact it was <strong>+0.0919 [+0.0358, +0.1483]</strong>. Each interval uses 5,000 resamples of the 80 test queries. These intervals describe the sampled queries, not uncertainty across model versions, prompt choices or repeated runs.</p>
+<p>Wider retrieval matters, but is not the entire explanation. On exactly the vector top ten, Score raises JQaRA nDCG from 0.3726 to 0.4576 and SciFact from 0.6836 to 0.7449. Recall@10 cannot improve when the same ten documents are merely reordered. Moving to fifty candidates gives the reranker additional relevant material to promote: candidate recall rises from 0.3098 to 0.7492 on JQaRA, and from 0.7975 to 0.9000 on SciFact.</p>
+<figure><img src="/harness-notes/assets/jev-rerank-en.svg" alt="JQaRA and SciFact nDCG at retrieval depths 10, 30 and 50. Score and Noul improve ordering; a fixed 0.5 Noul filter loses quality, especially on SciFact."><figcaption>Quality at a fixed output depth of ten. The vector line is flat because retrieving more candidates does not change its first ten results. The selected combined policy overlaps Score and is omitted from the figure.</figcaption></figure>
+
+<p>The small differences between Score and Noul ordering do not establish a universal winner. Nor is this a comparison against a specialized cross-encoder reranker. It establishes a useful improvement over this particular embedding baseline.</p>
+<h2 id="cleaner-returned-results-can-conceal-lost-recall">Cleaner returned results can conceal lost recall</h2>
+<p>At depth fifty, the 0.5 filter rejected <strong>132 of 576</strong> retrieved relevant JQaRA passages and <strong>26 of 87</strong> retrieved relevant SciFact documents. It also rejected 3,307 of 3,424 labeled negatives in JQaRA and 3,821 of 3,913 in SciFact. The filter was effective at removing noise; it was insufficiently selective about what else it removed.</p>
+<p>The distinction between two precision denominators matters. JQaRA's mean precision among returned top-ten documents rose from 0.5650 with Score to 0.8376 with filtering, while the mean number returned fell from ten to 6.05. SciFact's returned-document precision rose from 0.1050 to 0.4801, while the mean output shrank to 1.66 documents. Empty outputs occurred on 1/80 Japanese queries and 22/80 English queries. Empty outputs count as zero in that mean returned precision.</p>
+<p>Those cleaner lists do not contradict the loss in fixed-k precision and recall. They answer a different question. In SciFact, even widening retrieval from ten to fifty barely changes the filtered nDCG: 0.5872 to 0.5873. The filter removes much of the evidence that the wider search was meant to recover.</p>
+<p>This run therefore supports widening retrieval and reranking. It does not support treating an uncalibrated Noul threshold as insurance against the costs of widening retrieval.</p>
+<h2 id="real-documentation-compare-the-judgments-then-inspect-the-labels">Real documentation: compare the judgments, then inspect the labels</h2>
+<p>The second group uses six <a href="https://docs.python.org/3.12/tutorial/">Python 3.12 tutorial</a> pages, split within sections into non-overlapping windows of at most 1,800 characters. Twenty test questions ask about concrete behavior such as exception handling, argument passing, collections and virtual environments. Four separate questions provide development data.</p>
+<p>GPT-6 Luna receives the same query and document text, the same four-level rubric, and returns a strict JSON score plus a relevance boolean with reasoning disabled. It makes one independent call per document, with eight calls in flight. Jev runs its two batched rounds. Neither model sees the other model's answer.</p>
+<table>
+<thead>
+<tr>
+<th>Method, 50 candidates</th>
+<th style="text-align: right;">Section-label nDCG@10</th>
+<th style="text-align: right;">Top-1</th>
+<th style="text-align: right;">Recall@10</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vector</td>
+<td style="text-align: right;">0.8236</td>
+<td style="text-align: right;">14/20</td>
+<td style="text-align: right;">0.9500</td>
+</tr>
+<tr>
+<td>Jev Score</td>
+<td style="text-align: right;">0.9330</td>
+<td style="text-align: right;">18/20</td>
+<td style="text-align: right;">1.0000</td>
+</tr>
+<tr>
+<td>Jev Noul ordering</td>
+<td style="text-align: right;">0.9242</td>
+<td style="text-align: right;">18/20</td>
+<td style="text-align: right;">0.9750</td>
+</tr>
+<tr>
+<td>GPT-6 Luna score</td>
+<td style="text-align: right;">0.9364</td>
+<td style="text-align: right;">18/20</td>
+<td style="text-align: right;">0.9750</td>
+</tr>
+</tbody>
+</table>
+<p>Jev Score and Luna chose the same first document on 18/20 queries. Across 1,000 test query–document pairs, their Noul ≥ 0.5 / boolean relevance decisions agreed 97.8% of the time. Their score Pearson correlation was 0.8342, but tied-score Spearman correlation was only 0.4892: agreement on broad relevance does not imply identical fine ordering. Most candidates were negatives, so the binary agreement rate is not a balanced accuracy measure.</p>
+<p>Luna's nDCG advantage over Jev Score was only <strong>0.0034</strong>, with a paired 95% bootstrap interval of <strong>[−0.0382, +0.0533]</strong>. This small set does not establish a quality winner. More fundamentally, the reference labels name a target section and count its chunks as relevant. They are not exhaustive, independently adjudicated chunk judgments.</p>
+<p>Two cases show why that qualification matters:</p>
+<ul>
+<li>For a question about a positional argument following a keyword argument, a <a href="https://docs.python.org/3.12/tutorial/controlflow.html#function-examples">function-examples chunk</a> received Jev Score <strong>2.23</strong>, Noul <strong>0.70</strong>, and Luna score <strong>0 / false</strong>. It discusses calling conventions but does not directly establish the requested ordering rule. This is a useful example of topical similarity versus direct evidence.</li>
+<li>For a question about <code>try</code>'s <code>else</code> clause, the first two chunks of <a href="https://docs.python.org/3.12/tutorial/errors.html#handling-exceptions">Handling Exceptions</a> carry positive section labels even though the relevant explanation appears later. Jev scored them <strong>0.95 / 0.87</strong>, with Noul <strong>0.11 / 0.06</strong>; Luna assigned both <strong>0 / false</strong>. Penalizing their removal is partly a labeling artifact, not clean evidence of a model error.</li>
+</ul>
+<p>I retained the original labels and reported their weakness instead of changing them after seeing model outputs. The standard benchmarks carry the main quality conclusion; the documentation group is most useful for examining real disagreements and pipeline costs.</p>
+<h2 id="observed-cost-and-latency">Observed cost and latency</h2>
+<table>
+<thead>
+<tr>
+<th>Real-document pipeline, all 24 queries</th>
+<th style="text-align: right;">Rerank cost</th>
+<th style="text-align: right;">Median query time</th>
+<th style="text-align: right;">p95 query time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jev Score then Noul</td>
+<td style="text-align: right;">$0.048921</td>
+<td style="text-align: right;">1.59 s</td>
+<td style="text-align: right;">1.74 s</td>
+</tr>
+<tr>
+<td>GPT-6 Luna score + boolean</td>
+<td style="text-align: right;">$0.072281</td>
+<td style="text-align: right;">7.48 s</td>
+<td style="text-align: right;">9.12 s</td>
+</tr>
+</tbody>
+</table>
+<p>Both rows inspect fifty candidates per query. Jev uses four HTTP requests per query and up to four concurrent queries; Luna uses fifty requests per query, eight concurrent document calls, and one query at a time. Both use persistent clients and verified TLS. These are client pipeline measurements across different providers and batching strategies, <strong>not isolated model inference speeds</strong>. Jev's ordering-only ablations reuse decisions from the two-round run; their standalone latency was not measured.</p>
+<p>The complete ledger contains 225 embedding requests, 866 Jev requests including two protocol checks, and 1,200 Luna requests. Costs were <strong>$0.076430</strong>, <strong>$0.444532</strong> and <strong>$0.072281</strong>, respectively: <strong>$0.593242 total</strong>, with no unresolved charge reservations. Jev uses API-reported cost; OpenAI costs are token-usage estimates using the <a href="https://developers.openai.com/api/docs/models/text-embedding-3-small">embedding</a> and <a href="https://developers.openai.com/api/docs/models/gpt-6-luna">Luna</a> prices checked on the experiment date. They are not invoice reconciliation.</p>
+<p>The Luna client needed two parsing repairs: treating <code>error: null</code> as success and extracting the final-answer message separately from commentary. Saved responses were reused without paid retries. The two queries affected by resumption remain in quality and cost totals but are excluded from the Luna latency distribution, leaving 22 timing queries. Jev timing includes all 24 documentation queries. Model responses resolved to <code>typesafe/jev-1.14-20261014</code> and <code>gpt-6-luna</code>.</p>
+<h2 id="what-i-would-carry-forward">What I would carry forward</h2>
+<p>Jev earned a place as a reranker in these experiments. Both Score and Noul ordering improved a shared vector shortlist, and wider retrieval supplied additional evidence they could promote. The second Noul pass did not earn its cost as a hard filter under this development objective: every selected threshold disabled filtering.</p>
+<p>For another corpus, I would first measure ordering, then calibrate rejection against an explicit tolerance for lost evidence and empty answers. A stricter context budget or a different precision–recall objective could justify filtering. This experiment does not establish that objective, and a probability of 0.5 alone does not supply it.</p>
+<details class="source-note">
+<summary>Evidence, reproducibility and limits</summary>
+<p><a href="/harness-notes/assets/jev-rerank-evidence.json">Download aggregate and anonymous per-query metrics</a>. The evidence includes all three depths, MRR, hit@5, fixed and returned-document precision, bootstrap intervals, threshold trials, filter counts, dataset revisions and accounting. The private study froze its protocol in commit <code>085fe4d</code> before benchmark judgments. The public export includes a source-summary hash; source records, complete API envelopes and credentials are not published.</p>
+<p>One run per input, one embedding baseline, small development sets, one Japanese and one English benchmark, and no generated-answer evaluation limit generalization. The 4-question documentation development set is particularly small. Prompt/model upgrades and production document collections require fresh calibration. The earlier <a href="/harness-notes/projects/jev-comparison/">Jev decision comparison</a> used different model versions and workloads; its timing figures are not pooled with these results.</p>
+</details></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

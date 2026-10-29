@@ -10,6 +10,7 @@ BASE = '/harness-notes/'
 PAGES = [
     ('home', '', 'Harness Notes', 'Small experiments with planning, decisions and model collaboration.'),
     ('projects', 'projects/', 'Experiments', 'Research on decisions, planning and model collaboration.'),
+    ('jev-rerank', 'projects/jev-rerank/', 'Jev for RAG reranking: better order, and the cost of filtering', 'Japanese and English retrieval benchmarks, Noul filtering failures, and a real-document comparison with GPT-6 Luna.'),
     ('jev', 'projects/jev/', 'Can cheap decisions make a cheap agent?', 'Jev was fast at local choices. Complete workflows exposed stopping and recovery problems.'),
     ('jev-choices', 'projects/jev-choices/', 'What can a decision model actually decide?', 'Where Jev can take over an agent decision: rules, reasoning and candidate scores.'),
     ('jev-comparison', 'projects/jev-comparison/', 'Jev vs. Luna: compare the decision, then count the cost', 'Matched Jev–Luna decisions, caching and the cost of conditional handoff.'),

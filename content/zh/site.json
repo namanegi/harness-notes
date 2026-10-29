@@ -46,5 +46,9 @@
   "jev-comparison": [
     "Jev 与 Luna：先把判断比公平，再算费用",
     "Jev／Luna 单点匹配、缓存与条件转交的费用。"
+  ],
+  "jev-rerank": [
+    "用 Jev 做 RAG 重排：排序的收益与过滤的代价",
+    "日语与英语检索对照、Noul 过滤的召回损失，以及真实文档上的 GPT-6 Luna 比较。"
   ]
 }

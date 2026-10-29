@@ -2,6 +2,12 @@
 
 Research on decisions, planning and model collaboration, from single calls to complete agent systems.
 
+## Jev for RAG reranking
+
+Score and Noul improve a shared vector shortlist on Japanese and English benchmarks. A second filtering pass also removes useful evidence. A real-document comparison with GPT-6 Luna separates ranking quality, label limitations and observed pipeline cost.
+
+[Read the reranking experiment →](@/projects/jev-rerank/)
+
 ## Jev: from a choice to a finished task
 
 The same choice interface can hide very different demands. This series first maps the capability, then compares alternatives, then measures the complete system.
