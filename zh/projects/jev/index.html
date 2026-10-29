@@ -3,28 +3,29 @@
 <title>便宜的决策，能组成便宜的 agent 吗？ · namanegi</title><meta name="description" content="Jev 能快速做局部选择，完整工作流暴露了停止和恢复的问题。">
 <meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/jev/"><link rel="stylesheet" href="/harness-notes/assets/style.css"><link rel="stylesheet" href="/harness-notes/assets/cases.css"><script src="/harness-notes/assets/cases.js" defer></script>
+<link rel="stylesheet" href="/harness-notes/assets/glossary.css"><script src="/harness-notes/assets/glossary.js" defer></script>
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/jev/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/jev/">
 </head>
 <body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
-<nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
+<nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/glossary/">术语表</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
 <div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/jev/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/jev/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="agent">便宜的决策，能组成便宜的 agent 吗？</h1>
 <div class="meta">Jev / 第三篇 · 2026-09-21 · 约 8 分钟</div>
 
 <p>设想一个助手要从库存中预留四件商品。它先读订单，才知道商品和数量；再查主仓，发现只有两件；然后转向备仓。途中工具可能拒绝某个动作。预留成功后，助手还必须知道事情已经办完，主动结束。选择下一步工具只是这一整段流程中的一个决定。</p>
-<p>常见做法是让通用语言模型负责整个循环：选工具、填参数、读结果，再决定下一步。本研究问的是，能否把其中一部分局部选择交给 TypeSafe Jev——一种从有限候选中返回结构化选择的模型。通用语言模型 GPT-5.6 Luna（下文简称 Luna）作为对照，也在确实需要生成新文字时帮 Jev 填参。<strong>这些短工作流里，Jev 组合的费用和耗时更低；但一次漏掉停止、一次工具拒绝后漏掉重试，各导致一道题失败。</strong></p>
-<p><a href="/harness-notes/zh/projects/jev-choices/">第一篇</a>研究 Jev 的单次选择；<a href="/harness-notes/zh/projects/jev-comparison/">第二篇</a>把这些选择与 Luna 比较。本篇的评价单位是完整任务，也包括最后是否停止。</p>
+<p>常见做法是让通用语言模型负责整个循环：选工具、填参数、读结果，再决定下一步。本研究问的是，能否把其中一部分局部选择交给 TypeSafe <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>——一种从有限候选中返回结构化选择的模型。通用语言模型 GPT-5.6 Luna（下文简称 Luna）作为对照，也在确实需要生成新文字时帮 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 填参。<strong>这些短工作流里，<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 组合的费用和耗时更低；但一次漏掉停止、一次工具拒绝后漏掉重试，各导致一道题失败。</strong></p>
+<p><a href="/harness-notes/zh/projects/jev-choices/">第一篇</a>研究 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 的单次选择；<a href="/harness-notes/zh/projects/jev-comparison/">第二篇</a>把这些选择与 Luna 比较。本篇的评价单位是完整任务，也包括最后是否停止。</p>
 <h2 id="_1">工作流怎样搭起来、怎样评分</h2>
-<p><em>控制器</em>负责选下一步动作；共用<em>执行器</em>运行这个动作，并返回可观察的反馈。在 Jev 系统中，每次工具返回后，控制器提供有限的动作菜单。订单 ID、SKU、数量、政策位置、验证 profile 等已知事实，由代码复制到工具参数。只有工具需要新文字时，例如搜索查询或结论说明，才调用 Luna。这样，抄写现成 ID 不会被误当成语言生成能力。Jev 看不到执行器私有的预期结果。</p>
+<p><em>控制器</em>负责选下一步动作；共用<em>执行器</em>运行这个动作，并返回可观察的反馈。在 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 系统中，每次工具返回后，控制器提供有限的动作菜单。订单 ID、SKU、数量、政策位置、验证 profile 等已知事实，由代码复制到工具参数。只有工具需要新文字时，例如搜索查询或结论说明，才调用 Luna。这样，抄写现成 ID 不会被误当成语言生成能力。<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 看不到执行器私有的预期结果。</p>
 <figure><img src="/harness-notes/assets/diagrams/zh/jev.svg" alt="当前状态交给 Jev 选择动作；已知参数由代码填入，查询等文本由 Luna 生成；执行工具后将反馈送回状态；Jev 选择停止后结束运行，终态另行评分。"><figcaption>动作选择只是工作流的一环；填参、处理反馈和停止各有自己的失败方式。</figcaption></figure>
 
-<p>两条只用 Luna 的对照走同样的世界和工具。这里的 <em>ReAct</em> 指“执行动作—观察工具反馈—再选动作”的循环，由 Agents SDK 驱动。有界 <em>Plan</em> 则先生成线性动作 ID 列表，遇到拒绝或计划耗尽时最多重规划一次。它可以修订，与另一项 compile-then-act 研究中不可变的编译图不同。</p>
+<p>两条只用 Luna 的对照走同样的世界和工具。这里的 <em><a class="term-link" href="/harness-notes/zh/glossary/react/" data-term-href="/harness-notes/zh/glossary/react/" data-term-title="ReAct" data-term-summary="将推理与行动交替进行，并利用环境返回的观察来决定下一步。">ReAct</a></em> 指“执行动作—观察工具反馈—再选动作”的循环，由 Agents SDK 驱动。有界 <em>Plan</em> 则先生成线性动作 ID 列表，遇到拒绝或计划耗尽时最多重规划一次。它可以修订，与另一项 compile-then-act 研究中不可变的编译图不同。</p>
 <p>任务使用预先冻结的合成工具结果，不调用真实业务服务。一次运行只有在独立终态检查确认结果正确、而且控制器明确停止时才通过。如果确实缺少前提，有根据地请求补充并停止算正确的<em>安全阻塞</em>，但不等于业务操作已完成。下文费用计入整个任务路径上的模型调用；耗时也包含串行请求和客户端开销。</p>
 <h2 id="_2">先证明工作流能闭合</h2>
 <p>第一批是四个合成任务。政策题要区分真正适用的出差规则与看似相关的搬迁规则。库存题读到订单数量后，发现主仓缺货、备仓有货。两个包验证任务则要根据 fast 验证的成败走不同路径。工具结果只有执行相应动作后才可见。</p>
 <p>Plan 最初因输出格式与执行器不匹配而无法运行；修正动作格式后，独立重跑通过 4/4，原始故障记录保留在附录。</p>
-<p>修复后，四套系统均正确结束四题：ReAct、有界 Plan、Jev 加完整填参上下文、Jev 加较短但充分的填参上下文。两条 Jev 配置每题采取完全相同的动作路径，每种配置在四题中合计调用 Jev 16 次、Luna 填参四次。库存题完全不需要 Luna 写文字，已知字段直接由代码复制。</p>
-<p>Jev 完整上下文配置四题花费 $0.001594；充分上下文配置为 $0.001146；ReAct 为 $0.004206，修复后的 Plan 为 $0.002868。较短的 Luna 输入仍保留目标、所选工具的完整契约和相关的当前观察。两条 Jev 路径都通过 4/4，说明这些题里没有删掉必要事实。费用下降约 28%，但尚不能把收益完全归于输入缩短，也不足以证明稳定的速度优势；<a href="/harness-notes/zh/research/jev-report/#measurement-notes">附录</a>保留计量细节。</p>
+<p>修复后，四套系统均正确结束四题：<a class="term-link" href="/harness-notes/zh/glossary/react/" data-term-href="/harness-notes/zh/glossary/react/" data-term-title="ReAct" data-term-summary="将推理与行动交替进行，并利用环境返回的观察来决定下一步。">ReAct</a>、有界 Plan、<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 加完整填参上下文、<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 加较短但充分的填参上下文。两条 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 配置每题采取完全相同的动作路径，每种配置在四题中合计调用 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 16 次、Luna 填参四次。库存题完全不需要 Luna 写文字，已知字段直接由代码复制。</p>
+<p><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 完整上下文配置四题花费 $0.001594；充分上下文配置为 $0.001146；<a class="term-link" href="/harness-notes/zh/glossary/react/" data-term-href="/harness-notes/zh/glossary/react/" data-term-title="ReAct" data-term-summary="将推理与行动交替进行，并利用环境返回的观察来决定下一步。">ReAct</a> 为 $0.004206，修复后的 Plan 为 $0.002868。较短的 Luna 输入仍保留目标、所选工具的完整契约和相关的当前观察。两条 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 路径都通过 4/4，说明这些题里没有删掉必要事实。费用下降约 28%，但尚不能把收益完全归于输入缩短，也不足以证明稳定的速度优势；<a href="/harness-notes/zh/research/jev-report/#measurement-notes">附录</a>保留计量细节。</p>
 <h2 id="_3">迁移到新的分支</h2>
 <p>第二批在调用前冻结八个新任务，政策、库存、访问权限、事故处理各两题。每组一题可以完成业务动作，另一题因审批范围、部署 ID 等前提缺失，必须有根据地请求补充信息。不安全动作、过早停止，或循环到十二步上限都算失败。</p>
 <table>
@@ -40,7 +41,7 @@
 </thead>
 <tbody>
 <tr>
-<td>Luna ReAct</td>
+<td>Luna <a class="term-link" href="/harness-notes/zh/glossary/react/" data-term-href="/harness-notes/zh/glossary/react/" data-term-title="ReAct" data-term-summary="将推理与行动交替进行，并利用环境返回的观察来决定下一步。">ReAct</a></td>
 <td style="text-align: right;">8/8</td>
 <td style="text-align: right;">4/4</td>
 <td style="text-align: right;">4/4</td>
@@ -56,7 +57,7 @@
 <td style="text-align: right;">9.35 秒</td>
 </tr>
 <tr>
-<td>Jev 选动作 + Luna 写文字</td>
+<td><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 选动作 + Luna 写文字</td>
 <td style="text-align: right;">7/8</td>
 <td style="text-align: right;">4/4</td>
 <td style="text-align: right;">3/4</td>
@@ -69,17 +70,17 @@
 <p class="case-entry"><a class="case-link" data-case-id="approval-loop" href="/harness-notes/zh/research/jev-report/#case-approval-loop">查看案例：已请求正确审批，却继续动作 <span aria-hidden="true">↗</span></a></p>
 
 <p>Plan 在一道库存题上连续走错两步。它先请求一个已经知道的数量，工具拒绝，于是耗掉唯一一次重规划。修订后的计划又试图从库存不足的仓库预留，再被拒绝，最终没有完成预留。其他 Plan 题曾在一次拒绝后恢复；这里测到的是“一次重规划”预算的边界，不能推成所有计划方法都失败。</p>
-<p>Jev 原批的失败完全不同。在一道访问题里，它已经正确请求所需范围的审批，状态达到合格的安全阻塞；但控制器仍反复请求审批或培训，直到步骤上限也没有选择停止。业务处置与协议结果在此分离。如果只看它有没有提出审批请求，就会把失败算成成功。</p>
-<p>原 Jev 指令只说“目标达成后停止”，其他控制器则明确允许在合理请求缺失前提后结束。因此后续批只修改 Jev 的停止措辞，并将八题全部重跑。结果仍是 7/8，但失败换了题：审批题现在正确停止；事故题里，Jev 在查到匹配日志前就请求部署 ID，工具因此拒绝。后来它查到了日志，却直接停止，没有重试此时已经合理的部署 ID 请求。它没有编造 ID，也没有执行回滚，错误是<strong>拒绝后漏掉必需的重试，并过早结束</strong>。不能从两批各挑有利案例拼成 8/8。</p>
+<p><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 原批的失败完全不同。在一道访问题里，它已经正确请求所需范围的审批，状态达到合格的安全阻塞；但控制器仍反复请求审批或培训，直到步骤上限也没有选择停止。业务处置与协议结果在此分离。如果只看它有没有提出审批请求，就会把失败算成成功。</p>
+<p>原 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 指令只说“目标达成后停止”，其他控制器则明确允许在合理请求缺失前提后结束。因此后续批只修改 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 的停止措辞，并将八题全部重跑。结果仍是 7/8，但失败换了题：审批题现在正确停止；事故题里，<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 在查到匹配日志前就请求部署 ID，工具因此拒绝。后来它查到了日志，却直接停止，没有重试此时已经合理的部署 ID 请求。它没有编造 ID，也没有执行回滚，错误是<strong>拒绝后漏掉必需的重试，并过早结束</strong>。不能从两批各挑有利案例拼成 8/8。</p>
 <p class="case-entry"><a class="case-link" data-case-id="approval-stopped" href="/harness-notes/zh/research/jev-report/#case-approval-stopped">查看案例：停止指令修订后：审批题通过 <span aria-hidden="true">↗</span></a></p>
 <p class="case-entry"><a class="case-link" data-case-id="incident-retry" href="/harness-notes/zh/research/jev-report/#case-incident-retry">查看案例：新证据到了，却没重试必要的信息请求 <span aria-hidden="true">↗</span></a></p>
 
 <p>修订后费用和耗时有所下降，但批次时间和提示不同，不能把差异全归因于措辞。更关键的是，问题从“该停时不停”转移到“新证据到来后不知道重试原先被拒的动作”。</p>
 <h2 id="_4">多做几次判断，不一定更安全</h2>
-<p>另一组实验测试网页中的按钮选择，用 DOM（文档对象模型）把页面元素表示成控制器可查看的树形结构。控制器可以一次看到完整按钮清单，也可以逐层浏览局部分支、回退，并让 Jev 再核对候选。在后续四个事实自洽的合成页面上，完整清单用四次 Jev 请求得到 4/4 正确终态；树形导航加整体复核用了 27 次请求，得到 3/4；树形导航加分字段复核同样 27 次、3/4。一个树形失败在调用上限时仍未解决，另一个误点了按钮。</p>
-<p>分字段复核在单点实验里曾显得有希望。八个新候选中，把账号、套餐、状态分别交给 Jev 判断，再由代码合并，最终正确数从 6/8 升到 7/8。它成功把一题缺失状态保留为“未知”。但 Jev 仍将 Direct 渠道误判成符合 Partner 要求。放进完整树搜索后，代码忠实合并错误字段，放行了错误叶子。复核时完整祖先路径已经给出，并非缺证据。把判断拆细，不能保证每一项都可靠；重复局部调用还增加了总 token、费用和延迟。</p>
+<p>另一组实验测试网页中的按钮选择，用 DOM（文档对象模型）把页面元素表示成控制器可查看的树形结构。控制器可以一次看到完整按钮清单，也可以逐层浏览局部分支、回退，并让 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 再核对候选。在后续四个事实自洽的合成页面上，完整清单用四次 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 请求得到 4/4 正确终态；树形导航加整体复核用了 27 次请求，得到 3/4；树形导航加分字段复核同样 27 次、3/4。一个树形失败在调用上限时仍未解决，另一个误点了按钮。</p>
+<p>分字段复核在单点实验里曾显得有希望。八个新候选中，把账号、套餐、状态分别交给 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 判断，再由代码合并，最终正确数从 6/8 升到 7/8。它成功把一题缺失状态保留为“未知”。但 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 仍将 Direct 渠道误判成符合 Partner 要求。放进完整树搜索后，代码忠实合并错误字段，放行了错误叶子。复核时完整祖先路径已经给出，并非缺证据。把判断拆细，不能保证每一项都可靠；重复局部调用还增加了总 token、费用和延迟。</p>
 <p>这些都是短小的本地合成任务，各条件每题只跑一次。DOM 是确定性的状态模拟，没有真实浏览器点击或外部副作用。费用衡量的是整个控制系统，包括串行调用、SDK 与网络、填参及缓存差异，并非纯模型速度排名。</p>
-<p>可用的设计边界已经清楚：已知字段与可观察终态交给代码；Jev 负责经过任务验证、结果可检查的有限选择；确需生成文字时再用 Luna。最需要专门测试的是<strong>工具拒绝和退出路径</strong>。只有循环能正确闭合，便宜的选择才可能组成便宜的 agent。</p>
+<p>可用的设计边界已经清楚：已知字段与可观察终态交给代码；<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 负责经过任务验证、结果可检查的有限选择；确需生成文字时再用 Luna。最需要专门测试的是<strong>工具拒绝和退出路径</strong>。只有循环能正确闭合，便宜的选择才可能组成便宜的 agent。</p>
 <details class="source-note">
 <summary>方法与聚合数据</summary>
 <p>工作流和 DOM 使用预先冻结的本地场景及独立终态检查。停止措辞修正是后续完整八题批次，没有覆盖原批。Jev 为 1.13；Luna 配置、缓存计量和各批分母见附录。Jev 费用来自 API 报告，Luna 费用依据用量估算，均未与账单核销。</p>

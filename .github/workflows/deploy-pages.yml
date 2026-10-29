@@ -34,12 +34,13 @@ jobs:
         run: |
           python draw_diagrams.py
           python build.py
+          python -m unittest discover -s tests
 
       - name: Stage public site files
         run: |
           mkdir _site
           cp index.html .nojekyll _site/
-          cp -R assets about methods projects research writing zh _site/
+          cp -R assets about glossary methods projects research writing zh _site/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4

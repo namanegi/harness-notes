@@ -3,15 +3,16 @@
 <title>Experiments · namanegi</title><meta name="description" content="Research on decisions, planning and model collaboration.">
 <meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/projects/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="stylesheet" href="/harness-notes/assets/glossary.css"><script src="/harness-notes/assets/glossary.js" defer></script>
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/">
 </head>
 <body><a class="skip" href="#main">Skip to content</a><header class="site-header"><a class="brand" href="/harness-notes/">Harness<span>/</span>Notes</a>
-<nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
+<nav class="main-nav" aria-label="Main navigation"><a href="/harness-notes/projects/">Experiments</a><a href="/harness-notes/writing/">Notes</a><a href="/harness-notes/glossary/">Glossary</a><a href="/harness-notes/methods/">Methods</a><a href="/harness-notes/about/">About</a></nav>
 <div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/" lang="en" hreflang="en" aria-current="page">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/" lang="zh-CN" hreflang="zh-CN">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="experiments">Experiments</h1>
 <p>Research on decisions, planning and model collaboration, from single calls to complete agent systems.</p>
 <h2 id="jev-for-rag-reranking">Jev for RAG reranking</h2>
-<p>Stronger embedding controls separate retrieval from reranking. Confidence-aware threshold calibration removes noise on one corpus and fails retention checks on another. Interactive charts expose those tradeoffs alongside a real-document Jev–Luna comparison.</p>
+<p>Stronger <a class="term-link" href="/harness-notes/glossary/embedding/" data-term-href="/harness-notes/glossary/embedding/" data-term-title="Embedding" data-term-summary="A numerical vector representation of content. Retrieval can compare query and document vectors to find likely relevant material.">embedding</a> controls separate retrieval from <a class="term-link" href="/harness-notes/glossary/reranking/" data-term-href="/harness-notes/glossary/reranking/" data-term-title="Reranking" data-term-summary="Reorder an already retrieved candidate set using another relevance judgment, so useful evidence appears earlier.">reranking</a>. Confidence-aware threshold calibration removes noise on one corpus and fails retention checks on another. Interactive charts expose those tradeoffs alongside a real-document <a class="term-link" href="/harness-notes/glossary/jev/" data-term-href="/harness-notes/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe&#x27;s structured decision model, used here to select options, score relevance and make yes/no judgments.">Jev</a>–Luna comparison.</p>
 <p><a href="/harness-notes/projects/jev-rerank/">Read the reranking experiment →</a></p>
 <h2 id="jev-from-a-choice-to-a-finished-task">Jev: from a choice to a finished task</h2>
 <p>The same choice interface can hide very different demands. This series first maps the capability, then compares alternatives, then measures the complete system.</p>

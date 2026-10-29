@@ -6,6 +6,7 @@ import markdown
 from case_previews import CasePreviews
 from rerank_key_visual import render_key_visual
 from rerank_flow_diagram import render_flow_diagram
+from glossary import Glossary
 
 ROOT = Path(__file__).parent
 BASE = '/harness-notes/'
@@ -26,6 +27,7 @@ PAGES = [
 ]
 ZH = json.loads((ROOT/'content/zh/site.json').read_text(encoding='utf-8'))
 CASES = CasePreviews(ROOT/'assets/jev-cases.json')
+GLOSSARY = Glossary(ROOT/'content/glossary.json')
 # Both authored versions are required. Never silently fall back to another language.
 for name, *_ in PAGES:
     for folder in ('content', 'content/zh'):
@@ -33,9 +35,10 @@ for name, *_ in PAGES:
             raise FileNotFoundError(f'Missing paired article: {folder}/{name}.md')
 for language, prefix in [('en', ''), ('zh-CN', 'zh/')]:
   local_base = BASE + prefix
-  labels = ['Experiments', 'Notes', 'Methods', 'About'] if language == 'en' else ['实验', '随笔', '方法', '关于']
+  labels = ['Experiments', 'Notes', 'Glossary', 'Methods', 'About'] if language == 'en' else ['实验', '随笔', '术语表', '方法', '关于']
   skip = 'Skip to content' if language == 'en' else '跳到正文'
   nav_label = 'Main navigation' if language == 'en' else '主导航'
+  rendered, usages, articles = {}, {}, []
   for name, route, title, description in PAGES:
     if language == 'zh-CN':
         title, description = ZH[name]
@@ -46,12 +49,24 @@ for language, prefix in [('en', ''), ('zh-CN', 'zh/')]:
         body = body.replace('<!-- rerank-flow-diagram -->', render_flow_diagram(language))
         body = body.replace('<!-- rerank-key-visual -->', render_key_visual(ROOT, language))
     body, has_cases, has_previews = CASES.render(body, language, local_base)
+    body, usages[name] = GLOSSARY.annotate(body, language, local_base, name)
     case_assets = f'<link rel="stylesheet" href="{BASE}assets/cases.css">' if has_cases else ''
     if has_previews:
         case_assets += f'<script src="{BASE}assets/cases.js" defer></script>'
     if name == 'jev-rerank':
         case_assets += f'<link rel="stylesheet" href="{BASE}assets/rerank-flow.css"><link rel="stylesheet" href="{BASE}assets/rerank-key-visual.css"><link rel="stylesheet" href="{BASE}assets/rerank-explorer.css"><script src="{BASE}assets/rerank-explorer.js" defer></script>'
-    nav = ''.join(f'<a href="{local_base}{path}/">{label}</a>' for path, label in zip(['projects','writing','methods','about'], labels))
+    rendered[name] = (body, case_assets)
+    articles.append((name, route, title))
+  glossary_pages = GLOSSARY.pages(language, local_base, articles, usages)
+  for name, _, _, _, body in glossary_pages:
+    rendered[name] = (body, '')
+  all_pages = [(name, route, *(ZH[name] if language == 'zh-CN' else (title, description)))
+               for name, route, title, description in PAGES]
+  all_pages += [page[:4] for page in glossary_pages]
+  for name, route, title, description in all_pages:
+    body, case_assets = rendered[name]
+    term_script = f'<script src="{BASE}assets/glossary.js" defer></script>' if usages.get(name) else ''
+    nav = ''.join(f'<a href="{local_base}{path}/">{label}</a>' for path, label in zip(['projects','writing','glossary','methods','about'], labels))
     en_current = ' aria-current="page"' if language == 'en' else ''
     zh_current = ' aria-current="page"' if language == 'zh-CN' else ''
     page = f'''<!doctype html>
@@ -59,6 +74,7 @@ for language, prefix in [('en', ''), ('zh-CN', 'zh/')]:
 <title>{escape(title)} · namanegi</title><meta name="description" content="{escape(description)}">
 <meta name="theme-color" content="#12191e"><script src="{BASE}assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io{local_base}{route}"><link rel="stylesheet" href="{BASE}assets/style.css">{case_assets}
+<link rel="stylesheet" href="{BASE}assets/glossary.css">{term_script}
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io{BASE}{route}"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io{BASE}zh/{route}">
 </head>
 <body><a class="skip" href="#main">{skip}</a><header class="site-header"><a class="brand" href="{local_base}">Harness<span>/</span>Notes</a>
@@ -69,4 +85,4 @@ for language, prefix in [('en', ''), ('zh-CN', 'zh/')]:
     dest=ROOT/prefix/route/'index.html'
     dest.parent.mkdir(parents=True,exist_ok=True)
     dest.write_text(page,encoding='utf-8',newline='\n')
-print(f'Built {len(PAGES)*2} pages ({len(PAGES)} paired articles)')
+print(f'Built {len(all_pages)*2} pages ({len(PAGES)} paired articles, {len(GLOSSARY.terms)} paired terms and glossary indexes)')

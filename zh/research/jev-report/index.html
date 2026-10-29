@@ -3,30 +3,31 @@
 <title>Jev 实验附录 · namanegi</title><meta name="description" content="各批实验的方法、结果和公开汇总。">
 <meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/research/jev-report/"><link rel="stylesheet" href="/harness-notes/assets/style.css"><link rel="stylesheet" href="/harness-notes/assets/cases.css">
+<link rel="stylesheet" href="/harness-notes/assets/glossary.css"><script src="/harness-notes/assets/glossary.js" defer></script>
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/research/jev-report/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/research/jev-report/">
 </head>
 <body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
-<nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
+<nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/glossary/">术语表</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
 <div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/research/jev-report/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/research/jev-report/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="jev">Jev 实验附录</h1>
 <div class="meta">探索性研究 / 2026-09-20—21 / Jev 1.13 · GPT-5.6 Luna</div>
 
 <p><a href="/harness-notes/zh/projects/jev-choices/">第一篇：Choice 能力与候选分数</a> · <a href="/harness-notes/zh/projects/jev-comparison/">第二篇：Jev／Luna 单点对照</a> · <a href="/harness-notes/zh/projects/jev/">第三篇：完整工作流</a></p>
-<p><strong>短规则路由里，Jev 有便宜、快速的观察结果；复杂推理和多步搜索并没有自动获得同样收益。</strong>我们先做单步能力探针，再比较 Luna，最后检验转交、DOM 搜索和完整工具工作流。</p>
+<p><strong>短规则路由里，<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 有便宜、快速的观察结果；复杂推理和多步搜索并没有自动获得同样收益。</strong>我们先做单步能力探针，再比较 Luna，最后检验转交、DOM 搜索和完整工具工作流。</p>
 <p>这是一份公开报告摘编。样本小、部分人工合成、每条件 rollout 少，不是模型排名或部署可靠性估计。<a href="/harness-notes/assets/jev-evidence.json">下载公开汇总表</a>。</p>
 <h2 id="_1">方法与公开范围</h2>
-<p>Jev 通过官方 OpenRouter Python SDK Decisions 接口调用；Luna 用官方 OpenAI SDK 的严格 JSON 输出，ReAct 用 Agents SDK。相关 SDK 批次使用 TLS 验证、连接复用和零自动重试。Jev 返回版本为 <code>typesafe/jev-1.13-20260917</code>；Luna 请求 <code>gpt-5.6-luna</code>。</p>
-<p>选择正确、结构合法、达到目标状态和显式停止分别计数。Jev 费用取 API 报费，Luna 根据输入、缓存读写和输出 token 估算；均未与供应商账单核销。墙钟包含本地和网络开销，不是纯推理时间。</p>
+<p><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 通过官方 OpenRouter Python SDK Decisions 接口调用；Luna 用官方 OpenAI SDK 的严格 JSON 输出，<a class="term-link" href="/harness-notes/zh/glossary/react/" data-term-href="/harness-notes/zh/glossary/react/" data-term-title="ReAct" data-term-summary="将推理与行动交替进行，并利用环境返回的观察来决定下一步。">ReAct</a> 用 Agents SDK。相关 SDK 批次使用 TLS 验证、连接复用和零自动重试。<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 返回版本为 <code>typesafe/jev-1.13-20260917</code>；Luna 请求 <code>gpt-5.6-luna</code>。</p>
+<p>选择正确、结构合法、达到目标状态和显式停止分别计数。<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 费用取 API 报费，Luna 根据输入、缓存读写和输出 token 估算；均未与供应商账单核销。墙钟包含本地和网络开销，不是纯推理时间。</p>
 <p>公开题来自固定版本的 <a href="https://github.com/suzgunmirac/BIG-Bench-Hard/tree/9ee07bd481feebf959a6b59d61ea57bdcf30964d">BBH</a> 和 <a href="https://github.com/google-deepmind/bbeh/tree/80d12ca916b7158f22293fcf3144f4d3d854d4be">BBEH</a>。先按固定种子抽题再调用，BBH 布尔与交换题另由代码核验 gold。未知训练重叠、题量和任务混杂限制推广；没有在这页重新分发题目原文。原始账本、完整输入和 runner 没有随博客公开，因此这些汇总支持检查报告的算术与分母，不构成完整独立复现包。</p>
 <h2 id="1">1. 候选少，不等于推理简单</h2>
 <h3 id="_2">单体合成探针</h3>
-<p>以下调用早于匹配的 Jev／Luna 对照。政策探针和后来的模型对照沿用同一题目设计，但属于不同调用批次。</p>
+<p>以下调用早于匹配的 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>／Luna 对照。政策探针和后来的模型对照沿用同一题目设计，但属于不同调用批次。</p>
 <table>
 <thead>
 <tr>
 <th>探针</th>
 <th>设计</th>
-<th style="text-align: right;">Jev 有效／正确</th>
+<th style="text-align: right;"><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 有效／正确</th>
 </tr>
 </thead>
 <tbody>
@@ -53,7 +54,7 @@
 <thead>
 <tr>
 <th>同题条件</th>
-<th style="text-align: right;">Jev 正确</th>
+<th style="text-align: right;"><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 正确</th>
 <th style="text-align: right;">Luna 正确</th>
 <th>解释</th>
 </tr>
@@ -79,16 +80,16 @@
 </tr>
 </tbody>
 </table>
-<p>14 个动作状态中，Jev 总费 $0.000305592、请求耗时中位数 485 ms；Luna none 总费 $0.000882800、中位数 1,470 ms。Luna 缓存读写均为零。这一小批动态状态不依赖精确请求重放。</p>
+<p>14 个动作状态中，<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 总费 $0.000305592、请求耗时中位数 485 ms；Luna none 总费 $0.000882800、中位数 1,470 ms。Luna 缓存读写均为零。这一小批动态状态不依赖精确请求重放。</p>
 <p>BBH low 配置同时改变步骤提示、effort 和输出预算，且跨批补齐，不能作纯 effort 归因。BBEH 的提高额度诊断对原六题全部执行，恢复了六次有效响应，但仍有两题错误。BBH 与 BBEH 同时改变嵌套、知识、长度和运算组成，未定位单一深度阈值。</p>
 <p>英文 <code>red</code>、<code>dog</code> 字符位置探针的 28 候选中，隐藏目标为 8/12，给出目标为 10/12；已知 <code>dog</code> 和前缀 <code>d</code> 时仍两次把下一字符 <code>o</code> 选成 <code>g</code>。这些是两个词上的重复位置判断，完整词后的 STOP 另计。它说明语义动作识别与序列位置计算不能互相替代，也不能归因于某个未经验证的内部模型架构。</p>
 <h2 id="2">2. 低分转交：纠错也会改错</h2>
-<p>先在不同题上探索分数，再固定 <code>pmax≥.90</code> 接受 Jev，否则实际调用 Luna。新批抽六道 BBH 和六道 BBEH，排除已用索引；这是刻意的压力混合，不代表部署比例。独立 always-Luna 逐题调用，先后顺序交替，Luna 均为 low／4096。新批使用显式缓存且无断点，实际读写均为零。</p>
+<p>先在不同题上探索分数，再固定 <code>pmax≥.90</code> 接受 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>，否则实际调用 Luna。新批抽六道 BBH 和六道 BBEH，排除已用索引；这是刻意的压力混合，不代表部署比例。独立 always-Luna 逐题调用，先后顺序交替，Luna 均为 low／4096。新批使用显式缓存且无断点，实际读写均为零。</p>
 <table>
 <thead>
 <tr>
 <th>新题组</th>
-<th style="text-align: right;">Jev 直接</th>
+<th style="text-align: right;"><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 直接</th>
 <th style="text-align: right;">转交系统</th>
 <th style="text-align: right;">独立 Luna</th>
 <th style="text-align: right;">转交费用</th>
@@ -122,10 +123,10 @@
 </tr>
 </tbody>
 </table>
-<p>三题直接接受且全对，九题转交。Fallback 纠正三个 Jev 错误，也把两个正确选择改错。全部 BBEH 都转交，所以两批 Luna 的质量差只是独立生成波动，不能归给筛选器。转交系统费用更高，尚未证明通用门槛有收益。</p>
-<p>另在六道新 BBEH 保留 Jev top-2 再交 Luna，gold 只保留 4/6，最后原题正确 3/6。独立完整策略费用约 $0.007917426；本实验复用了已有 Jev 分布，研究账本没有重复收费。筛掉正确答案后，知道“两项皆非”也无法恢复原题答案。</p>
+<p>三题直接接受且全对，九题转交。Fallback 纠正三个 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 错误，也把两个正确选择改错。全部 BBEH 都转交，所以两批 Luna 的质量差只是独立生成波动，不能归给筛选器。转交系统费用更高，尚未证明通用门槛有收益。</p>
+<p>另在六道新 BBEH 保留 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> top-2 再交 Luna，gold 只保留 4/6，最后原题正确 3/6。独立完整策略费用约 $0.007917426；本实验复用了已有 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 分布，研究账本没有重复收费。筛掉正确答案后，知道“两项皆非”也无法恢复原题答案。</p>
 <h2 id="3">3. 树形选择与同模型复核</h2>
-<p>早期七个固定 DOM 状态里，扁平 Jev 为 7/7，逐层贪心为 6/7。后续加入局部拒选、回溯与候选复核。首批两个缺失页有标题和路径冲突，保留评分歧义；另冻结事实一致的四个页面，无目标条件真正删除目标元素。</p>
+<p>早期七个固定 DOM 状态里，扁平 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 为 7/7，逐层贪心为 6/7。后续加入局部拒选、回溯与候选复核。首批两个缺失页有标题和路径冲突，保留评分歧义；另冻结事实一致的四个页面，无目标条件真正删除目标元素。</p>
 <table>
 <thead>
 <tr>
@@ -137,7 +138,7 @@
 </thead>
 <tbody>
 <tr>
-<td>Jev 扁平</td>
+<td><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 扁平</td>
 <td style="text-align: right;">4/4</td>
 <td style="text-align: right;">4</td>
 <td style="text-align: right;">$0.000183498</td>
@@ -153,7 +154,7 @@
 <p>回溯在两个无目标页都误点：把年度套餐当试用套餐、把 Direct 渠道当 Partner。复核看到完整祖先仍接受，显示同模型再次判断不能保证全部约束成立。另一个精确标题无目标页没有误点，但耗尽 15 次调用后未解决，不能算正确 <code>none</code>。精确字符串和路径条件的代码基线无需模型即可完成该对照。</p>
 <p>这些是固定 HTML 的本地动作模拟，不包含真实浏览器导航或点击可执行性。路径权重也不是已校准的最终成功概率，未展开部分不能悄悄消失。</p>
 <h2 id="4">4. 完整工作流与充分参数上下文</h2>
-<p>四个短任务包含政策检索、备仓预留与两种验证反馈。已知字段由代码复制，Jev 选择有限动作，Luna 只生成查询和说明。所有成功终态另行核验，不向运行时返回 gold。</p>
+<p>四个短任务包含政策检索、备仓预留与两种验证反馈。已知字段由代码复制，<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 选择有限动作，Luna 只生成查询和说明。所有成功终态另行核验，不向运行时返回 gold。</p>
 <table>
 <thead>
 <tr>
@@ -166,7 +167,7 @@
 </thead>
 <tbody>
 <tr>
-<td>Luna Agents SDK ReAct</td>
+<td>Luna Agents SDK <a class="term-link" href="/harness-notes/zh/glossary/react/" data-term-href="/harness-notes/zh/glossary/react/" data-term-title="ReAct" data-term-summary="将推理与行动交替进行，并利用环境返回的观察来决定下一步。">ReAct</a></td>
 <td style="text-align: right;">4/4</td>
 <td style="text-align: right;">20 Luna</td>
 <td style="text-align: right;">$0.004205870</td>
@@ -180,27 +181,27 @@
 <td style="text-align: right;">26.669 s</td>
 </tr>
 <tr>
-<td>Jev＋Luna 全上下文填参</td>
+<td><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>＋Luna 全上下文填参</td>
 <td style="text-align: right;">4/4</td>
-<td style="text-align: right;">16 Jev＋4 Luna</td>
+<td style="text-align: right;">16 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>＋4 Luna</td>
 <td style="text-align: right;">$0.001594020</td>
 <td style="text-align: right;">13.239 s</td>
 </tr>
 <tr>
-<td>Jev＋Luna 充分精简填参</td>
+<td><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>＋Luna 充分精简填参</td>
 <td style="text-align: right;">4/4</td>
-<td style="text-align: right;">16 Jev＋4 Luna</td>
+<td style="text-align: right;">16 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>＋4 Luna</td>
 <td style="text-align: right;">$0.001146214</td>
 <td style="text-align: right;">12.231 s</td>
 </tr>
 </tbody>
 </table>
 <p>原 Plan 的字符串 schema 允许自然语言步骤，执行器只接受动作 ID，造成工具执行前四格接口失败。保留原记录后，仅收紧为严格枚举并独立跑完整四题；其计时是后续批次。两个任务用了一次有界重规划，不能将成功归于初始静态计划。</p>
-<p>充分精简的 Luna 参数输入从 2,888 降至 1,319 token，总费约低 28%，四题都成功；它保留完整选中工具契约。完整视图另有 1,057 缓存写入 token，费用差也包含计费结构变化。ReAct 在 stop 后还生成最终回复，其他控制器直接退出；这些是具体系统结果，不是等步骤纯模型速度排名。</p>
+<p>充分精简的 Luna 参数输入从 2,888 降至 1,319 token，总费约低 28%，四题都成功；它保留完整选中工具契约。完整视图另有 1,057 缓存写入 token，费用差也包含计费结构变化。<a class="term-link" href="/harness-notes/zh/glossary/react/" data-term-href="/harness-notes/zh/glossary/react/" data-term-title="ReAct" data-term-summary="将推理与行动交替进行，并利用环境返回的观察来决定下一步。">ReAct</a> 在 stop 后还生成最终回复，其他控制器直接退出；这些是具体系统结果，不是等步骤纯模型速度排名。</p>
 <h2 id="5">5. 条件分解：可诊断不等于可靠验证</h2>
-<p>两个已知错误作开发例，另冻结八个新候选。在同一原始目标与候选事实下，一次整体 Jev 判断为 6/8；同次请求三字段 Choice、由代码合取为 7/8。分字段修复了缺少状态却接受的错误，仍把 Direct 渠道当 Partner，字段本身只有 21/24 正确。Luna low 的同题严格字段 JSON 为 8/8 最终判断、24/24 字段正确。</p>
-<p>分字段 Jev 八次 $0.000251790，Luna 八次估算 $0.001000400。两者未达到相同观察质量；不能仅按便宜排序。</p>
-<p>单点达到了预先规定的有限推进条件，于是另冻结四个 DOM 页面。扁平 Jev 4/4、四次调用；整体复核树与分字段复核树均 3/4、各 27 次。唯一失败页中，前者耗尽预算未解决，后者误点。分字段树总费 $0.000622230，扁平 $0.000185556。多字段输出暴露了错误位置，但没有带来完整系统收益；同请求的多个字段也不是统计独立的证据。</p>
+<p>两个已知错误作开发例，另冻结八个新候选。在同一原始目标与候选事实下，一次整体 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 判断为 6/8；同次请求三字段 <a class="term-link" href="/harness-notes/zh/glossary/choice/" data-term-href="/harness-notes/zh/glossary/choice/" data-term-title="Jev Choice" data-term-summary="TypeSafe 的一种问题类型：从给定候选中选择一项，并返回候选权重。">Choice</a>、由代码合取为 7/8。分字段修复了缺少状态却接受的错误，仍把 Direct 渠道当 Partner，字段本身只有 21/24 正确。Luna low 的同题严格字段 JSON 为 8/8 最终判断、24/24 字段正确。</p>
+<p>分字段 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 八次 $0.000251790，Luna 八次估算 $0.001000400。两者未达到相同观察质量；不能仅按便宜排序。</p>
+<p>单点达到了预先规定的有限推进条件，于是另冻结四个 DOM 页面。扁平 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 4/4、四次调用；整体复核树与分字段复核树均 3/4、各 27 次。唯一失败页中，前者耗尽预算未解决，后者误点。分字段树总费 $0.000622230，扁平 $0.000185556。多字段输出暴露了错误位置，但没有带来完整系统收益；同请求的多个字段也不是统计独立的证据。</p>
 <h2 id="6">6. 八个新工作流：便宜仍有质量代价</h2>
 <p>统一停止工具立即退出后，新实验用政策、库存、访问与事故四类各两题。四题可完成业务，四题必须请求补充；请求补充与业务完成分列。生成的查询真实影响模拟文档或日志检索，已知字段由代码复制。它们仍是合成封闭任务，不是真实服务或公开 benchmark。</p>
 <table>
@@ -216,7 +217,7 @@
 </thead>
 <tbody>
 <tr>
-<td>Luna ReAct</td>
+<td>Luna <a class="term-link" href="/harness-notes/zh/glossary/react/" data-term-href="/harness-notes/zh/glossary/react/" data-term-title="ReAct" data-term-summary="将推理与行动交替进行，并利用环境返回的观察来决定下一步。">ReAct</a></td>
 <td style="text-align: right;">8/8</td>
 <td style="text-align: right;">4/4</td>
 <td style="text-align: right;">4/4</td>
@@ -232,7 +233,7 @@
 <td style="text-align: right;">9.35 s</td>
 </tr>
 <tr>
-<td>Jev＋充分参数上下文</td>
+<td><a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>＋充分参数上下文</td>
 <td style="text-align: right;">7/8</td>
 <td style="text-align: right;">4/4</td>
 <td style="text-align: right;">3/4</td>
@@ -241,14 +242,14 @@
 </tr>
 </tbody>
 </table>
-<p>原 Jev 在一题中正确请求审批补充，却反复动作不结束。其停止指令比另外两配置含糊，所以另冻结仅明确停止条件的 Jev 配置，完整重跑八题。仍为 7/8、费用 $0.002246、中位数 2.74 s：访问题成功了，事故题却在提前请求部署 ID 被拒后，查到日志便结束，漏掉再次请求必要信息。它没有猜造部署 ID 或回滚。</p>
-<p>两批分别保留，不能挑每题最优拼成 8/8；不同时间的重复也不能将差异全归因于措辞。Jev 有记录费用优势，但没有达到本批 ReAct 的观察质量。明确的结束与工具拒绝后的恢复，仍需要 harness 处理。</p>
+<p>原 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 在一题中正确请求审批补充，却反复动作不结束。其停止指令比另外两配置含糊，所以另冻结仅明确停止条件的 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 配置，完整重跑八题。仍为 7/8、费用 $0.002246、中位数 2.74 s：访问题成功了，事故题却在提前请求部署 ID 被拒后，查到日志便结束，漏掉再次请求必要信息。它没有猜造部署 ID 或回滚。</p>
+<p>两批分别保留，不能挑每题最优拼成 8/8；不同时间的重复也不能将差异全归因于措辞。<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 有记录费用优势，但没有达到本批 <a class="term-link" href="/harness-notes/zh/glossary/react/" data-term-href="/harness-notes/zh/glossary/react/" data-term-title="ReAct" data-term-summary="将推理与行动交替进行，并利用环境返回的观察来决定下一步。">ReAct</a> 的观察质量。明确的结束与工具拒绝后的恢复，仍需要 harness 处理。</p>
 <p><a id="matched-comparisons"></a></p>
 <h2 id="7">7. 单点匹配对照</h2>
-<p>单点对照在每组 Jev／Luna 配对内固定决策事实、候选动作及顺序。Jev 使用 Choice，Luna 使用 Responses 的严格 JSON 枚举；gold 动作由调用前确定的规则给出。这里测的是有效选择、Jev API 报费、按 Luna 用量估算的费用，以及客户端端到端耗时，并未执行完整政策或报销流程。</p>
-<p><strong>文档适用性。</strong> 四种适用状态各写成两种等义措辞，每个变体重复三次，每配置共 24 次调用、八个设计变体。Jev <strong>24/24</strong> 正确。最初的 Luna <code>none</code> 把指令嵌在仿照 Jev 结构的用户 JSON 中，为 <strong>13/24</strong>。后来另行冻结的控制将相同指令移到原生 <code>instructions</code>，同时移除协议包装，Luna <code>none</code> 提高到 <strong>21/24</strong>。原生 <code>low</code> 还把输出上限从 128 提到 1,024 token，达到 <strong>23/24</strong>。13/24 到 21/24 是封装组合变化，不能只归因于一个字段；23/24 又同时改变 effort 和额度。原生指令条件下剩余的错误都来自“两份文档都不适用”的一种措辞。Jev 24 次总费 $0.000895；三种 Luna 配置估费分别为 $0.002994、$0.002953、$0.003606。原生控制在另一会话运行，其耗时不能与先前 Jev 批次重新组成配对速度比较。</p>
-<p><strong>例外条款。</strong> 四种逻辑状态分别要求作答、读附录、询问缺失授权、搜索附录；每种提供长短两档上下文，并各重复三次，每配置 24 次调用。Jev、原生 Luna <code>none</code>、原生 Luna <code>low</code> 均为 <strong>24/24</strong>。批次费用依次是 <strong>$0.002862</strong>、<strong>$0.005341</strong>、<strong>$0.006625</strong>；客户端耗时中位数为 <strong>442.9 ms</strong>、<strong>1,335.5 ms</strong>、<strong>1,733.5 ms</strong>。长档增加无关档案条目，也把相关证据推后，因此不是纯长度干预。长输入被原样重复：Luna <code>none</code> 写入缓存时的单次估费中位数约 <strong>$0.000636</strong>，后续读取约 <strong>$0.000067</strong>；对应的 Jev 长档调用约 <strong>$0.000180</strong>。在这组精确回放中，热缓存的 Luna 读取比 Jev 单次便宜，但 Jev 整批总费仍较低。工具结果不断改变的 agent 未必有相同缓存命中；Jev 也没有报告可比的缓存读写分项。</p>
-<p><strong>变化的状态。</strong> 第三组把 14 个不同短规则状态分别交给两个模型各一次。其中六个是先前成功的探针状态，八个新的保修与工作空间状态在本批看到结果前已冻结；同一任务族中，事实变化会改变必需动作。Jev 与 Luna <code>none</code> 均为 <strong>14/14</strong>。Jev 总费 <strong>$0.000305592</strong>、客户端耗时中位数 <strong>485 ms</strong>；Luna 估费 <strong>$0.000882800</strong>、中位数 <strong>1,470 ms</strong>，记录到的缓存读写均为零。这是变化请求下有用的费用观察，但六个开发案例和八个新合成案例不能拼成生产错误率；两者都没出错，也无法测出升级转交的收益。</p>
+<p>单点对照在每组 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>／Luna 配对内固定决策事实、候选动作及顺序。<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 使用 <a class="term-link" href="/harness-notes/zh/glossary/choice/" data-term-href="/harness-notes/zh/glossary/choice/" data-term-title="Jev Choice" data-term-summary="TypeSafe 的一种问题类型：从给定候选中选择一项，并返回候选权重。">Choice</a>，Luna 使用 Responses 的严格 JSON 枚举；gold 动作由调用前确定的规则给出。这里测的是有效选择、<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> API 报费、按 Luna 用量估算的费用，以及客户端端到端耗时，并未执行完整政策或报销流程。</p>
+<p><strong>文档适用性。</strong> 四种适用状态各写成两种等义措辞，每个变体重复三次，每配置共 24 次调用、八个设计变体。<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> <strong>24/24</strong> 正确。最初的 Luna <code>none</code> 把指令嵌在仿照 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 结构的用户 JSON 中，为 <strong>13/24</strong>。后来另行冻结的控制将相同指令移到原生 <code>instructions</code>，同时移除协议包装，Luna <code>none</code> 提高到 <strong>21/24</strong>。原生 <code>low</code> 还把输出上限从 128 提到 1,024 token，达到 <strong>23/24</strong>。13/24 到 21/24 是封装组合变化，不能只归因于一个字段；23/24 又同时改变 effort 和额度。原生指令条件下剩余的错误都来自“两份文档都不适用”的一种措辞。<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 24 次总费 $0.000895；三种 Luna 配置估费分别为 $0.002994、$0.002953、$0.003606。原生控制在另一会话运行，其耗时不能与先前 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 批次重新组成配对速度比较。</p>
+<p><strong>例外条款。</strong> 四种逻辑状态分别要求作答、读附录、询问缺失授权、搜索附录；每种提供长短两档上下文，并各重复三次，每配置 24 次调用。<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>、原生 Luna <code>none</code>、原生 Luna <code>low</code> 均为 <strong>24/24</strong>。批次费用依次是 <strong>$0.002862</strong>、<strong>$0.005341</strong>、<strong>$0.006625</strong>；客户端耗时中位数为 <strong>442.9 ms</strong>、<strong>1,335.5 ms</strong>、<strong>1,733.5 ms</strong>。长档增加无关档案条目，也把相关证据推后，因此不是纯长度干预。长输入被原样重复：Luna <code>none</code> 写入缓存时的单次估费中位数约 <strong>$0.000636</strong>，后续读取约 <strong>$0.000067</strong>；对应的 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 长档调用约 <strong>$0.000180</strong>。在这组精确回放中，热缓存的 Luna 读取比 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 单次便宜，但 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 整批总费仍较低。工具结果不断改变的 agent 未必有相同缓存命中；<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 也没有报告可比的缓存读写分项。</p>
+<p><strong>变化的状态。</strong> 第三组把 14 个不同短规则状态分别交给两个模型各一次。其中六个是先前成功的探针状态，八个新的保修与工作空间状态在本批看到结果前已冻结；同一任务族中，事实变化会改变必需动作。<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 与 Luna <code>none</code> 均为 <strong>14/14</strong>。<a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 总费 <strong>$0.000305592</strong>、客户端耗时中位数 <strong>485 ms</strong>；Luna 估费 <strong>$0.000882800</strong>、中位数 <strong>1,470 ms</strong>，记录到的缓存读写均为零。这是变化请求下有用的费用观察，但六个开发案例和八个新合成案例不能拼成生产错误率；两者都没出错，也无法测出升级转交的收益。</p>
 <p>这三组说明，指令封装和缓存状态会实质改变质量与费用的解释。重复调用不是独立业务任务，客户端耗时还包括不同供应商的网络和协议路径。<a href="/harness-notes/zh/projects/jev-comparison/">单点对照文章</a>进一步讨论这些工程含义。</p>
 <h2 id="_4">工程判断与限制</h2>
 <p>优先让代码承担字段复制、精确过滤和可计算规则；让决策模型承担经过任务检验的有限语义分叉；生成模型只看充分契约与必要观察。终态判断、缺失信息、停止和预算耗尽需要明确的不同定义。</p>
@@ -257,12 +258,12 @@
 <p><a id="measurement-notes"></a></p>
 <h2 id="_5">运行与计量备注</h2>
 <ul>
-<li><strong>Choice 字段。</strong> 输入的 <code>state</code> 是当前事实，<code>instructions</code> 是判断规则，<code>criteria</code> 是候选及其含义。分析中的 <code>pmax</code> 是返回候选权重的最大值，与 API 另报的 <code>confidence</code> 字段不同；本研究没有验证任一数值的正确率校准。</li>
+<li><strong><a class="term-link" href="/harness-notes/zh/glossary/choice/" data-term-href="/harness-notes/zh/glossary/choice/" data-term-title="Jev Choice" data-term-summary="TypeSafe 的一种问题类型：从给定候选中选择一项，并返回候选权重。">Choice</a> 字段。</strong> 输入的 <code>state</code> 是当前事实，<code>instructions</code> 是判断规则，<code>criteria</code> 是候选及其含义。分析中的 <code>pmax</code> 是返回候选权重的最大值，与 API 另报的 <code>confidence</code> 字段不同；本研究没有验证任一数值的正确率校准。</li>
 <li><strong>匹配调用。</strong> SDK 批次复用连接、验证 TLS、关闭自动重试；模型对照中相邻调用供应商，交替或轮换顺序。例外题的三配置轮流占据首、中、尾位置。序列化、token 统计、供应商与网络路径仍有差异。</li>
 <li><strong>缓存。</strong> 14 个变化状态及十二题转交批次中，Luna 缓存读取、写入均为零。例外题长输入的热缓存费用另列于第 7 节；缓存记录属于对应批次，不能作为部署命中率估计。</li>
 <li><strong>转交预算。</strong> 原六道 BBEH 的 Luna low／1,024 token 条件只有三个有效答案、2/6 正确；对全部六题提高到 4,096 后为六个有效答案、4/6 正确。新转交对照两条 Luna 路径均采用 low／4,096，并交替调用顺序。</li>
-<li><strong>四题上下文对照。</strong> 每种 Jev 配置合计 16 次动作判断、4 次 Luna 填参。参数输入从 2,888 降为 1,319 token；完整视图另记录 1,057 缓存写入 token，调用顺序也不同。总墙钟约 13.2 与 12.2 秒，不能单独归因于上下文长度。</li>
-<li><strong>停止指令修订。</strong> 原八题批次 Jev 调用 51 次，后续完整重跑为 40 次；总费约 $0.002751 → $0.002246，每题耗时中位数 3.44 → 2.74 秒。两批均为 7/8，失败题不同；这些是独立运行的观察值。</li>
+<li><strong>四题上下文对照。</strong> 每种 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 配置合计 16 次动作判断、4 次 Luna 填参。参数输入从 2,888 降为 1,319 token；完整视图另记录 1,057 缓存写入 token，调用顺序也不同。总墙钟约 13.2 与 12.2 秒，不能单独归因于上下文长度。</li>
+<li><strong>停止指令修订。</strong> 原八题批次 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a> 调用 51 次，后续完整重跑为 40 次；总费约 $0.002751 → $0.002246，每题耗时中位数 3.44 → 2.74 秒。两批均为 7/8，失败题不同；这些是独立运行的观察值。</li>
 </ul>
 <h2 id="_6">选取案例</h2>
 <p>以下案例用于展示正确选择和具体失败，不是另一个准确率样本。说明文字是编辑摘要；展开部分保留合成测试的原始输入字段、模型输出或工具轨迹。每例标明批次及来源记录，原批和追加批不合并。没有重新运行模型，也没有公开完整私有账本或 benchmark 题目。</p>

@@ -133,3 +133,35 @@ in `draw_diagrams.py` when a diagram changes.
 The build requires a counterpart for each page. English uses the root routes;
 Chinese uses `/zh/`. The top-right language links stay on the corresponding
 article. Shared numeric evidence remains in one aggregate file.
+
+## Glossary
+
+`content/glossary.json` is the shared source for 13 initial bilingual terms,
+their aliases, short definitions, longer explanations and references.
+`glossary.py` generates `/glossary/`, `/glossary/<id>/` and Chinese equivalents,
+with links back to pages where each term is annotated. Edit both language
+records together; do not edit generated glossary HTML.
+
+The build annotates every eligible occurrence, preferring the longest alias
+and respecting Latin word boundaries. Score and Choice are case-sensitive and
+limited to the Jev series; Top-1 is limited to the reranking article. Explicit
+aliases cover metric forms such as `nDCG@10` and `Recall@10`; add other cutoffs
+to the same term when an article uses them. Existing links whose complete label
+matches a term also receive a preview, preserving their original href, styling
+and attributes. Inline emphasis in the label is supported. Longer article-title
+links are not treated as term references. Headings, code,
+quotes, case records, templates and source notes are left intact. Wrap an
+exception in `<span data-no-glossary>...</span>` to suppress annotation.
+
+`assets/glossary.js` adds one shared definition card per page. Mouse hover or
+keyboard focus previews a term; Enter or a normal mouse click follows its link.
+Arrow Down moves focus into the card. The card always links to the local glossary
+entry. Touch opens the card for automatically added term links; authored links
+retain normal navigation on touch as well as mouse clicks and Enter. Escape or
+Close dismisses the card; closing from the card restores focus.
+Modified clicks and JavaScript-disabled browsers retain ordinary links.
+The card and index use the existing dark/light theme. No API or database is
+required, and building does not fetch definitions from the network.
+
+Run `python -m unittest discover -s tests` for annotation and link checks after
+`python build.py`.

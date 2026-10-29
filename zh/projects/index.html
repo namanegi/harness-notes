@@ -3,15 +3,16 @@
 <title>实验笔记 · namanegi</title><meta name="description" content="关于决策、计划与模型协作的研究。">
 <meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
 <link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/projects/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="stylesheet" href="/harness-notes/assets/glossary.css"><script src="/harness-notes/assets/glossary.js" defer></script>
 <link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/projects/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/projects/">
 </head>
 <body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
-<nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
+<nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/glossary/">术语表</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
 <div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/projects/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/projects/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
 <main id="main" class="prose"><h1 id="_1">实验笔记</h1>
 <p>关于决策、计划与模型协作的研究，从单次调用到完整 agent 系统。</p>
 <h2 id="jev-rag">用 Jev 做 RAG 重排</h2>
-<p>更强 embedding 对照区分检索与重排的贡献。结合置信度的阈值在一组语料上有效去噪，在另一组上仍未通过证据保留验收。交互图表展示这些取舍，以及真实文档上的 Jev–Luna 对照。</p>
+<p>更强 <a class="term-link" href="/harness-notes/zh/glossary/embedding/" data-term-href="/harness-notes/zh/glossary/embedding/" data-term-title="Embedding · 向量嵌入" data-term-summary="把内容表示为数值向量。检索可以比较问题与文档向量，寻找可能相关的材料。">embedding</a> 对照区分检索与<a class="term-link" href="/harness-notes/zh/glossary/reranking/" data-term-href="/harness-notes/zh/glossary/reranking/" data-term-title="Reranking · 重排" data-term-summary="对已经召回的候选再次判断相关性并调整次序，让有用证据排得更靠前。">重排</a>的贡献。结合置信度的阈值在一组语料上有效去噪，在另一组上仍未通过证据保留验收。交互图表展示这些取舍，以及真实文档上的 <a class="term-link" href="/harness-notes/zh/glossary/jev/" data-term-href="/harness-notes/zh/glossary/jev/" data-term-title="Jev" data-term-summary="TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。">Jev</a>–Luna 对照。</p>
 <p><a href="/harness-notes/zh/projects/jev-rerank/">阅读重排实验 →</a></p>
 <h2 id="jev">Jev：从一次选择走到任务结束</h2>
 <p>同样的选择接口，背后可能是很不同的能力要求。这个系列先探查边界，再比较替代方案，最后测完整系统。</p>

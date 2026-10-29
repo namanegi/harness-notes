@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>nDCG · 归一化折损累计增益 · namanegi</title><meta name="description" content="衡量排序质量：越相关的结果排得越靠前，得分通常越高。@10 表示只评估前十个位置。">
+<meta name="theme-color" content="#12191e"><script src="/harness-notes/assets/theme.js"></script>
+<link rel="canonical" href="https://namanegi.github.io/harness-notes/zh/glossary/ndcg/"><link rel="stylesheet" href="/harness-notes/assets/style.css">
+<link rel="stylesheet" href="/harness-notes/assets/glossary.css">
+<link rel="alternate" hreflang="en" href="https://namanegi.github.io/harness-notes/glossary/ndcg/"><link rel="alternate" hreflang="zh-CN" href="https://namanegi.github.io/harness-notes/zh/glossary/ndcg/">
+</head>
+<body><a class="skip" href="#main">跳到正文</a><header class="site-header"><a class="brand" href="/harness-notes/zh/">Harness<span>/</span>Notes</a>
+<nav class="main-nav" aria-label="主导航"><a href="/harness-notes/zh/projects/">实验</a><a href="/harness-notes/zh/writing/">随笔</a><a href="/harness-notes/zh/glossary/">术语表</a><a href="/harness-notes/zh/methods/">方法</a><a href="/harness-notes/zh/about/">关于</a></nav>
+<div class="header-controls"><nav class="language-switch" aria-label="Language / 语言"><a href="/harness-notes/glossary/ndcg/" lang="en" hreflang="en">EN</a><span aria-hidden="true">/</span><a href="/harness-notes/zh/glossary/ndcg/" lang="zh-CN" hreflang="zh-CN" aria-current="page">中文</a></nav><button class="theme-toggle" type="button" hidden></button></div></header>
+<main id="main" class="prose"><p class="eyebrow"><a href="/harness-notes/zh/glossary/">术语表</a></p><h1>nDCG · 归一化折损累计增益</h1><p class="term-lede">衡量排序质量：越相关的结果排得越靠前，得分通常越高。@10 表示只评估前十个位置。</p><p>DCG 将各位置的相关性收益相加，越靠后的收益权重越低；nDCG 再除以相同截断位置下理想排序的 DCG。在相关性标签非负且理想分数大于零时，取值为 0 到 1。1 表示达到了理想收益，并非回答正确率为 100%。本站实验计算理想排序时，也包含候选池外已知相关的文档。</p><h2>参考来源</h2><ul><li><a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.ndcg_score.html">scikit-learn：nDCG 定义与参考文献</a></li></ul><h2>相关实验与笔记</h2><ul><li><a href="/harness-notes/zh/projects/jev-rerank/">用 Jev 做 RAG：检索、排序与阈值校准</a></li></ul></main>
+<footer><span>namanegi · Harness Engineering</span><a href="https://github.com/namanegi/harness-notes">GitHub ↗</a></footer></body></html>

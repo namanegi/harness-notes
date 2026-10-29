@@ -2,7 +2,7 @@
 
 <div class="meta">Jev / Retrieval · October 29, 2026 · Retrieval and reranking study</div>
 
-Retrieve more chunks, let **Score order them, then let Noul decide what to keep**. That idea poses three separate questions: did retrieval find the evidence, did ranking promote it, and did filtering accidentally discard it?
+I wanted to try Jev as a reranker for RAG retrieval. I retrieved a larger set of chunks, scored them with Score, then used Noul to decide which ones to keep. The question was whether those two steps could pick out useful evidence from the larger candidate set.
 
 <!-- rerank-flow-diagram -->
 

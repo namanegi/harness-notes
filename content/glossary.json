@@ -1,0 +1,82 @@
+[
+  {
+    "id": "jev", "aliases": ["Jev"],
+    "en": {"title": "Jev", "summary": "TypeSafe's structured decision model, used here to select options, score relevance and make yes/no judgments.", "detail": "In these experiments the surrounding program supplies context, defines the available decisions and executes tools. Jev supplies a decision within that setup. A correct local choice does not establish that the complete agent can finish a task. Model versions and measured costs belong to each experiment, rather than this general definition."},
+    "zh": {"title": "Jev", "summary": "TypeSafe 的结构化决策模型。本站用它选择候选项、评估相关性，以及作出是非判断。", "detail": "在这些实验里，外围程序提供上下文、定义可选决策并执行工具，Jev 在这个范围内给出判断。单次选择正确，不代表完整 agent 就能完成任务。具体模型版本与实测费用以各篇实验记录为准。"},
+    "sources": [{"url": "https://docs.typesafe.ai/primitives/choice", "en": "TypeSafe: structured Choice questions", "zh": "TypeSafe：结构化 Choice 问题"}]
+  },
+  {
+    "id": "choice", "aliases": ["Jev Choice", "Choice"], "case_sensitive": true,
+    "pages": ["jev", "jev-choices", "jev-comparison", "jev-report", "jev-rerank"],
+    "en": {"title": "Jev Choice", "summary": "A TypeSafe question type that selects one option from a defined set, with weights for the candidate options.", "detail": "The caller supplies context, instructions and labeled alternatives. In the workflow experiments, alternatives can represent actions such as searching, reading or answering; the program still performs the action. A returned candidate weight is not, by itself, evidence of calibrated correctness on a new task."},
+    "zh": {"title": "Jev Choice", "summary": "TypeSafe 的一种问题类型：从给定候选中选择一项，并返回候选权重。", "detail": "调用方提供上下文、判断要求和带标签的候选。在工作流实验里，候选可以是搜索、读文档或作答，实际动作仍由程序执行。返回的候选权重，本身不能证明它在新任务上是经过校准的正确概率。"},
+    "sources": [{"url": "https://docs.typesafe.ai/primitives/choice", "en": "TypeSafe: Choice", "zh": "TypeSafe：Choice"}]
+  },
+  {
+    "id": "score", "aliases": ["Jev Score", "Score"], "case_sensitive": true,
+    "pages": ["jev", "jev-choices", "jev-comparison", "jev-report", "jev-rerank"],
+    "en": {"title": "Jev Score", "summary": "A TypeSafe question type that rates content against ordered descriptions. Its score is an expectation over level numbers, not a relevance percentage.", "detail": "The reranking experiment defines four relevance levels numbered 0 through 3. The model's probabilities over those levels produce a possibly fractional score. That score can order candidates, but a value such as 2.3 is neither a 2.3% nor a 76.7% chance that a document answers the question."},
+    "zh": {"title": "Jev Score", "summary": "TypeSafe 按有序描述打分的问题类型。分数是档位编号的概率加权期望，不是相关程度的百分比。", "detail": "本站重排实验定义了从 0 到 3 的四档相关性。各档位的概率加权后，可以得到小数分数，用于候选排序。但例如 2.3 分，既不表示文档有 2.3% 的概率能回答问题，也不能除以 3 后解释为 76.7% 的正确概率。"},
+    "sources": [{"url": "https://docs.typesafe.ai/primitives/score", "en": "TypeSafe: Score", "zh": "TypeSafe：Score"}]
+  },
+  {
+    "id": "noul", "aliases": ["Jev Noul", "Noul"],
+    "en": {"title": "Noul", "summary": "A TypeSafe yes/no question type that returns a probability for yes. A threshold turns the value into a filtering decision.", "detail": "The reranking experiment asks whether a chunk contains useful evidence. A value below the chosen threshold removes the chunk in the filtering condition. The threshold changes the tradeoff between retaining noise and losing evidence; the returned value alone does not establish calibration on this dataset."},
+    "zh": {"title": "Noul", "summary": "TypeSafe 的是非判断类型，返回答案为“是”的概率。程序可设置阈值，把它转成过滤决策。", "detail": "本站重排实验问的是：这个 chunk 是否包含有用证据。在过滤条件下，低于阈值的片段会被删除。阈值改变了保留噪声与误删证据之间的取舍；接口返回一个概率值，并不等于已经验证它在当前数据集上的校准程度。"},
+    "sources": [{"url": "https://docs.typesafe.ai/primitives/noul", "en": "TypeSafe: Noul", "zh": "TypeSafe：Noul"}]
+  },
+  {
+    "id": "rag", "aliases": ["RAG", "retrieval-augmented generation", "检索增强生成"],
+    "en": {"title": "RAG · Retrieval-augmented generation", "summary": "Retrieve relevant material and provide it to a model as context for generating an answer.", "detail": "A typical pipeline retrieves candidates, optionally reranks or filters them, and then generates an answer from selected evidence. The Jev reranking study evaluates retrieval and ordering only. Better retrieval metrics do not directly establish that generated answers are more accurate."},
+    "zh": {"title": "RAG · 检索增强生成", "summary": "先检索相关资料，再把资料作为上下文交给模型生成回答。", "detail": "常见流程是召回候选、按需重排或过滤，再依据选出的证据生成回答。本站 Jev 重排实验只评估检索与排序部分。检索指标变好，并不能直接证明生成回答也更准确。"},
+    "sources": [{"url": "https://arxiv.org/abs/2005.11401", "en": "Lewis et al.: Retrieval-Augmented Generation", "zh": "Lewis 等：Retrieval-Augmented Generation 原始论文"}]
+  },
+  {
+    "id": "reranking", "aliases": ["reranking", "reranker", "rerankers", "重排序", "重排"],
+    "en": {"title": "Reranking", "summary": "Reorder an already retrieved candidate set using another relevance judgment, so useful evidence appears earlier.", "detail": "A reranker can promote a useful candidate that the first retriever placed too low. It cannot recover a document absent from its candidate set. Removing candidates is an additional filtering operation, with a separate risk of deleting relevant evidence."},
+    "zh": {"title": "Reranking · 重排", "summary": "对已经召回的候选再次判断相关性并调整次序，让有用证据排得更靠前。", "detail": "重排能把初次检索排得较低的有用候选提上来，但找不回根本没进入候选池的文档。删除候选是额外的过滤步骤，需要单独评估误删相关证据的风险。"},
+    "sources": [{"url": "https://sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html", "en": "Sentence Transformers: Retrieve & Re-Rank", "zh": "Sentence Transformers：检索与重排"}]
+  },
+  {
+    "id": "embedding", "aliases": ["embedding", "embeddings", "向量嵌入"],
+    "en": {"title": "Embedding", "summary": "A numerical vector representation of content. Retrieval can compare query and document vectors to find likely relevant material.", "detail": "The reranking study starts with cosine similarity between query and chunk embeddings. Similarity is a way to retrieve candidates, not proof that a chunk contains the facts needed to answer. Embedding cost is included in that study's complete experiment total."},
+    "zh": {"title": "Embedding · 向量嵌入", "summary": "把内容表示为数值向量。检索可以比较问题与文档向量，寻找可能相关的材料。", "detail": "本站重排实验先计算问题和片段向量的余弦相似度。相似度用于寻找候选，不能证明片段一定包含回答所需事实。该实验的整组费用包含生成 embedding 的成本。"},
+    "sources": [{"url": "https://sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html", "en": "Sentence Transformers: vector retrieval", "zh": "Sentence Transformers：向量检索"}]
+  },
+  {
+    "id": "chunk", "aliases": ["chunk", "chunks", "文档分块"],
+    "en": {"title": "Chunk", "summary": "A piece of a document treated as one retrieval unit. Its boundaries affect which evidence arrives together.", "detail": "A chunk may contain a paragraph or several paragraphs rather than the complete source. Splitting a rule from its exception can leave a retrieved chunk incomplete. In the real-document study, chapter-based reference labels are deliberately distinguished from exhaustive chunk-level relevance judgments."},
+    "zh": {"title": "Chunk · 文档片段", "summary": "从文档切出的一个检索单元。分块边界会影响哪些证据能一起进入上下文。", "detail": "一个 chunk 可以是一段或几段文字，并不等于完整原文。如果规则和例外被切开，检索到的片段可能缺少必要条件。本站真实文档实验使用章节级参考标签，并明确区分了这种标签与逐片段的完整相关性标注。"},
+    "sources": [{"url": "https://sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html", "en": "Sentence Transformers: paragraph retrieval example", "zh": "Sentence Transformers：按段落检索示例"}]
+  },
+  {
+    "id": "ndcg", "aliases": ["nDCG@10", "nDCG@k", "nDCG", "归一化折损累计增益"],
+    "en": {"title": "nDCG · Normalized discounted cumulative gain", "summary": "A ranking metric that rewards putting more relevant results earlier. The @10 suffix evaluates the first ten positions.", "detail": "DCG adds relevance gains with smaller weights at later ranks; nDCG divides by the ideal ranking's DCG at the same cutoff. With nonnegative relevance labels and a positive ideal score it ranges from 0 to 1. A score of 1 matches the ideal gain, not 100% answer accuracy. The site's experiment includes known relevant documents outside the retrieved pool when calculating the ideal ranking."},
+    "zh": {"title": "nDCG · 归一化折损累计增益", "summary": "衡量排序质量：越相关的结果排得越靠前，得分通常越高。@10 表示只评估前十个位置。", "detail": "DCG 将各位置的相关性收益相加，越靠后的收益权重越低；nDCG 再除以相同截断位置下理想排序的 DCG。在相关性标签非负且理想分数大于零时，取值为 0 到 1。1 表示达到了理想收益，并非回答正确率为 100%。本站实验计算理想排序时，也包含候选池外已知相关的文档。"},
+    "sources": [{"url": "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.ndcg_score.html", "en": "scikit-learn: nDCG definition and references", "zh": "scikit-learn：nDCG 定义与参考文献"}]
+  },
+  {
+    "id": "precision", "aliases": ["P@10", "P@k", "Precision@10", "precision", "精确率", "查准率"],
+    "en": {"title": "Precision · P@k", "summary": "How much of the returned material is relevant. In this site's P@10 metric, the denominator stays ten even if fewer results are returned.", "detail": "If three of the top ten results are relevant, P@10 is 3/10 = 0.3. In the filtering experiment, keeping only those same three relevant documents still gives 0.3 with this fixed denominator. Precision among the surviving documents would instead be 3/3; that is a different measure."},
+    "zh": {"title": "Precision · 精确率", "summary": "返回的材料中有多少是相关的。本站 P@10 固定用十作分母，即使最后不足十条也不变。", "detail": "如果前十条中有三条相关，P@10 就是 3/10 = 0.3。在过滤实验里，即使最后只保留这三条相关文档，固定分母下仍为 0.3。如果改算幸存文档中的相关比例，会得到 3/3；那是另一个指标。"},
+    "sources": [{"url": "https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-unranked-retrieval-sets-1.html", "en": "Introduction to Information Retrieval: precision and recall", "zh": "《信息检索导论》：精确率与召回率"}]
+  },
+  {
+    "id": "recall", "aliases": ["Recall@10", "Recall@k", "recall", "召回率", "查全率"],
+    "en": {"title": "Recall · Recall@k", "summary": "The fraction of known relevant documents that retrieval finds. Recall@10 counts relevant documents in the first ten results.", "detail": "If a query has five known relevant documents and the first ten results include two, Recall@10 is 2/5 = 0.4. Reordering the same ten documents cannot change this value. The denominator depends on the evaluation collection and its relevance labels; it does not represent all useful information on the web."},
+    "zh": {"title": "Recall · 召回率", "summary": "已知相关文档中，有多少被找回来。Recall@10 只统计前十个结果中找回的相关文档。", "detail": "如果一个问题有五篇已知相关文档，前十条结果找回两篇，Recall@10 就是 2/5 = 0.4。只改变这十条的次序，数值不会变化。分母由评测集合和相关性标签决定，并不代表互联网上所有有用资料。"},
+    "sources": [{"url": "https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-unranked-retrieval-sets-1.html", "en": "Introduction to Information Retrieval: precision and recall", "zh": "《信息检索导论》：精确率与召回率"}]
+  },
+  {
+    "id": "top-1", "aliases": ["Top-1"], "pages": ["jev-rerank"],
+    "en": {"title": "Top-1 · First-result relevance", "summary": "In the reranking study, the fraction of queries whose first result is labeled relevant.", "detail": "Each query contributes a hit if its first result is relevant, and a miss otherwise, including when filtering leaves no result. A query with ten relevant documents still contributes at most one hit. Elsewhere, top-1 may mean classification accuracy; this glossary entry describes the retrieval metric used in the study."},
+    "zh": {"title": "Top-1 · 首位相关率", "summary": "在本站重排实验中，排名第一的结果被标为相关的问题，占全部问题的比例。", "detail": "每个问题只看第一条是否相关；过滤后没有结果也记作未命中。即使一个问题有十篇相关文档，也最多贡献一次命中。其他语境里的 top-1 可能指分类准确率，这个词条解释的是该检索实验中的定义。"},
+    "sources": []
+  },
+  {
+    "id": "react", "aliases": ["ReAct"], "case_sensitive": true,
+    "en": {"title": "ReAct", "summary": "An approach that interleaves reasoning with actions, using observations from the environment to inform the next step.", "detail": "An agent can reason about missing evidence, call a tool and then update its next action from the returned observation. The Jev series uses 'ReAct-style' for this feedback-driven pattern. Replacing one decision within the loop does not replace the surrounding tool execution or stopping logic."},
+    "zh": {"title": "ReAct", "summary": "将推理与行动交替进行，并利用环境返回的观察来决定下一步。", "detail": "Agent 可以先判断缺少什么证据，再调用工具，根据返回结果调整下一步。本站 Jev 系列用“ReAct 式”描述这种依据反馈逐步行动的方式。替换循环中的一个决策点，并不等于替换工具执行与停止逻辑。"},
+    "sources": [{"url": "https://react-lm.github.io/", "en": "Yao et al.: ReAct", "zh": "Yao 等：ReAct 原始研究"}]
+  }
+]
