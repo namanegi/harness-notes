@@ -15,7 +15,10 @@
   `calibration-v2.json` (original-pool exploratory confidence-aware calibration),
   and `rerank-review-accounting.json` (version-separated usage costs).
   Native HTML/SVG explorers render these local measured aggregates without
-  third-party client libraries. Original Matplotlib figures and first-version
+  third-party client libraries. A static common-scale key figure is built from
+  the same aggregates, and an original sketch-style flow diagram explains the
+  compared policies. Both are rendered into HTML without client-side scripts.
+  Original Matplotlib figures and first-version
   article downloads remain archival evidence, not the current interactive UI.
 
 - **Compile, Then Act?**: published source at commit
