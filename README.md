@@ -31,6 +31,11 @@ The separate `/projects/jev-rerank/` article reports the October 2026 RAG
 reranking experiment, with versioned aggregates and bilingual interactive SVG explorers.
 The explorers read local JSON, support keyboard/touch and exact tables, and keep
 authored fallback content when JavaScript or data loading is unavailable.
+The article opens with a static sketch-style design diagram and a static key
+result figure. `rerank_flow_diagram.py` renders the compared pipelines;
+`rerank_key_visual.py` builds the common-scale result bars directly from the
+reviewed public aggregates. Both are included in the generated HTML and require
+no JavaScript. Detailed explorers follow these introductory figures.
 The theme defaults to dark and saves an explicit light/dark choice locally;
 with JavaScript disabled the site remains readable in dark mode.
 

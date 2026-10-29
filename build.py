@@ -4,6 +4,8 @@ from html import escape
 import json
 import markdown
 from case_previews import CasePreviews
+from rerank_key_visual import render_key_visual
+from rerank_flow_diagram import render_flow_diagram
 
 ROOT = Path(__file__).parent
 BASE = '/harness-notes/'
@@ -40,12 +42,15 @@ for language, prefix in [('en', ''), ('zh-CN', 'zh/')]:
     source = ROOT/'content'/prefix/f'{name}.md'
     body = markdown.markdown(source.read_text(encoding='utf-8'), extensions=['tables','fenced_code','toc','md_in_html'])
     body = body.replace('href="@/assets/', f'href="{BASE}assets/').replace('href="@/', f'href="{local_base}')
+    if name == 'jev-rerank':
+        body = body.replace('<!-- rerank-flow-diagram -->', render_flow_diagram(language))
+        body = body.replace('<!-- rerank-key-visual -->', render_key_visual(ROOT, language))
     body, has_cases, has_previews = CASES.render(body, language, local_base)
     case_assets = f'<link rel="stylesheet" href="{BASE}assets/cases.css">' if has_cases else ''
     if has_previews:
         case_assets += f'<script src="{BASE}assets/cases.js" defer></script>'
     if name == 'jev-rerank':
-        case_assets += f'<link rel="stylesheet" href="{BASE}assets/rerank-explorer.css"><script src="{BASE}assets/rerank-explorer.js" defer></script>'
+        case_assets += f'<link rel="stylesheet" href="{BASE}assets/rerank-flow.css"><link rel="stylesheet" href="{BASE}assets/rerank-key-visual.css"><link rel="stylesheet" href="{BASE}assets/rerank-explorer.css"><script src="{BASE}assets/rerank-explorer.js" defer></script>'
     nav = ''.join(f'<a href="{local_base}{path}/">{label}</a>' for path, label in zip(['projects','writing','methods','about'], labels))
     en_current = ' aria-current="page"' if language == 'en' else ''
     zh_current = ' aria-current="page"' if language == 'zh-CN' else ''

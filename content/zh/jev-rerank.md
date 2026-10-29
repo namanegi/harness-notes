@@ -1,46 +1,44 @@
 # 用 Jev 做 RAG：检索、排序与阈值校准
 
-<div class="meta">Jev / Retrieval · 2026 年 10 月 29 日 · 实验复查版</div>
+<div class="meta">Jev / Retrieval · 2026 年 10 月 29 日 · 检索与重排实验</div>
 
 先多检索一些 chunk，让 **Score 决定顺序，再让 Noul 判断是否保留**。这个思路值得试，但需要分别回答三个问题：相关证据有没有被搜到？有没有排到前面？过滤器有没有误删它？
 
-第一版验证了排序收益，却把一个较弱的 embedding 和一个偏向“不过滤”的阈值目标放在一起。这次增加更强 embedding 对照、提示语言对照，以及利用 Score 分布和置信度的离线校准。下面的图可以切换数据集、指标和策略，展开表格查看精确数值。
+<!-- rerank-flow-diagram -->
 
-<div class="rerank-summary">
-<div><strong>先核对召回</strong><span>换 embedding，重新检索，再在新候选池上重排。</span></div>
-<div><strong>再校准过滤</strong><span>显式约束证据损失，再最大化噪声剔除率。</span></div>
-<div><strong>最后验证迁移</strong><span>开发集上的好阈值，未必能通过保留集。</span></div>
-</div>
+<!-- rerank-key-visual -->
 
-## 1 · 平线不代表检索器没有区别
+结果图拆开了两个收益来源：换更强的 embedding，以及在 large 候选池上加 JEV Score。日语 JQaRA 与英语 SciFact 分别检验这两个收益；交互图表提供各指标和策略的细节。
 
-原图横轴是候选数 10 / 30 / 50，纵轴却是固定的 nDCG@10。它们来自同一排名的前缀，所以向量排序的前十始终相同，基线自然是一条平线。**候选召回率随 N 增长，最终前十的排序质量是另一个指标。** 现在把它们分开显示。
+## 1 · 检索与重排，各贡献多少？
+
+把候选数从 10 扩大到 30、50，可以让重排器看到更多证据。它们来自同一向量排名的前缀，因此直接取前十的向量基线保持不变。**候选召回率随 N 增长，最终前十的排序质量是另一个指标。** 图中可分别查看这两种指标。
 
 <div class="rerank-explorer" data-rerank-panel="retrieval" data-evidence="/harness-notes/assets/jev-rerank-evidence.json" data-baseline="/harness-notes/assets/baseline-v2.json">
-<div data-rerank-fallback>原始 small 基线：JQaRA 候选 Recall@10 / 30 / 50 为 0.3098 / 0.5711 / 0.7492；SciFact 为 0.7975 / 0.8375 / 0.9000。候选 50 时，Score 的 nDCG@10 分别为 0.7881 和 0.7755。完整数据见文末下载。</div>
+<div data-rerank-fallback>small 基线：JQaRA 候选 Recall@10 / 30 / 50 为 0.3098 / 0.5711 / 0.7492；SciFact 为 0.7975 / 0.8375 / 0.9000。候选 50 时，Score 的 nDCG@10 分别为 0.7881 和 0.7755。完整数据见文末下载。</div>
 </div>
 
-**更强 embedding 确实提高了日语基线。** JQaRA 的向量 nDCG@10 从 0.3726 到 0.5382，候选 Recall@50 从 74.9% 到 85.0%；新池上的 Score 达到 0.8252。相对于 large 向量的排序增益为 +0.2870，配对 95% 区间 [+0.2346, +0.3420]。第一版低估了检索基线，但重排收益仍然存在。
+**更强 embedding 确实提高了日语基线。** JQaRA 的向量 nDCG@10 从 0.3726 到 0.5382，候选 Recall@50 从 74.9% 到 85.0%；large 池上的 Score 达到 0.8252。相对于 large 向量的排序增益为 +0.2870，配对 95% 区间 [+0.2346, +0.3420]。这说明收益并不完全依赖较弱的 small 检索基线。
 
 SciFact 的 large 向量为 0.7402，Score 为 0.8010；增益 +0.0608 的区间 [−0.0026, +0.1247] 跨过零，这批样本不足以确认英语组在更强基线上的收益。图表中的 embedding 切换会同时更换候选池和所有重排曲线，避免跨池比较。
 
-换模型时保持原问题、文档、划分、精确余弦搜索和打分规则不变；`text-embedding-3-small` 使用 1,536 维，`text-embedding-3-large` 使用原生 3,072 维。新的 top-50 候选全部重新跑 Score 和 Noul。这里检验的是整个 embedding 配置的变化，不能单独归因于参数量或维度。
+换模型时保持原问题、文档、划分、精确余弦搜索和打分规则不变；`text-embedding-3-small` 使用 1,536 维，`text-embedding-3-large` 使用原生 3,072 维。large 的 top-50 候选全部独立运行 Score 和 Noul。这里检验的是整个 embedding 配置的变化，不能单独归因于参数量或维度。
 
 提示语言也做了一个小对照：8 条日语开发问题、同样的 10 个候选，用英文规则和人工翻译的日文规则分别新跑。Score 的平均绝对变化为 0.0601，Noul 为 0.0316，但这 8 条问题的 nDCG 都没有变化。这仅检验提示语言，不能排除问题改写、任务专用规则或其他 embedding 的改进空间。
 
-## 2 · 把“阈值失败”改成可检验的校准问题
+## 2 · 按证据保留约束校准过滤
 
-第一版按“最大化 nDCG、保留至少 95% 相关候选”选择阈值，同分时偏向更低阈值。这很容易选中 0：排在十名之外的噪声不会影响 nDCG，删掉它也得不到奖励。**这并不能说明过滤没有价值。**
+阈值选择取决于优化目标。按“最大化 nDCG、保留至少 95% 相关候选”选择阈值，同分时偏向更低阈值，各开发集都选中了 0。排在十名之外的噪声不会影响 nDCG，删掉它也得不到奖励，因此**排序目标本身未必能衡量过滤的价值**。
 
-第二版直接优化噪声剔除率，同时要求开发集相关候选保留率 ≥95%，nDCG@10 下降不超过 0.005。除了细网格和观测到的 Noul 概率边界，还测试联合规则：只有 Noul 低、Score 的高相关等级概率质量低于拟合边界，而且 Score 判断足够确定时，才拒绝一个 chunk。
+另一种目标是直接优化噪声剔除率，同时要求开发集相关候选保留率 ≥95%，nDCG@10 下降不超过 0.005。除了细网格和观测到的 Noul 概率边界，还测试联合规则：只有 Noul 低、Score 的高相关等级概率质量低于拟合边界，而且 Score 判断足够确定时，才拒绝一个 chunk。
 
 <div class="rerank-explorer" data-rerank-panel="threshold" data-rerank-view="v2" data-evidence="/harness-notes/assets/jev-rerank-evidence.json" data-calibration="/harness-notes/assets/calibration-v2.json">
-<div data-rerank-fallback>原始 small 候选池上的冻结策略：SciFact 联合规则保留 87/87 个相关候选，删掉 42.65% 标注噪声；JQaRA 新阈值保留 539/576（93.58%），没有达到 95% 测试目标。Python 文档组仅保留 20/30，不能推广。</div>
+<div data-rerank-fallback>small 候选池上的冻结策略：SciFact 联合规则保留 87/87 个相关候选，删掉 42.65% 标注噪声；JQaRA 噪声目标阈值保留 539/576（93.58%），没有达到 95% 测试目标。Python 文档组仅保留 20/30，不能推广。</div>
 </div>
 
-**SciFact 给出了一个可行例子，日语组则说明为什么还需要验收。** 在原始 small 候选池上，SciFact 联合规则仅在 `Noul ≤ 0.02`、`P(Score≥2) < 1`、`Score confidence ≥ 0.65` 时拒绝候选。它删除 42.65% 标注噪声，保留测试中检索到的 87/87 个相关候选，nDCG 维持 0.7755，零空结果。熵条件在这个选中策略中不起额外限制作用。
+**SciFact 给出了一个可行例子，日语组则说明为什么还需要验收。** 在 small 候选池上，SciFact 联合规则仅在 `Noul ≤ 0.02`、`P(Score≥2) < 1`、`Score confidence ≥ 0.65` 时拒绝候选。它删除 42.65% 标注噪声，保留测试中检索到的 87/87 个相关候选，nDCG 维持 0.7755，零空结果。熵条件在这个选中策略中不起额外限制作用。
 
-JQaRA 选择的 Noul 边界为 0.14；测试保留率只有 93.58%，nDCG 从 0.7881 降到 0.7750，仍未达到目标。Python 文档组只有 4 条开发问题，选出的 0.89 边界过拟合更明显。这些阈值都在看本轮测试结果前由开发集冻结，但第一版测试结果此前已经看过，因此是**探索性复查，不是新的盲测**。上面的校准也不能直接搬到 large 候选池。
+JQaRA 选择的 Noul 边界为 0.14；测试保留率只有 93.58%，nDCG 从 0.7881 降到 0.7750，仍未达到目标。Python 文档组只有 4 条开发问题，选出的 0.89 边界过拟合更明显。阈值由开发集拟合并冻结，再在测试集上评估。但这些测试样本的排序结果已在校准研究前被观察，因此这里是**复用已有测试集的探索性分析，不能视为独立盲测**。上面的校准也不能直接搬到 large 候选池。
 
 模型返回的概率和 confidence 是决策特征，并不自动等于现实中的正确率。87/87 是这批观测的结果；即使重采样区间也是 100%，也不能证明未来不会误删。
 
@@ -70,7 +68,7 @@ Luna 的 nDCG 优势只有 0.0034，配对 95% 区间为 [−0.0382, +0.0533]，
 
 耗时是客户端流水线观测：Jev 每查询 4 个批量请求、最多 4 查询并发；Luna 每查询 50 个请求、8 文档并发、一次一个查询。它不是隔离后的模型推理速度。两条恢复运行的 Luna 查询排除在耗时分布之外，仍计入质量和成本。
 
-第一版花费 $0.5932；本次新增 large embedding $0.4927、新池重排 $0.3949、提示语言对照 $0.0071。**累计 $1.4879**，低于 $3 总预算。离线校准没有新增 API 费用；3,313 个请求均有已核对费用，无悬而未决的计费预留。
+small 检索及 Jev–Luna 对照花费 $0.5932；large embedding 花费 $0.4927，large 池重排 $0.3949，提示语言对照 $0.0071。**累计 $1.4879**，低于 $3 总预算。离线校准没有新增 API 费用；3,313 个请求均有已核对费用，无悬而未决的计费预留。
 
 <details class="source-note" markdown="1"><summary>方法、数据范围与可复核证据</summary>
 
@@ -84,12 +82,12 @@ Luna 的 nDCG 优势只有 0.0034，配对 95% 区间为 [−0.0382, +0.0533]，
 
 [Score](https://docs.typesafe.ai/primitives/score) 四级为无关、仅主题相关、部分有用、直接有用；分数是等级分布期望。[Noul](https://docs.typesafe.ai/primitives/noul) 判断是否包含有用证据。每请求 25 个独立文档问题，共享状态只有查询；不发送标准答案、标签或候选 ID。先对全部候选做 Score，再做 Noul，按 Score 排序、同分保持检索顺序；拒绝后不回填。Jev 实际版本为 `typesafe/jev-1.14-20261014`。
 
-图中 nDCG 与 Recall 使用完整已知相关集合；P@10 分母固定为十，实际返回项精度使用返回数，空结果计零。候选召回发生在过滤之前。原始质量差的区间使用 5,000 次按查询重采样；校准分析用 3,000 次。区间不涵盖提示词、模型版本或重复运行的不确定性。联合策略在仅 16 条开发查询上搜索数万组合，有过拟合风险；生产验收需要新的更大窗口。
+图中 nDCG 与 Recall 使用完整已知相关集合；P@10 分母固定为十，实际返回项精度使用返回数，空结果计零。候选召回发生在过滤之前。排序质量差的区间使用 5,000 次按查询重采样；校准分析用 3,000 次。区间不涵盖提示词、模型版本或重复运行的不确定性。联合策略在仅 16 条开发查询上搜索数万组合，有过拟合风险；生产验收需要新的更大窗口。
 
 文档弱标签的具体例子：`try` 的 `else` 说明在 [Handling Exceptions](https://docs.python.org/3.12/tutorial/errors.html#handling-exceptions) 后部，但该章节前两块也被标为正例。Jev 给它们 0.95 / 0.87 分、Noul 0.11 / 0.06，Luna 都给 0 / false；删掉它们不一定是模型错误。另一个[函数调用案例](https://docs.python.org/3.12/tutorial/controlflow.html#function-examples)得到 Jev 2.23 / 0.70 与 Luna 0 / false，体现主题关联与直接证据的分歧。保留原标签，未根据模型输出事后修改。
 
 Luna 客户端曾修正 `error: null` 和 commentary/final-answer 解析，复用已保存响应，没有付费重试。API 报告的 Jev 成本与按 token 估算的 OpenAI 成本不是账单对账。
 
-下载：[原始完整汇总](@/assets/jev-rerank-evidence.json) · [embedding 对照](@/assets/baseline-v2.json) · [提示语言对照](@/assets/prompt-probe-v2.json) · [校准曲线与分布](@/assets/calibration-v2.json) · [费用复核](@/assets/rerank-review-accounting.json) · [第一版原文](@/assets/jev-rerank-v1-zh.md)。公开文件不包含原始问题、文档或完整 API 返回。原协议在 `085fe4d` 冻结，新实验单独版本化，原结果不覆盖。
+下载：[基准实验汇总](@/assets/jev-rerank-evidence.json) · [embedding 对照](@/assets/baseline-v2.json) · [提示语言对照](@/assets/prompt-probe-v2.json) · [校准曲线与分布](@/assets/calibration-v2.json) · [费用复核](@/assets/rerank-review-accounting.json)。公开文件不包含原始问题、文档或完整 API 返回。基础协议在 `085fe4d` 冻结；embedding 对照与校准实验分别记录配置和结果，以便复核。
 
 </details>

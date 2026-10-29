@@ -8,7 +8,7 @@
   const zh = document.documentElement.lang.toLowerCase().startsWith('zh');
   const t = (en, cn) => zh ? cn : en;
   const names = {jqara: 'JQaRA', scifact: 'SciFact', python_docs: t('Python docs', 'Python 文档')};
-  const methodNames = {vector: t('Vector', '向量排序'), score: 'Jev Score', noul: t('Noul ordering', 'Noul 排序'), score_noul_fixed05: t('Score + filter ≥ 0.5', 'Score + 过滤 ≥ 0.5'), score_noul: t('Dev-selected policy', '开发集所选策略'), luna: 'GPT-6 Luna'};
+  const methodNames = {vector: t('Vector', '向量排序'), score: 'Jev Score', noul: t('Noul ordering', 'Noul 排序'), score_noul_fixed05: t('Score + filter ≥ 0.5', 'Score + 过滤 ≥ 0.5'), score_noul: t('Ranking-objective gate', '排序目标过滤'), luna: 'GPT-6 Luna'};
   const methodColor = {vector: 'vector', score: 'score', noul: 'noul', score_noul_fixed05: 'filter', score_noul: 'filter', luna: 'luna'};
   const metrics = {ndcg10: 'nDCG@10', recall10: 'Recall@10', precision10: 'P@10', candidate_recall: t('Candidate recall@N', '候选召回率@N')};
   const num = (value, digits = 4) => Number.isFinite(value) ? value.toFixed(digits) : '—';
@@ -165,7 +165,7 @@
       const vector = rowAt(depth, 'vector'), score = rowAt(depth, 'score');
       panel.append(stats([[t('Candidate recall@N', '候选召回率@N'), pct(vector.candidate_recall), `N=${depth} · ${t('before reranking', '重排前')}`], ['Jev Score nDCG@10', num(score.ndcg10), t('fixed output depth 10', '固定输出深度 10')], [t('Gain over vector', '比向量排序提升'), signed(score.ndcg10 - vector.ndcg10), t('paired mean nDCG@10', '配对平均 nDCG@10')]]));
       panel.append(note(candidateOnly ? t('Candidate recall counts known relevant documents anywhere in the N retrieved candidates. It is shared by every method; it is not Recall@10 after reranking.', '候选召回率统计 N 个候选中找回的已知相关文档，各方法共享同一候选池；它不是重排后的 Recall@10。') : t('Why is the vector line flat? N=10, 30 and 50 are prefixes of one saved ranking. Taking its first ten returns the same ten documents. Reranking can promote candidates from positions 11–N.', '向量基线为何是平线？N=10、30、50 来自同一份缓存排序的前缀，取前十始终相同；重排可以把第 11–N 位候选提到前面。')));
-      panel.append(note(embedding === 'small' ? t('The original development-selected Score + Noul policy selects threshold 0.0 and overlaps Score. Both calls still incur cost. JQaRA searches official per-query pools; Python uses weaker section labels.', '原始开发集所选 Score + Noul 阈值为 0.0，与 Score 重合，但仍支付两轮费用。JQaRA 仅搜索官方逐题候选池；Python 使用较弱的章节标签。') : t(`All displayed methods inspect the same large-embedding shortlist. The combined gate uses its own development-selected threshold ${num(followup.large_threshold?.selected, 2)}. This follow-up is separate from the original small-embedding experiment.`, `当前各方法均使用相同的 large embedding 候选池。组合过滤使用独立开发集选择的阈值 ${num(followup.large_threshold?.selected, 2)}。这是独立于原始 small embedding 实验的后续评估。`)));
+      panel.append(note(embedding === 'small' ? t('On the small-embedding pool, the ranking objective selects a Score + Noul threshold of 0.0, so it overlaps Score. Both calls still incur cost. JQaRA searches official per-query pools; Python uses weaker section labels.', '在 small embedding 候选池上，排序目标选出的 Score + Noul 阈值为 0.0，因此与 Score 重合，但仍支付两轮费用。JQaRA 仅搜索官方逐题候选池；Python 使用较弱的章节标签。') : t(`All displayed methods inspect the same large-embedding shortlist. The ranking-objective gate uses threshold ${num(followup.large_threshold?.selected, 2)}, fitted on development candidates from that pool. Threshold selection is performed separately for small and large pools.`, `当前各方法均使用相同的 large embedding 候选池。排序目标过滤的阈值为 ${num(followup.large_threshold?.selected, 2)}，由该池的开发集候选拟合。small 与 large 候选池分别选择阈值。`)));
       panel.append(exactTable([t('Method / pool', '方法 / 候选池'), 'N', 'nDCG@10', 'Recall@10', 'P@10', t('Candidate recall', '候选召回率')], depths.flatMap(n => methods.map(key => ({key, row: rowAt(n, key)})).filter(p => p.row).map(({key, row: r}) => [seriesName(key), r.depth, num(r.ndcg10), num(r.recall10), num(r.precision10), num(r.candidate_recall)]))));
       if (extras.baseline) renderBaseline(panel, extras.baseline, dataset);
       restoreControl(panel, focus);
@@ -189,7 +189,7 @@
     if (!rows.length && d.status !== 'pending') return;
     const block = el('div', 'rx-baseline-note');
     const complete = [10, 30, 50].every(n => ['vector', 'score', 'noul', 'score_noul'].every(key => d.aggregate.some(r => r.split === 'test' && r.embedding === 'text-embedding-3-large' && r.depth === n && r.method === key)));
-    block.append(note(complete ? t('Switch embedding pools to compare each vector baseline with Jev on its own shortlist. Large-pool Jev scores are newly measured; small-pool judgments are never reused for the new candidates.', '切换 embedding 候选池，分别比较各自向量基线与同池 Jev。large 候选池的 Jev 分数为新测量，未把 small 候选池的判断用于新候选。') : t('The large-embedding follow-up is pending. Its chart appears after the vector and all reranker methods complete; no estimated or partial comparison is plotted.', 'large embedding 后续实验尚未完成；向量与全部重排方法完成后才显示对应图表，不绘制估计值或未完成对比。')));
+    block.append(note(complete ? t('Switch embedding pools to compare each vector baseline with Jev on its own shortlist. Jev judgments are measured separately on each pool; small-pool judgments are not substituted for large-pool candidates.', '切换 embedding 候选池，分别比较各自向量基线与同池 Jev。每个池分别测量 Jev 判断，不用 small 候选池的判断代替 large 候选的判断。') : t('Large-embedding measurements are pending. Its chart appears after the vector and all reranker methods complete; no estimated or partial comparison is plotted.', 'large embedding 测量尚未完成；向量与全部重排方法完成后才显示对应图表，不绘制估计值或未完成对比。')));
     const ci = d.large_vs_small_test_vector_ndcg10;
     if (ci) block.append(note(t(`Large − small vector nDCG@10: ${signed(ci.mean_delta)}; paired 95% CI [${signed(ci.ci95[0])}, ${signed(ci.ci95[1])}].`, `large − small 向量 nDCG@10：${signed(ci.mean_delta)}；配对 95% 区间 [${signed(ci.ci95[0])}, ${signed(ci.ci95[1])}]。`)));
     panel.append(block);
@@ -202,8 +202,8 @@
       const d = data.datasets[dataset];
       heading(panel, t('02 / Keep evidence, remove noise', '02 / 保留证据，移除噪声'), t('Calibrate rejection, preserve evidence', '校准过滤，保留证据'), mode === 'dev' ? `${d.dev_n} ${t('dev queries', '开发题')}` : `${d.test_n} ${t('test queries', '测试题')}`);
       const controls = el('div', 'rx-controls');
-      const modes = [['dev', t('Original development · calibration', '原始开发集 · 校准')], ['test', t('Original test · frozen policies', '原始测试集 · 固定策略')]];
-      if (extras.calibration?.datasets?.[dataset]?.test) modes.push(['v2', t('Follow-up v2 · offline inspection', '后续 v2 · 离线检查')]);
+      const modes = [['dev', t('Ranking objective · development', '排序目标 · 开发集')], ['test', t('Ranking objective · test policies', '排序目标 · 测试策略')]];
+      if (extras.calibration?.datasets?.[dataset]?.test) modes.push(['v2', t('Noise-rejection objective · test', '噪声剔除目标 · 测试集')]);
       append(controls, datasetSelect(data, dataset, value => { dataset = value; trialIndex = 0; draw('dataset'); }), selectControl(t('Evidence view', '证据视图'), modes, mode, value => { mode = value; draw('metric'); }));
       panel.append(controls);
       if (mode === 'dev') drawDev(d); else if (mode === 'v2') renderCalibration(panel, extras.calibration, dataset); else drawTest(d);
@@ -260,10 +260,10 @@
   function renderCalibration(panel, calibration, dataset) {
     const d = calibration.datasets?.[dataset];
     if (!d?.test?.['50']) return;
-    const labels = {no_gate: t('No gate', '不过滤'), original_dev: t('Original dev choice', '原始开发集选择'), fixed_05: t('Fixed 0.5', '固定 0.5'), v2_noul: t('v2 · Noul only', 'v2 · 仅 Noul'), v2_joint: t('v2 · joint gate', 'v2 · 联合过滤')};
+    const labels = {no_gate: t('No gate', '不过滤'), original_dev: t('Ranking objective · Noul gate', '排序目标 · Noul 过滤'), fixed_05: t('Fixed 0.5', '固定 0.5'), v2_noul: t('Noise-rejection objective · Noul gate', '噪声剔除目标 · Noul 过滤'), v2_joint: t('Noise-rejection objective · joint gate', '噪声剔除目标 · 联合过滤')};
     let selected = 'v2_joint', feature = 'noul', split = 'dev';
     panel.append(el('div', 'rx-callout rx-caution', t('Exploratory offline reanalysis of an already observed test cohort. Thresholds are fitted on development labels, but this is not a fresh confirmatory test. Use it to inspect transfer and failure, not to pick a test-optimal gate.', '这是对已观察测试样本的探索性离线再分析。阈值使用开发标签拟合，但不是一次新的确认性测试；它用于检查迁移与失败，不能用来挑选测试集最优过滤器。')));
-    panel.append(note(t('v2 development objective: maximize noise rejection while retaining ≥95% of relevant candidates and keeping nDCG@10 within 0.005 of ungated Score. These are development constraints, not test guarantees.', 'v2 开发集目标：在相关候选保留率 ≥95%、nDCG@10 比不过滤 Score 下降不超过 0.005 的约束下，最大化噪声拒绝率。这些是开发集约束，不是测试集保证。')));
+    panel.append(note(t('Noise-rejection objective: maximize noise rejection while retaining ≥95% of relevant development candidates and keeping development nDCG@10 within 0.005 of ungated Score. These are development constraints, not test guarantees.', '噪声剔除目标：在开发集相关候选保留率 ≥95%、开发集 nDCG@10 比不过滤 Score 下降不超过 0.005 的约束下，最大化噪声剔除率。这些是开发集约束，不是测试集保证。')));
     const controlHost = el('div', 'rx-controls');
     controlHost.style.marginTop = '18px';
     const resultHost = el('div');
@@ -280,7 +280,7 @@
       resultHost.append(note(policyDescription(policy)));
       if (r.relevant_retention < .95) resultHost.append(el('div', 'rx-callout rx-caution', t('The development retention constraint did not transfer: test relevant retention is below 95%.', '开发集保留率约束未迁移成功：测试相关文档保留率低于 95%。')));
     }
-    controlHost.append(selectControl(t('Frozen follow-up policy · N=50', '固定后续策略 · N=50'), Object.keys(labels).filter(k => d.test['50'][k]).map(k => [k, labels[k]]), selected, value => { selected = value; result(); }));
+    controlHost.append(selectControl(t('Frozen policy · small pool · N=50', '固定策略 · small 候选池 · N=50'), Object.keys(labels).filter(k => d.test['50'][k]).map(k => [k, labels[k]]), selected, value => { selected = value; result(); }));
     append(panel, controlHost, resultHost); result();
     panel.append(exactTable([t('Fixed policy', '固定策略'), t('Retention dev', '开发保留率'), t('Retention test', '测试保留率'), t('Noise rejection test', '测试拒绝噪声'), 'nDCG@10', t('Empty', '空结果')], Object.entries(labels).filter(([k]) => d.test['50'][k]).map(([k, label]) => { const r = d.test['50'][k]; const dev = k === 'v2_noul' ? d.dev_selected?.noul : k === 'v2_joint' ? d.dev_selected?.joint : null; return [label, dev ? num(dev.relevant_retention) : '—', num(r.relevant_retention), num(r.noise_rejection), num(r.ndcg10), `${Math.round(r.empty * r.queries)}/${r.queries}`]; })));
     const diagnostics = d.feature_diagnostics;
